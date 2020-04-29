@@ -49,7 +49,7 @@ public class SqlBuilder {
             builder.append(" NULL");
         }
         if (columnMeta.getDefaultValue() != null) {
-            builder.append(" DEFAULT ").append(columnMeta.getDefaultValue()).append(" ");
+            builder.append(" DEFAULT '").append(columnMeta.getDefaultValue()).append("' ");
         }
         if (columnMeta.getComment() != null) {
             builder.append(" COMMENT '").append(columnMeta.getComment()).append("'");

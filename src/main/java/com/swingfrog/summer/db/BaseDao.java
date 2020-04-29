@@ -62,15 +62,16 @@ public abstract class BaseDao<T> {
 	protected int update(String sql, Object... args) {
 		if (log.isDebugEnabled())
 			log.debug("{}  {}", sql, args);
-		int i = 0;
+		int i;
 		try {
 			i = queryRunner.update(getConnection(), sql, args);
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			log.error(e.getMessage(), e);
+			throw new DaoRuntimeException("dao update failure, %s", getEntityClass().getName());
 		} finally {
 			 try {
 				DataBaseMgr.get().discardConnectionFromDao();
-			} catch (SQLException e) {
+			} catch (Exception e) {
 				log.error(e.getMessage(), e);
 			}
 		}	
@@ -85,33 +86,33 @@ public abstract class BaseDao<T> {
 		}
 		try {
 			return queryRunner.batch(getConnection(), sql, args);
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			log.error(e.getMessage(), e);
+			throw new DaoRuntimeException("dao batch update failure, %s", getEntityClass().getName());
 		} finally {
 			try {
 				DataBaseMgr.get().discardConnectionFromDao();
-			} catch (SQLException e) {
+			} catch (Exception e) {
 				log.error(e.getMessage(), e);
 			}
 		}
-		return null;
 	}
 	
 	protected Long insertAndGetGeneratedKeys(String sql, Object... args) {
 		if (log.isDebugEnabled())
 			log.debug("{}  {}", sql, args);
 		try {
-			return queryRunner.insert(getConnection(), sql, new ScalarHandler<Long>(), args);
-		} catch (SQLException e) {
+			return queryRunner.insert(getConnection(), sql, new ScalarHandler<>(), args);
+		} catch (Exception e) {
 			log.error(e.getMessage(), e);
+			throw new DaoRuntimeException("dao insert failure, %s", getEntityClass().getName());
 		} finally {
 			 try {
 				DataBaseMgr.get().discardConnectionFromDao();
-			} catch (SQLException e) {
+			} catch (Exception e) {
 				log.error(e.getMessage(), e);
 			}
-		}	
-		return null;
+		}
 	}
 
 	protected T getBean(String sql, Object... args) {
@@ -123,16 +124,16 @@ public abstract class BaseDao<T> {
 			log.debug("{}  {}", sql, args);
 		try {
 			return queryRunner.query(getConnection(), sql, rsh, args);
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			log.error(e.getMessage(), e);
+			throw new DaoRuntimeException("dao get bean failure, %s", getEntityClass().getName());
 		} finally {
 			try {
 				DataBaseMgr.get().discardConnectionFromDao();
-			} catch (SQLException e) {
+			} catch (Exception e) {
 				log.error(e.getMessage(), e);
 			}
 		}
-		return null;
 	}
 
 	protected List<T> listBean(String sql, Object... args) {
@@ -144,16 +145,16 @@ public abstract class BaseDao<T> {
 			log.debug("{}  {}", sql, args);
 		try {
 			return queryRunner.query(getConnection(), sql, rsh, args);
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			log.error(e.getMessage(), e);
+			throw new DaoRuntimeException("dao list bean failure, %s", getEntityClass().getName());
 		} finally {
 			try {
 				DataBaseMgr.get().discardConnectionFromDao();
-			} catch (SQLException e) {
+			} catch (Exception e) {
 				log.error(e.getMessage(), e);
 			}
 		}
-		return null;
 	}
 
 	protected <E> E getValue(String sql, Object... args) {
@@ -161,16 +162,16 @@ public abstract class BaseDao<T> {
 			log.debug("{}  {}", sql, args);
 		try {
 			return queryRunner.query(getConnection(), sql, new ScalarHandler<>(), args);
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			log.error(e.getMessage(), e);
+			throw new DaoRuntimeException("dao get value failure, %s", getEntityClass().getName());
 		} finally {
 			try {
 				DataBaseMgr.get().discardConnectionFromDao();
-			} catch (SQLException e) {
+			} catch (Exception e) {
 				log.error(e.getMessage(), e);
 			}
 		}
-		return null;
 	}
 
 	protected <E> List<E> listValue(String sql, Object... args) {
@@ -178,16 +179,16 @@ public abstract class BaseDao<T> {
 			log.debug("{}  {}", sql, args);
 		try {
 			return queryRunner.query(getConnection(), sql, new ColumnListHandler<>(), args);
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			log.error(e.getMessage(), e);
+			throw new DaoRuntimeException("dao list value failure, %s", getEntityClass().getName());
 		} finally {
 			try {
 				DataBaseMgr.get().discardConnectionFromDao();
-			} catch (SQLException e) {
+			} catch (Exception e) {
 				log.error(e.getMessage(), e);
 			}
 		}
-		return null;
 	}
 	
 	protected Map<String, Object> getMap(String sql, Object... args) {
@@ -195,16 +196,16 @@ public abstract class BaseDao<T> {
 			log.debug("{}  {}", sql, args);
 		try {
 			return queryRunner.query(getConnection(), sql, new MapHandler(), args);
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			log.error(e.getMessage(), e);
+			throw new DaoRuntimeException("dao get map failure, %s", getEntityClass().getName());
 		} finally {
 			try {
 				DataBaseMgr.get().discardConnectionFromDao();
-			} catch (SQLException e) {
+			} catch (Exception e) {
 				log.error(e.getMessage(), e);
 			}
 		}
-		return null;
 	}
 	
 	protected List<Map<String, Object>> listMap(String sql, Object... args) {
@@ -212,16 +213,16 @@ public abstract class BaseDao<T> {
 			log.debug("{}  {}", sql, args);
 		try {
 			return queryRunner.query(getConnection(), sql, new MapListHandler(), args);
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			log.error(e.getMessage(), e);
+			throw new DaoRuntimeException("dao list map failure, %s", getEntityClass().getName());
 		} finally {
 			try {
 				DataBaseMgr.get().discardConnectionFromDao();
-			} catch (SQLException e) {
+			} catch (Exception e) {
 				log.error(e.getMessage(), e);
 			}
 		}
-		return null;
 	}
 	
 	protected <E> E getBeanByClass(String sql, Class<E> clazz, Object... args) {
@@ -229,16 +230,16 @@ public abstract class BaseDao<T> {
 			log.debug("{}  {}", sql, args);
 		try {
 			return queryRunner.query(getConnection(), sql, new BeanHandler<>(clazz), args);
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			log.error(e.getMessage(), e);
+			throw new DaoRuntimeException("dao get bean by class failure, %s", getEntityClass().getName());
 		} finally {
 			try {
 				DataBaseMgr.get().discardConnectionFromDao();
-			} catch (SQLException e) {
+			} catch (Exception e) {
 				log.error(e.getMessage(), e);
 			}
 		}
-		return null;
 	}
 	
 	protected <E> List<E> listBeanByClass(String sql, Class<E> clazz, Object... args) {
@@ -246,15 +247,15 @@ public abstract class BaseDao<T> {
 			log.debug("{}  {}", sql, args);
 		try {
 			return queryRunner.query(getConnection(), sql, new BeanListHandler<>(clazz), args);
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			log.error(e.getMessage(), e);
+			throw new DaoRuntimeException("dao list bean by class failure, %s", getEntityClass().getName());
 		} finally {
 			try {
 				DataBaseMgr.get().discardConnectionFromDao();
-			} catch (SQLException e) {
+			} catch (Exception e) {
 				log.error(e.getMessage(), e);
 			}
 		}
-		return null;
 	}
 }

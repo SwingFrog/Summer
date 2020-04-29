@@ -3,6 +3,7 @@ package com.swingfrog.summer.db.repository;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.swingfrog.summer.db.BaseDao;
+import com.swingfrog.summer.db.DaoRuntimeException;
 import org.apache.commons.dbutils.BasicRowProcessor;
 import org.apache.commons.dbutils.handlers.BeanHandler;
 import org.apache.commons.dbutils.handlers.BeanListHandler;
@@ -75,7 +76,7 @@ public abstract class RepositoryDao<T, K> extends BaseDao<T> {
 
     private long nextPrimaryKey() {
         if (!isAutoIncrement()) {
-            throw new UnsupportedOperationException("primary key must be auto increment");
+            throw new DaoRuntimeException("primary key must be auto increment");
         }
         return primaryKey.incrementAndGet();
     }

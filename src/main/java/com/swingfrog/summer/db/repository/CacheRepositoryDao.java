@@ -6,6 +6,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.swingfrog.summer.db.DaoRuntimeException;
 import com.swingfrog.summer.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +38,7 @@ public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
         try {
             EMPTY = getEntityClass().newInstance();
         } catch (InstantiationException | IllegalAccessException e) {
-            throw new RuntimeException("cache repository EMPTY not null");
+            throw new DaoRuntimeException("cache repository EMPTY not null");
         }
         tableMeta.getCacheKeys().forEach(columnMeta -> {
             cachePkMap.put(columnMeta.getName(),
@@ -186,7 +187,7 @@ public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
         if (normal.size() > 0) {
             list = list.stream().filter(obj -> {
                 for (Map.Entry<String, Object> entry : normal.entrySet()) {
-                    if (!TableValueBuilder.isEqulsColumnValue(tableMeta.getColumnMetaMap().get(entry.getKey()), obj, entry.getValue())) {
+                    if (!TableValueBuilder.isEqualsColumnValue(tableMeta.getColumnMetaMap().get(entry.getKey()), obj, entry.getValue())) {
                         return false;
                     }
                 }

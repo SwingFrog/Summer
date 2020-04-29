@@ -201,7 +201,7 @@
                     </execution>
                 </executions>
             </plugin>
-            staging puglin,用于自动执行发布阶段(免手动)
+            <!--staging puglin,用于自动执行发布阶段(免手动)-->
             <plugin>
                 <groupId>org.sonatype.plugins</groupId>
                 <artifactId>nexus-staging-maven-plugin</artifactId>

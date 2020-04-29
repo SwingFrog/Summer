@@ -67,7 +67,7 @@ public class DataBaseMgr {
 
 	public Connection getConnection(String topic) throws SQLException {
 		if (!otherDataSourceMap.containsKey(topic)) {
-			throw new RuntimeException(String.format("not found data source for the topic[%s]", topic));
+			throw new DaoRuntimeException(String.format("not found data source for the topic[%s]", topic));
 		}
 		Connection conn = local.get().getOtherConn(topic);
 		if (conn == null) {

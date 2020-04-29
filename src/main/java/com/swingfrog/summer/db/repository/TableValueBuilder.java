@@ -87,7 +87,7 @@ public class TableValueBuilder {
         }
     }
 
-    public static boolean isEqulsColumnValue(TableMeta.ColumnMeta columnMeta, Object obj, Object value) {
+    public static boolean isEqualsColumnValue(TableMeta.ColumnMeta columnMeta, Object obj, Object value) {
         Object columnValue = getColumnValue(columnMeta, obj);
         if (columnValue.equals(value)) {
             return true;

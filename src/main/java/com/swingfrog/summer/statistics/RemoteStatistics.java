@@ -23,11 +23,11 @@ public class RemoteStatistics {
     private ConcurrentMap<SessionRequest, Req> requestMap = Maps.newConcurrentMap();
     private ConcurrentMap<String, Statistics> remoteMethodMap = Maps.newConcurrentMap();
 
-    private class Req {
+    private static class Req {
         private long time;
         private int size;
     }
-    private class Value {
+    private static class Value {
         private int min = Integer.MAX_VALUE;
         private int max = Integer.MIN_VALUE;
         private int total;
@@ -42,7 +42,7 @@ public class RemoteStatistics {
             return total / count;
         }
     }
-    private class Statistics {
+    private static class Statistics {
         private Value consumeMs = new Value();
         private Value reqSize = new Value();
         private Value respSize = new Value();

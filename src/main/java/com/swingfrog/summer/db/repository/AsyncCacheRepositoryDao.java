@@ -3,6 +3,7 @@ package com.swingfrog.summer.db.repository;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Queues;
 import com.google.common.collect.Sets;
+import com.swingfrog.summer.db.DaoRuntimeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +37,7 @@ public abstract class AsyncCacheRepositoryDao<T, K> extends CacheRepositoryDao<T
                 TimeUnit.MILLISECONDS);
         AsyncCacheRepositoryMgr.get().addHook(() -> delay(true));
         if (delayTime >= expireTime()) {
-            throw new RuntimeException(String.format("async cache repository delayTime[%s] must be less than expireTime[%s]", delayTime, expireTime()));
+            throw new DaoRuntimeException(String.format("async cache repository delayTime[%s] must be less than expireTime[%s]", delayTime, expireTime()));
         }
     }
 

@@ -116,7 +116,7 @@ public class TableMetaBuilder {
     private static ColumnType getColumnType(Field field, Column column) {
         Class<?> type = field.getType();
         if (type == boolean.class || type == Boolean.class)
-            return ColumnType.BIT;
+            return ColumnType.TINYINT;
         if (type == byte.class || type == Byte.class)
             return ColumnType.TINYINT;
         if (type == short.class || type == Short.class)
@@ -164,9 +164,9 @@ public class TableMetaBuilder {
         if (type == double.class)
             return "0";
         if (type.isArray() || Collection.class.isAssignableFrom(type))
-            return "'[]'";
+            return "[]";
         if (Map.class.isAssignableFrom(type))
-            return "'{}'";
+            return "{}";
         return null;
     }
 }

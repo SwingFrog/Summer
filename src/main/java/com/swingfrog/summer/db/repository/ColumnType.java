@@ -2,7 +2,6 @@ package com.swingfrog.summer.db.repository;
 
 public enum ColumnType {
     DEFAULT,
-    BIT,
     TINYINT,
     SMALLINT,
     INT,
