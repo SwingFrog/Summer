@@ -6,7 +6,7 @@
 
     <groupId>com.swingfrog.summer</groupId>
     <artifactId>summer</artifactId>
-    <version>1.0.9</version>
+    <version>1.0.10</version>
     <packaging>jar</packaging>
 
 
@@ -201,7 +201,7 @@
                     </execution>
                 </executions>
             </plugin>
-            <!--staging puglin,用于自动执行发布阶段(免手动)-->
+            staging puglin,用于自动执行发布阶段(免手动)
             <plugin>
                 <groupId>org.sonatype.plugins</groupId>
                 <artifactId>nexus-staging-maven-plugin</artifactId>

@@ -77,14 +77,16 @@ public class TableMetaBuilder {
         TableMeta.ColumnMeta columnMeta = new TableMeta.ColumnMeta();
         Column column = field.getAnnotation(Column.class);
         columnMeta.setName(field.getName());
+        ColumnType columnType;
         if (column.type() == ColumnType.DEFAULT) {
-            ColumnType columnType = getColumnType(field, column);
+            columnType = getColumnType(field, column);
             if (columnType == ColumnType.CHAR || columnType == ColumnType.VARCHAR) {
                 columnMeta.setType(String.format("%s(%s)", columnType.name(), column.length()));
             } else {
                 columnMeta.setType(columnType.name());
             }
         } else {
+            columnType = column.type();
             columnMeta.setType(column.type().name());
         }
         if (columnMeta.getType().toUpperCase().endsWith("INT")) {
@@ -106,7 +108,8 @@ public class TableMetaBuilder {
             columnMeta.setIndex(indexKey.index());
         }
         columnMeta.setComment(column.comment());
-        columnMeta.setDefaultValue(getDefaultValue(field));
+
+        columnMeta.setDefaultValue(getDefaultValue(field, columnType));
         return columnMeta;
     }
 
@@ -140,7 +143,11 @@ public class TableMetaBuilder {
         return ColumnType.TEXT;
     }
 
-    private static String getDefaultValue(Field field) {
+    private static String getDefaultValue(Field field, ColumnType columnType) {
+        if (columnType == ColumnType.BLOB || columnType == ColumnType.LONGBLOB)
+            return null;
+        if (columnType == ColumnType.TEXT || columnType == ColumnType.LONGTEXT)
+            return null;
         Class<?> type = field.getType();
         if (type == boolean.class)
             return "0";
@@ -157,9 +164,9 @@ public class TableMetaBuilder {
         if (type == double.class)
             return "0";
         if (type.isArray() || Collection.class.isAssignableFrom(type))
-            return "[]";
+            return "'[]'";
         if (Map.class.isAssignableFrom(type))
-            return "{}";
+            return "'{}'";
         return null;
     }
 }
