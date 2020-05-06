@@ -81,6 +81,7 @@ public class EventBusMgr {
 						break;
 					}
 				} catch (Exception e) {
+					log.error("dispatch event[{}] invoke {}.{} failure", eventName, clazz.getSimpleName(), event.getMethod().getName());
 					log.error(e.getMessage(), e);
 				}
 			}
