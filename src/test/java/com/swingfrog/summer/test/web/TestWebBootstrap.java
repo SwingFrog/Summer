@@ -28,7 +28,7 @@ public class TestWebBootstrap implements SummerApp {
         log.info("stop");
     }
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         String resources = TestWebBootstrap.class.getClassLoader().getResource("web").getPath();
         Summer.hot(SummerConfig.newBuilder()
                 .app(new TestWebBootstrap())

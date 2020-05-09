@@ -36,6 +36,8 @@ public class ServerConfig {
 	private String[] allowAddressList;
 	/**使用主端口的线程池 (监听线程池, 读写线程池, 业务线程池)*/
 	private boolean useMainServerThreadPool;
+	/**SOCKET: SO_BACKLOG*/
+	private int optionSoBacklog;
 	
 	public String getCluster() {
 		return cluster;
@@ -133,6 +135,12 @@ public class ServerConfig {
 	public void setUseMainServerThreadPool(boolean useMainServerThreadPool) {
 		this.useMainServerThreadPool = useMainServerThreadPool;
 	}
+	public int getOptionSoBacklog() {
+		return optionSoBacklog;
+	}
+	public void setOptionSoBacklog(int optionSoBacklog) {
+		this.optionSoBacklog = optionSoBacklog;
+	}
 
 	@Override
 	public String toString() {
@@ -153,6 +161,7 @@ public class ServerConfig {
 				", allowAddressEnable=" + allowAddressEnable +
 				", allowAddressList=" + Arrays.toString(allowAddressList) +
 				", useMainServerThreadPool=" + useMainServerThreadPool +
+				", optionSoBacklog=" + optionSoBacklog +
 				'}';
 	}
 

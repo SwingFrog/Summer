@@ -7,6 +7,7 @@ import io.netty.util.concurrent.DefaultThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.beans.IntrospectionException;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Properties;
@@ -35,7 +36,7 @@ public class AsyncCacheRepositoryMgr {
         return AsyncCacheRepositoryMgr.SingleCase.INSTANCE;
     }
 
-    public void loadConfig(String path) throws IOException {
+    public void loadConfig(String path) throws IOException, IntrospectionException {
         Properties pro = new Properties();
         FileInputStream in = new FileInputStream(path);
         pro.load(in);

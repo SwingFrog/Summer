@@ -4,6 +4,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Queues;
 import com.google.common.collect.Sets;
 import com.swingfrog.summer.db.DaoRuntimeException;
+import com.swingfrog.summer.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,12 +15,13 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public abstract class AsyncCacheRepositoryDao<T, K> extends CacheRepositoryDao<T, K> {
 
     private static final Logger log = LoggerFactory.getLogger(AsyncCacheRepositoryDao.class);
-
+    private static final String PREFIX = "AsyncCacheRepositoryDao";
     private final ConcurrentLinkedQueue<Change<T, K>> waitChange = Queues.newConcurrentLinkedQueue();
     private final ConcurrentMap<T, Long> waitSave = Maps.newConcurrentMap();
     private long delayTime = delayTime();
@@ -127,6 +129,21 @@ public abstract class AsyncCacheRepositoryDao<T, K> extends CacheRepositoryDao<T
         objs.forEach(this::save);
     }
 
+    @Override
+    public T getOrCreate(K primaryKey, Supplier<T> supplier) {
+        T entity = get(primaryKey);
+        if (entity == null) {
+            synchronized (StringUtil.getString(PREFIX, tableMeta.getName(), "getOrCreate", primaryKey)) {
+                entity = get(primaryKey);
+                if (entity == null) {
+                    entity = supplier.get();
+                    add(entity);
+                }
+            }
+        }
+        return entity;
+    }
+
     private static class Change<T, K> {
         T obj;
         K pk;
@@ -162,4 +179,7 @@ public abstract class AsyncCacheRepositoryDao<T, K> extends CacheRepositoryDao<T
         super.save(objs);
     }
 
+    public T syncGetOrCreate(K primaryKey, Supplier<T> supplier) {
+        return super.getOrCreate(primaryKey, supplier);
+    }
 }

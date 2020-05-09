@@ -1,5 +1,6 @@
 package com.swingfrog.summer.config;
 
+import java.beans.IntrospectionException;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,11 +25,11 @@ public class ConfigMgr {
 		return SingleCase.INSTANCE;
 	}
 
-	public void loadConfig(String path) throws IOException {
+	public void loadConfig(String path) throws IOException, IntrospectionException {
 		loadConfig(new FileInputStream(path));
 	}
 
-	public void loadConfig(InputStream in) throws IOException {
+	public void loadConfig(InputStream in) throws IOException, IntrospectionException {
 		Properties pro = new Properties();
 		pro.load(in);
 		ConfigUtil.loadDataWithBean(pro, "server.", serverConfig);

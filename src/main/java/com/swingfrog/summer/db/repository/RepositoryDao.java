@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.swingfrog.summer.db.BaseDao;
 import com.swingfrog.summer.db.DaoRuntimeException;
+import com.swingfrog.summer.util.StringUtil;
 import org.apache.commons.dbutils.BasicRowProcessor;
 import org.apache.commons.dbutils.handlers.BeanHandler;
 import org.apache.commons.dbutils.handlers.BeanListHandler;
@@ -13,9 +14,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public abstract class RepositoryDao<T, K> extends BaseDao<T> {
+
+    private static final String PREFIX = "RepositoryDao";
 
     private BeanHandler<T> beanHandler;
     private BeanListHandler<T> beanListHandler;
@@ -128,6 +132,20 @@ public abstract class RepositoryDao<T, K> extends BaseDao<T> {
     public T get(K primaryKey) {
         Objects.requireNonNull(primaryKey, "repository get primary key not null");
         return get(selectSql, primaryKey);
+    }
+
+    public T getOrCreate(K primaryKey, Supplier<T> supplier) {
+        T entity = get(primaryKey);
+        if (entity == null) {
+            synchronized (StringUtil.getString(PREFIX, tableMeta.getName(), "getOrCreate", primaryKey)) {
+                entity = get(primaryKey);
+                if (entity == null) {
+                    entity = supplier.get();
+                    add(entity);
+                }
+            }
+        }
+        return entity;
     }
 
     public List<T> list(String field, Object value) {

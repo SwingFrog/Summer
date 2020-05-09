@@ -23,7 +23,7 @@ public class TestSlaveBootstrap implements SummerApp {
         log.info("stop");
     }
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         String resources = TestSlaveBootstrap.class.getClassLoader().getResource("server/slave").getPath();
         Summer.hot(SummerConfig.newBuilder()
                 .app(new TestSlaveBootstrap())

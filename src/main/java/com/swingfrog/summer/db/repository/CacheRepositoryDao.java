@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
@@ -141,6 +142,21 @@ public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
             return null;
         }
         return obj;
+    }
+
+    @Override
+    public T getOrCreate(K primaryKey, Supplier<T> supplier) {
+        T entity = get(primaryKey);
+        if (entity == null) {
+            synchronized (StringUtil.getString(PREFIX, tableMeta.getName(), "getOrCreate", primaryKey)) {
+                entity = get(primaryKey);
+                if (entity == null) {
+                    entity = supplier.get();
+                    add(entity);
+                }
+            }
+        }
+        return entity;
     }
 
     @Override

@@ -1,20 +1,14 @@
 package com.swingfrog.summer.config;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Properties;
 
 public class ConfigUtil {
 
-    private static final Logger log = LoggerFactory.getLogger(ConfigUtil.class);
-
-    public static void loadDataWithBean(Properties pro, String prefix, Object dest) {
+    public static void loadDataWithBean(Properties pro, String prefix, Object dest) throws IntrospectionException {
         Class<?> destClass = dest.getClass();
         Field[] destFields = destClass.getDeclaredFields();
         Field destField;
@@ -22,19 +16,16 @@ public class ConfigUtil {
         for (int i = 0; i < destFields.length; i++) {
             destField = destFields[i];
             if (destField != null) {
-                try {
-                    destMethods[i] = new PropertyDescriptor(destField.getName(), destClass).getWriteMethod();
-                } catch (IntrospectionException e) {
-                    log.error(e.getMessage(), e);
-                }
+                destMethods[i] = new PropertyDescriptor(destField.getName(), destClass).getWriteMethod();
             }
         }
-        try {
-            for (int i = 0; i < destFields.length; i++) {
+        for (int i = 0; i < destFields.length; i++) {
+            try {
                 destMethods[i].invoke(dest, (Object)getValueByTypeAndString(destFields[i].getType(), pro.getProperty(prefix + destFields[i].getName())));
+            } catch (Exception e) {
+                throw new RuntimeException(String.format("load properties %s failure", prefix + destFields[i].getName()));
             }
-        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-            log.error(e.getMessage(), e);
+
         }
     }
 
@@ -49,17 +40,17 @@ public class ConfigUtil {
             return (T)value.split(",");
         } else if (clazz == byte[].class || clazz == short[].class || clazz == int[].class || clazz == long[].class ||
                 clazz == Byte[].class || clazz == Short[].class || clazz == Integer[].class || clazz == Long[].class) {
-            String[] strs = value.split(",");
-            Integer[] values = new Integer[strs.length];
-            for (int i = 0; i < strs.length ; i ++) {
-                values[i] = Integer.valueOf(strs[i]);
+            String[] texts = value.split(",");
+            Integer[] values = new Integer[texts.length];
+            for (int i = 0; i < texts.length ; i ++) {
+                values[i] = Integer.valueOf(texts[i]);
             }
             return (T)values;
         } else if (clazz == boolean[].class || clazz == Boolean[].class) {
-            String[] strs = value.split(",");
-            Boolean[] values = new Boolean[strs.length];
-            for (int i = 0; i < strs.length ; i ++) {
-                values[i] = Boolean.valueOf(strs[i]);
+            String[] texts = value.split(",");
+            Boolean[] values = new Boolean[texts.length];
+            for (int i = 0; i < texts.length ; i ++) {
+                values[i] = Boolean.valueOf(texts[i]);
             }
             return (T)values;
         }

@@ -75,8 +75,8 @@ public class ContainerMgr {
 	
 	public void init(String projectPackage) throws InstantiationException, IllegalAccessException {
 		log.info("container init...");
-		Set<Class<?>> clazzs = ClassFind.getClasses(projectPackage);
-		for (Class<?> clazz : clazzs) {
+		Set<Class<?>> classSet = ClassFind.getClasses(projectPackage);
+		for (Class<?> clazz : classSet) {
 			if (!clazz.isAnonymousClass() && 
 					!clazz.isMemberClass() && 
 					!clazz.isLocalClass() && 

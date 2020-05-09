@@ -7,6 +7,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import com.swingfrog.summer.util.ThreadCountUtil;
+import io.netty.buffer.PooledByteBufAllocator;
 import org.quartz.SchedulerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,6 +54,7 @@ public class Server {
 		log.info("server coldDownMs {}", config.getColdDownMs());
 		log.info("server allowAddressEnable {}", config.isAllowAddressEnable());
 		log.info("server allowAddressList {}", Arrays.toString(config.getAllowAddressList()));
+		log.info("server optionSoBacklog {}", config.getOptionSoBacklog());
 		config.setUseMainServerThreadPool(false);
 		return new Server(config,
 				new NioEventLoopGroup(config.getBossThread(), new DefaultThreadFactory("ServerBoss")),
@@ -81,6 +83,7 @@ public class Server {
 		log.info("minor coldDownMs {}", config.getColdDownMs());
 		log.info("minor allowAddressEnable {}", config.isAllowAddressEnable());
 		log.info("minor allowAddressList {}", Arrays.toString(config.getAllowAddressList()));
+		log.info("minor optionSoBacklog {}", config.getOptionSoBacklog());
 		if (config.isUseMainServerThreadPool()) {
 			return new Server(config, bossGroup, workerGroup, eventExecutor, pushExecutor);
 		} else {
@@ -94,10 +97,13 @@ public class Server {
 
 	public void launch() {
 		try {
+			int soBacklog = serverContext.getConfig().getOptionSoBacklog();
 			ServerBootstrap b = new ServerBootstrap();
 			b.group(bossGroup, workerGroup)
 					.channel(NioServerSocketChannel.class)
-					.option(ChannelOption.SO_BACKLOG, 5)
+					.option(ChannelOption.SO_BACKLOG, soBacklog > 0 ? soBacklog : 1024)
+					.option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
+					.childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
 					.childOption(ChannelOption.TCP_NODELAY, true);
 			b.childHandler(new ServerInitializer(serverContext));
 			b.bind(serverContext.getConfig().getAddress(), serverContext.getConfig().getPort()).sync();
@@ -105,6 +111,7 @@ public class Server {
 			log.info("server[{}] launch success", serverContext.getConfig().getServerName());
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
+			throw new RuntimeException(String.format("server[%s] launch failure", serverContext.getConfig().getServerName()));
 		}
 	}
 

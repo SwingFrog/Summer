@@ -23,6 +23,11 @@
 
 
 ## 更新
+### 2020.05.09
+1. ServerBootstrap启动参数中的ChannelOption.SO_BACKLOG改为读取配置表，并将ChannelOption.ALLOCATOR设为PooledByteBufAllocator.DEFAULT
+2. 仓库调整，增加getOrCreate方法。
+3. 当项目未能在预期情况下运行时（例如端口被占用），及时终止进程。
+
 ### 2020.04.28
 1. 当使用仓库时，实体的某个字段的类型如果为Array、Collection(List Set Queue)、Map、以及自定义的类时，需设定length。当length<=255，使用CHAR类型；当length<=16383，使用VARCHAR类型；当length>16383，使用TEXT类型。
 2. SessionContext中的address分为directAddress和realAddress，其中directAddress为链路IP，realAddress通过Head中的"X-Forwarded-For"获取客户端真实IP，仅在HTTP、WEBSOCKET协议且在使用反向代理的情况下生效。
@@ -110,7 +115,7 @@ Redis 5.0 (仅供参考)<br/>
     <dependency>
         <groupId>com.swingfrog.summer</groupId>
         <artifactId>summer</artifactId>
-        <version>1.0.11</version>
+        <version>1.0.12</version>
     </dependency>
 ```
 
@@ -177,7 +182,6 @@ public class SummerDemoApp implements SummerApp {
 #### config
 - db.properties #数据库配置文件
 - redis.properties #缓存配置文件
-- log.properties #日志配置文件
 - task.properties #任务配置文件
 - server.properties #服务器配置文件
 
@@ -218,26 +222,6 @@ maxWaitMillis=100000
 testOnBorrow=true
 ```
 
-##### log.properties (log4j配置文件)
-```properties
-log4j.rootLogger=DEBUG,C
-log4j.logger.org.quartz=OFF
-log4j.logger.com.alibaba.druid=DEBUG
-log4j.logger.io.netty=OFF
-
-log4j.appender.C=org.apache.log4j.ConsoleAppender
-log4j.appender.C.Target=System.out
-log4j.appender.C.layout=com.swingfrog.summer.log.ColorPatternLayout
-log4j.appender.C.layout.ConversionPattern=%-d{yyyy-MM-dd HH\:mm\:ss\:SSS} [%t] %p [] %m %n
-
-log4j.appender.F=org.apache.log4j.DailyRollingFileAppender
-log4j.appender.F.File=log/container
-log4j.appender.F.Append=true
-log4j.appender.F.DatePattern='.'yyyy-MM-dd
-log4j.appender.F.layout=com.swingfrog.summer.log.ColorPatternLayout
-log4j.appender.F.layout.ConversionPattern=%-d{yyyy-MM-dd HH\:mm\:ss\:SSS} [%t] %p [] %m %n
-```
-
 ##### task.properties (quartz配置文件)
 ```properties
 org.quartz.scheduler.instanceName=Task
@@ -252,7 +236,7 @@ org.quartz.jobStore.misfireThreshold=60000
 org.quartz.jobStore.class=org.quartz.simpl.RAMJobStore
 ```
 
-##### server.properties (服务器配置文件) [6.12更新]
+##### server.properties (服务器配置文件) [2020.05.09更新]
 ```properties
 #服务器集群名称
 server.cluster=Gate
@@ -284,6 +268,8 @@ server.coldDownMs=10
 server.allowAddressEnable=true
 #白名单允许连接的地址
 server.allowAddressList=127.0.0.1,127.0.0.2
+#SOCKET: SO_BACKLOG
+server.optionSoBacklog=1024
 
 #服务器的其他端口列表
 server.minorList=gate_s2
@@ -303,8 +289,10 @@ minor.gate_s2.heartSec=40
 minor.gate_s2.coldDownMs=10
 minor.gate_s2.allowAddressEnable=false
 minor.gate_s2.allowAddressList=
+minor.gate_s2.optionSoBacklog=1024
 #使用主端口的线程池 (监听线程池, 读写线程池, 业务线程池) 默认为false
 minor.gate_s2.useMainServerThreadPool=true
+
 
 #连接其他服务器的列表
 server.clientList=account_s1,account_s2

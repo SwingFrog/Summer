@@ -51,10 +51,10 @@ public class ServerMgr {
 		if (minorConfigs != null && minorConfigs.length > 0) {
 			for (ServerConfig sc : minorConfigs) {
 				Server s = Server.createMinor(sc, server.getBossGroup(), server.getWorkerGroup(), server.getEventExecutor(), server.getPushExecutor());
-				Iterator<Class<?>> sciteratorHandler = ContainerMgr.get().iteratorHandlerList(sc.getServerName());
-				if (sciteratorHandler != null) {
-					while (sciteratorHandler.hasNext()) {
-						Class<?> clazz = sciteratorHandler.next();
+				Iterator<Class<?>> scIteratorHandler = ContainerMgr.get().iteratorHandlerList(sc.getServerName());
+				if (scIteratorHandler != null) {
+					while (scIteratorHandler.hasNext()) {
+						Class<?> clazz = scIteratorHandler.next();
 						log.info("server [{}] register session handler {}", sc.getServerName(), clazz.getSimpleName());
 						s.addSessionHandler((SessionHandler) ContainerMgr.get().getDeclaredComponent(clazz));
 					}

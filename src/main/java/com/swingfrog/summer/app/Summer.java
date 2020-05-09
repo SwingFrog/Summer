@@ -44,35 +44,40 @@ public class Summer {
 	private static Logger log = LoggerFactory.getLogger(Summer.class);
 	public static final String NAME = "Summer";
 	
-	public static void main(String[] args) throws Exception {
-		if (args.length == 0) {
-			System.out.println("hello, you need to fill in two parameters to start the application.");
-			System.out.println();
-			System.out.println("args:\n[app jar] [main class]");
-			System.out.println();
-			System.out.println("example:\nxxx.jar xxx.xxx.xxx.xxx");
-			return;
+	public static void main(String[] args) {
+		try {
+			if (args.length == 0) {
+				System.out.println("hello, you need to fill in two parameters to start the application.");
+				System.out.println();
+				System.out.println("args:\n[app jar] [main class]");
+				System.out.println();
+				System.out.println("example:\nxxx.jar xxx.xxx.xxx.xxx");
+				return;
+			}
+			String appJar = args[0];
+			String mainClass = args[1];
+			JarLoader.loadJar(appJar);
+			Class<?> clazz = Class.forName(mainClass);
+			Method method = clazz.getMethod("main", String[].class);
+			method.invoke(clazz, new Object[]{args});
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
+			System.exit(-1);
 		}
-		String appJar = args[0];
-		String mainClass = args[1];
-		JarLoader.loadJar(appJar);
-		Class<?> clazz = Class.forName(mainClass);
-		Method method = clazz.getMethod("main", String[].class);
-		method.invoke(clazz, new Object[]{args});
 	}
 	
-	public static void hot(SummerApp app) throws Exception {
+	public static void hot(SummerApp app) {
 		hot(app, app.getClass().getPackage().getName());
 	}
 	
-	public static void hot(SummerApp app, String projectPackage) throws Exception {
+	public static void hot(SummerApp app, String projectPackage) {
 		hot(SummerConfig.newBuilder()
 				.app(app)
 				.projectPackage(projectPackage)
 				.build());
 	}
 
-	public static void hot(SummerConfig config) throws Exception {
+	public static void hot(SummerConfig config) {
 		hot(config.getApp(),
 				config.getProjectPackage() == null ? config.getApp().getClass().getPackage().getName() : config.getProjectPackage(),
 				config.getLibPath() == null ? "lib" : config.getLibPath(),
@@ -83,59 +88,65 @@ public class Summer {
 	}
 
 	public static void hot(SummerApp app, String projectPackage, String libPath,
-			String serverProperties, String redisProperties, String dbProperties, String taskProperties) throws Exception {
-		logo();
-		log.info("summer init...");
-		JarLoader.loadJarByDir(new File(libPath));
-		log.info("config load...");
-		ConfigMgr.get().loadConfig(serverProperties);
-		RedisMgr.get().loadConfig(redisProperties);
-		DataBaseMgr.get().loadConfig(dbProperties);
-		AsyncCacheRepositoryMgr.get().loadConfig(dbProperties);
-		TaskMgr.get().init(taskProperties);
-		ContainerMgr.get().init(projectPackage);
-		ServerMgr.get().init();
-		ClientMgr.get().init();
-		EventBusMgr.get().init();
-		SessionQueueMgr.get().init(ServerMgr.get().getEventExecutor());
-		SingleQueueMgr.get().init(ServerMgr.get().getEventExecutor());
-		ContainerMgr.get().autowired();
-		ContainerMgr.get().proxyObj();
-		app.init();
-		RepositoryMgr.get().init();
-		log.info("summer launch...");
-		ContainerMgr.get().listDeclaredComponent(Lifecycle.class).stream()
-				.filter(l -> l.getInfo() != null)
-				.sorted(Comparator.comparingInt(l -> -l.getInfo().getPriority()))
-				.forEach(l -> {
-					log.info("lifecycle [{}] start", l.getInfo().getName());
-					l.start();
-				});
-		ContainerMgr.get().startTask();
-		ServerMgr.get().launch();
-		ClientMgr.get().connectAll();
-		TaskMgr.get().startAll();
-		app.start();
-		Runtime.getRuntime().addShutdownHook(new Thread(()-> {
-			ClientMgr.get().shutdown();
-			ServerMgr.get().shutdown();
-			try {
-				TaskMgr.get().shutdownAll();
-			} catch (SchedulerException e) {
-				log.error(e.getMessage(), e);
-			}
-			app.stop();
+			String serverProperties, String redisProperties, String dbProperties, String taskProperties) {
+		try {
+			logo();
+			log.info("summer init...");
+			JarLoader.loadJarByDir(new File(libPath));
+			log.info("config load...");
+			ConfigMgr.get().loadConfig(serverProperties);
+			RedisMgr.get().loadConfig(redisProperties);
+			DataBaseMgr.get().loadConfig(dbProperties);
+			AsyncCacheRepositoryMgr.get().loadConfig(dbProperties);
+			TaskMgr.get().init(taskProperties);
+			ContainerMgr.get().init(projectPackage);
+			ServerMgr.get().init();
+			ClientMgr.get().init();
+			EventBusMgr.get().init();
+			SessionQueueMgr.get().init(ServerMgr.get().getEventExecutor());
+			SingleQueueMgr.get().init(ServerMgr.get().getEventExecutor());
+			ContainerMgr.get().autowired();
+			ContainerMgr.get().proxyObj();
+			app.init();
+			RepositoryMgr.get().init();
+			log.info("summer launch...");
 			ContainerMgr.get().listDeclaredComponent(Lifecycle.class).stream()
 					.filter(l -> l.getInfo() != null)
-					.sorted(Comparator.comparingInt(l -> l.getInfo().getPriority()))
+					.sorted(Comparator.comparingInt(l -> -l.getInfo().getPriority()))
 					.forEach(l -> {
-						log.info("lifecycle [{}] stop", l.getInfo().getName());
-						l.stop();
+						log.info("lifecycle [{}] start", l.getInfo().getName());
+						l.start();
 					});
-			EventBusMgr.get().shutdown();
-			AsyncCacheRepositoryMgr.get().shutdown();
-			RemoteStatistics.print();
-		}, "shutdown"));
+			ContainerMgr.get().startTask();
+			ServerMgr.get().launch();
+			ClientMgr.get().connectAll();
+			TaskMgr.get().startAll();
+			app.start();
+			Runtime.getRuntime().addShutdownHook(new Thread(()-> {
+				ClientMgr.get().shutdown();
+				ServerMgr.get().shutdown();
+				try {
+					TaskMgr.get().shutdownAll();
+				} catch (SchedulerException e) {
+					log.error(e.getMessage(), e);
+				}
+				app.stop();
+				ContainerMgr.get().listDeclaredComponent(Lifecycle.class).stream()
+						.filter(l -> l.getInfo() != null)
+						.sorted(Comparator.comparingInt(l -> l.getInfo().getPriority()))
+						.forEach(l -> {
+							log.info("lifecycle [{}] stop", l.getInfo().getName());
+							l.stop();
+						});
+				EventBusMgr.get().shutdown();
+				AsyncCacheRepositoryMgr.get().shutdown();
+				RemoteStatistics.print();
+			}, "shutdown"));
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
+			log.error("summer cooled");
+			System.exit(-1);
+		}
 	}
 	
 	public static void sync(String key, Runnable runnable) {
@@ -173,9 +184,7 @@ public class Summer {
 	public static void autowired(Object obj) {
 		try {
 			ContainerMgr.get().autowired(obj);
-		} catch (IllegalArgumentException e) {
-			log.error(e.getMessage(), e);
-		} catch (IllegalAccessException e) {
+		} catch (IllegalArgumentException | IllegalAccessException e) {
 			log.error(e.getMessage(), e);
 		}
 	}

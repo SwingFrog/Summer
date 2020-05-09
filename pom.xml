@@ -6,7 +6,7 @@
 
     <groupId>com.swingfrog.summer</groupId>
     <artifactId>summer</artifactId>
-    <version>1.0.11</version>
+    <version>1.0.12</version>
     <packaging>jar</packaging>
 
 
@@ -141,6 +141,7 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>1.18.10</version>
+            <scope>provided</scope>
         </dependency>
 
     </dependencies>
