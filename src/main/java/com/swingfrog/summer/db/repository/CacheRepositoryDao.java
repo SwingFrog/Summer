@@ -288,6 +288,10 @@ public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
     protected void removeCacheByPrimaryKey(K primaryKey) {
         synchronized (StringUtil.getString(PREFIX, tableMeta.getName(), "addCache", primaryKey)) {
             cache.put(primaryKey, EMPTY);
+            tableMeta.getCacheKeys().forEach(columnMeta ->
+                cachePkMap.get(columnMeta.getName()).asMap().values().stream()
+                        .filter(Objects::nonNull)
+                        .forEach(pkSet -> pkSet.remove(primaryKey)));
         }
     }
 

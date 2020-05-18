@@ -23,13 +23,14 @@ public class TestService implements Lifecycle {
     @Override
     public void start() {
         log.info("TestService.start");
+        System.out.println(testDao.list("type", 5));
         for (int i = 0; i < 10; i++) {
-            for (int j = 0; j < 10; j++) {
-                testDao.add(Test.of(0, j, "content" + (i + j)));
-            }
+            testDao.add(Test.of(i, i, "content" + i));
         }
-        log.info(testDao.get(1L).toString());
-        testDao.list("type", 5).forEach(test -> log.info(test.toString()));
+        System.out.println(testDao.list("type", 5));
+        testDao.list("type", 5).forEach(testDao::remove);
+        testDao.add(Test.of(5, 0, "new"));
+        System.out.println(testDao.list("type", 5));
         testDao.list().forEach(testDao::remove);
     }
 

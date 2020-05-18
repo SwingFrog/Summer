@@ -19,7 +19,7 @@ import lombok.ToString;
 @Table(name = "t_test", comment = "测试")
 public class Test {
 
-    @PrimaryKey
+    @PrimaryKey(auto = false)
     @Column(comment = "ID")
     private long id;
 

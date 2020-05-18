@@ -23,6 +23,9 @@
 
 
 ## 更新
+### 2020.05.18
+1. 缓存仓库调整，当PrimaryKey为非自增模式时，使用CacheKey查询经历过remove，add的相同PrimaryKey的实体时，尽管实体中的CacheKey与查询的值不同也依旧能命中缓存，现将其进行修复。当主动remove时，会将存有对应PrimaryKey的CacheKey缓存清除。
+
 ### 2020.05.09
 1. ServerBootstrap启动参数中的ChannelOption.SO_BACKLOG改为读取配置表，并将ChannelOption.ALLOCATOR设为PooledByteBufAllocator.DEFAULT
 2. 仓库调整，增加getOrCreate方法。
@@ -115,7 +118,7 @@ Redis 5.0 (仅供参考)<br/>
     <dependency>
         <groupId>com.swingfrog.summer</groupId>
         <artifactId>summer</artifactId>
-        <version>1.0.12</version>
+        <version>1.0.13</version>
     </dependency>
 ```
 
