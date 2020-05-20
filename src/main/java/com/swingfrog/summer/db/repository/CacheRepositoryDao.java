@@ -138,7 +138,8 @@ public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
                     }
                 }
             }
-        } else if (obj == EMPTY) {
+        }
+        if (obj == EMPTY) {
             return null;
         }
         return obj;

@@ -118,7 +118,7 @@ Redis 5.0 (仅供参考)<br/>
     <dependency>
         <groupId>com.swingfrog.summer</groupId>
         <artifactId>summer</artifactId>
-        <version>1.0.13</version>
+        <version>1.0.14</version>
     </dependency>
 ```
 
