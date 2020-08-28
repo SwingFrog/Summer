@@ -10,7 +10,7 @@ import io.netty.handler.codec.MessageToMessageEncoder;
 
 public class StringPasswordEncoder extends MessageToMessageEncoder<String> {
 
-	private String charset;
+	private final String charset;
 	private byte[] pass;
 	
 	public StringPasswordEncoder(String charset, String password) {

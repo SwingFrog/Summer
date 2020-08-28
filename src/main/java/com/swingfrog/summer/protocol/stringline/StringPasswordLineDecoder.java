@@ -9,7 +9,7 @@ import io.netty.handler.codec.LineBasedFrameDecoder;
 
 public class StringPasswordLineDecoder extends LineBasedFrameDecoder {
 	
-	private String charset;
+	private final String charset;
 	private byte[] pass;
 	public StringPasswordLineDecoder (int msgLength, String charset, String password) {
 		super(msgLength);

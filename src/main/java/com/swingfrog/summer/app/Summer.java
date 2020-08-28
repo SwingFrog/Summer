@@ -41,7 +41,7 @@ import com.swingfrog.summer.web.WebMgr;
 
 public class Summer {
 	
-	private static Logger log = LoggerFactory.getLogger(Summer.class);
+	private static final Logger log = LoggerFactory.getLogger(Summer.class);
 	public static final String NAME = "Summer";
 	
 	public static void main(String[] args) {

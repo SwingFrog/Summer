@@ -15,9 +15,9 @@ public class SessionContext {
 	private int port;
 	
 	private long currentMsgId;
-	private AtomicInteger heartCount = new AtomicInteger(0);
+	private final AtomicInteger heartCount = new AtomicInteger(0);
 	private long lastRecvTime;
-	private ConcurrentLinkedQueue<String> waitWriteQueue = Queues.newConcurrentLinkedQueue();
+	private final ConcurrentLinkedQueue<String> waitWriteQueue = Queues.newConcurrentLinkedQueue();
 	
 	public String getSessionId() {
 		return sessionId;

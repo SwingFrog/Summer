@@ -22,9 +22,9 @@ import com.swingfrog.summer.ioc.ContainerMgr;
 public class EventBusMgr {
 
 	private static final Logger log = LoggerFactory.getLogger(EventBusMgr.class);
-	private Map<Method, Class<?>> methodMap;
-	private Map<String, List<EventMethod>> eventMap;
-	private ExecutorService eventExecutor;
+	private final Map<Method, Class<?>> methodMap;
+	private final Map<String, List<EventMethod>> eventMap;
+	private final ExecutorService eventExecutor;
 	
 	private static class SingleCase {
 		public static final EventBusMgr INSTANCE = new EventBusMgr();

@@ -46,20 +46,20 @@ public class ContainerMgr {
 
 	private static final Logger log = LoggerFactory.getLogger(ContainerMgr.class);
 	
-	private Map<Class<?>, Object> map = Maps.newHashMap();
-	private List<Class<?>> autowiredList = Lists.newLinkedList();
-	private List<Class<?>> componentList = Lists.newLinkedList();
-	private List<Method> transactionList = Lists.newLinkedList();
-	private List<Class<?>> parameterList = Lists.newLinkedList();
-	private List<Class<?>> remoteList = Lists.newLinkedList();
-	private List<Class<?>> pushList = Lists.newLinkedList();
-	private List<Class<?>> handlerList = Lists.newLinkedList();
-	private Map<String, List<Class<?>>> handlerMap = Maps.newHashMap();
-	private Map<Method, MatchGroupKey> singleQueueMap = Maps.newHashMap();
-	private List<Method> sessionQueueList = Lists.newLinkedList();
-	private Map<Method, String> synchronizedMap = Maps.newHashMap();
-	private List<TaskTrigger> taskList = Lists.newLinkedList();
-	private List<Class<?>> eventList = Lists.newLinkedList();
+	private final Map<Class<?>, Object> map = Maps.newHashMap();
+	private final List<Class<?>> autowiredList = Lists.newLinkedList();
+	private final List<Class<?>> componentList = Lists.newLinkedList();
+	private final List<Method> transactionList = Lists.newLinkedList();
+	private final List<Class<?>> parameterList = Lists.newLinkedList();
+	private final List<Class<?>> remoteList = Lists.newLinkedList();
+	private final List<Class<?>> pushList = Lists.newLinkedList();
+	private final List<Class<?>> handlerList = Lists.newLinkedList();
+	private final Map<String, List<Class<?>>> handlerMap = Maps.newHashMap();
+	private final Map<Method, MatchGroupKey> singleQueueMap = Maps.newHashMap();
+	private final List<Method> sessionQueueList = Lists.newLinkedList();
+	private final Map<Method, String> synchronizedMap = Maps.newHashMap();
+	private final List<TaskTrigger> taskList = Lists.newLinkedList();
+	private final List<Class<?>> eventList = Lists.newLinkedList();
 	
 	private static class SingleCase {
 		public static final ContainerMgr INSTANCE = new ContainerMgr();

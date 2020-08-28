@@ -6,7 +6,7 @@ import java.util.List;
 public class ClientGroup {
 
 	private int next = -1;
-	private List<Client> clientList;
+	private final List<Client> clientList;
 	
 	public ClientGroup() {
 		clientList = new ArrayList<>();

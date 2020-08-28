@@ -3,8 +3,8 @@ package com.swingfrog.summer.server.exception;
 public class CodeException extends RuntimeException {
 
 	private static final long serialVersionUID = 1L;
-	private long code;
-	private String msg;
+	private final long code;
+	private final String msg;
 	
 	public CodeException(long code, String msg) {
 		super(String.format("code:%s msg:%s", code, msg));

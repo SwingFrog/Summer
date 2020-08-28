@@ -16,7 +16,7 @@ import javassist.bytecode.MethodInfo;
 
 public class MethodParameterName {
 
-	private CtClass ct;
+	private final CtClass ct;
 	
 	public MethodParameterName(Class<?> c) throws NotFoundException {
 		ct = ClassPool.getDefault().get(c.getName());

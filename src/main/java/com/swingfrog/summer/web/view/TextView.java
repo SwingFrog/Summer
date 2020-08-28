@@ -11,7 +11,7 @@ import java.util.Map;
 
 public class TextView implements WebView {
 
-	private ByteBuf byteBuf;
+	private final ByteBuf byteBuf;
 	private volatile Map<String, String> headers;
 
 	public static TextView of(String text) {

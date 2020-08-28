@@ -7,7 +7,7 @@ import java.util.Set;
 
 public class RedisMap implements Map<String, String> {
 
-	private String sourceKey;
+	private final String sourceKey;
 	
 	RedisMap(String sourceKey) {
 		this.sourceKey = sourceKey;

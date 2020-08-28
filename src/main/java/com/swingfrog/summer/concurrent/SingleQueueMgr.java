@@ -12,7 +12,7 @@ public class SingleQueueMgr {
 	private static final Logger log = LoggerFactory.getLogger(SingleQueueMgr.class);
 	
 	private ExecutorService eventExecutor;
-	private Map<Object, RunnableQueue> singleQueueMap;
+	private final Map<Object, RunnableQueue> singleQueueMap;
 	
 	private static class SingleCase {
 		public static final SingleQueueMgr INSTANCE = new SingleQueueMgr();

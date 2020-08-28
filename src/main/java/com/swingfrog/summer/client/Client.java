@@ -19,10 +19,10 @@ import io.netty.util.concurrent.DefaultThreadFactory;
 public class Client {
 
 	private static final Logger log = LoggerFactory.getLogger(Client.class);
-	private ClientContext clientContext;
-	private ClientRemote clientRemote;
-	private EventLoopGroup workerGroup;
-	private int id;
+	private final ClientContext clientContext;
+	private final ClientRemote clientRemote;
+	private final EventLoopGroup workerGroup;
+	private final int id;
 	
 	public Client(int id, ClientConfig config) throws SchedulerException {
 		this.id = id;

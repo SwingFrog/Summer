@@ -6,7 +6,7 @@ import com.swingfrog.summer.util.StringUtil;
 
 public class MatchGroupKey {
 
-	private String mainKey;
+	private final String mainKey;
 	private List<String> keys;
 	private String waitFormat;
 	

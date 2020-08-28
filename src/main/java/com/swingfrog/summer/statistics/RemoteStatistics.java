@@ -20,8 +20,8 @@ public class RemoteStatistics {
 
     private static volatile boolean open = true;
     private String exportDir = "statistics";
-    private ConcurrentMap<SessionRequest, Req> requestMap = Maps.newConcurrentMap();
-    private ConcurrentMap<String, Statistics> remoteMethodMap = Maps.newConcurrentMap();
+    private final ConcurrentMap<SessionRequest, Req> requestMap = Maps.newConcurrentMap();
+    private final ConcurrentMap<String, Statistics> remoteMethodMap = Maps.newConcurrentMap();
 
     private static class Req {
         private long time;

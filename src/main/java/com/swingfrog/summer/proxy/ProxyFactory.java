@@ -8,8 +8,8 @@ import net.sf.cglib.proxy.MethodProxy;
 
 public class ProxyFactory implements MethodInterceptor {
 
-	private Object target;
-	private ProxyMethodInterceptor interceptor;
+	private final Object target;
+	private final ProxyMethodInterceptor interceptor;
 	
 	private ProxyFactory(Object target, ProxyMethodInterceptor interceptor) {
 		this.target = target;

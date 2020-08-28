@@ -10,7 +10,6 @@ import com.swingfrog.summer.db.repository.annotation.PrimaryKey;
 import com.swingfrog.summer.db.repository.annotation.Table;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Type;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Date;

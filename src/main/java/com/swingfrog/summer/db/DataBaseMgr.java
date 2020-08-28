@@ -17,8 +17,8 @@ import com.google.common.collect.Maps;
 public class DataBaseMgr {
 
 	private DruidDataSource dataSource;
-	private Map<String, DruidDataSource> otherDataSourceMap = Maps.newHashMap();
-	private ThreadLocal<ConnInfo> local = ThreadLocal.withInitial(ConnInfo::new);
+	private final Map<String, DruidDataSource> otherDataSourceMap = Maps.newHashMap();
+	private final ThreadLocal<ConnInfo> local = ThreadLocal.withInitial(ConnInfo::new);
 	
 	private static class SingleCase {
 		public static final DataBaseMgr INSTANCE = new DataBaseMgr();

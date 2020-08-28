@@ -1,6 +1,5 @@
 package com.swingfrog.summer.server;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -20,7 +19,7 @@ public class ServerMgr {
 
 	private static final Logger log = LoggerFactory.getLogger(ServerMgr.class);
 	private Server server;
-	private Map<String, Server> serverMap;
+	private final Map<String, Server> serverMap;
 	
 	private static class SingleCase {
 		public static final ServerMgr INSTANCE = new ServerMgr();

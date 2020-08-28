@@ -9,8 +9,8 @@ import io.netty.channel.ChannelId;
 
 public class SessionContextGroup {
 
-	private ConcurrentHashMap<ChannelId, SessionContext> channelToSessionMap;
-	private ConcurrentHashMap<SessionContext, ChannelHandlerContext> sessionToChannelMap;
+	private final ConcurrentHashMap<ChannelId, SessionContext> channelToSessionMap;
+	private final ConcurrentHashMap<SessionContext, ChannelHandlerContext> sessionToChannelMap;
 	
 	public SessionContextGroup() {
 		channelToSessionMap = new ConcurrentHashMap<>();

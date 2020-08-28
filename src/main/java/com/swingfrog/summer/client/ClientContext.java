@@ -16,11 +16,11 @@ public class ClientContext {
 
 	private ClientConfig config;
 	private Client client;
-	private AtomicReference<ChannelHandlerContext> channel = new AtomicReference<>();
+	private final AtomicReference<ChannelHandlerContext> channel = new AtomicReference<>();
 	private EventLoopGroup eventGroup;
 	private EventLoopGroup pushGroup;
-	private AtomicInteger heartCount = new AtomicInteger(0);
-	private ConcurrentLinkedQueue<SessionRequest> requestQueue = new ConcurrentLinkedQueue<>();
+	private final AtomicInteger heartCount = new AtomicInteger(0);
+	private final ConcurrentLinkedQueue<SessionRequest> requestQueue = new ConcurrentLinkedQueue<>();
 	
 	public ClientContext(ClientConfig config, Client client, EventLoopGroup eventGroup) {
 		this.config = config;

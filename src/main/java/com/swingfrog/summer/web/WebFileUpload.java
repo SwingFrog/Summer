@@ -8,8 +8,8 @@ import io.netty.handler.codec.http.multipart.FileUpload;
 
 public class WebFileUpload {
 
-	private String fileName;
-	private ByteBuf byteBuf;
+	private final String fileName;
+	private final ByteBuf byteBuf;
 	
 	WebFileUpload(FileUpload fileUpload) {
 		fileName = fileUpload.getFilename();

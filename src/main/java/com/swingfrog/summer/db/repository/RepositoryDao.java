@@ -21,8 +21,8 @@ public abstract class RepositoryDao<T, K> extends BaseDao<T> {
 
     private static final String PREFIX = "RepositoryDao";
 
-    private BeanHandler<T> beanHandler;
-    private BeanListHandler<T> beanListHandler;
+    private final BeanHandler<T> beanHandler;
+    private final BeanListHandler<T> beanListHandler;
 
     private String insertSql;
     private String deleteSql;

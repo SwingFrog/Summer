@@ -24,7 +24,7 @@ public abstract class AsyncCacheRepositoryDao<T, K> extends CacheRepositoryDao<T
     private static final String PREFIX = "AsyncCacheRepositoryDao";
     private final ConcurrentLinkedQueue<Change<T, K>> waitChange = Queues.newConcurrentLinkedQueue();
     private final ConcurrentMap<T, Long> waitSave = Maps.newConcurrentMap();
-    private long delayTime = delayTime();
+    private final long delayTime = delayTime();
     private final Set<K> waitAdd = Sets.newConcurrentHashSet();
 
     protected abstract long delayTime();

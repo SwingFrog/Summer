@@ -14,7 +14,7 @@ import io.netty.channel.SimpleChannelInboundHandler;
 public class ClientStringHandler extends SimpleChannelInboundHandler<String> {
 
 	private static final Logger log = LoggerFactory.getLogger(ClientStringHandler.class);
-	private ClientContext clientContext;
+	private final ClientContext clientContext;
 	
 	public ClientStringHandler(ClientContext clientContext) {
 		this.clientContext = clientContext;

@@ -32,8 +32,8 @@ import javassist.NotFoundException;
 
 public class RemoteDispatchMgr {
 	
-	private static Logger log = LoggerFactory.getLogger(RemoteDispatchMgr.class);
-	private Map<String, RemoteClass> remoteClassMap;
+	private static final Logger log = LoggerFactory.getLogger(RemoteDispatchMgr.class);
+	private final Map<String, RemoteClass> remoteClassMap;
 
 	private static class SingleCase {
 		public static final RemoteDispatchMgr INSTANCE = new RemoteDispatchMgr();

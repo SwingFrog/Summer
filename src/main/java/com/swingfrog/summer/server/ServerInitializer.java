@@ -23,7 +23,7 @@ import io.netty.handler.stream.ChunkedWriteHandler;
 
 public class ServerInitializer extends ChannelInitializer<SocketChannel> {
 	
-	private ServerContext serverContext;
+	private final ServerContext serverContext;
 
 	public ServerInitializer(ServerContext serverContext) {
 		this.serverContext = serverContext;

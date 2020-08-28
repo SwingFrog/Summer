@@ -14,7 +14,7 @@ public class SessionQueueMgr {
 	private static final Logger log = LoggerFactory.getLogger(SessionQueueMgr.class);
 	
 	private ExecutorService eventExecutor;
-	private Map<SessionContext, RunnableQueue> singleQueueMap;
+	private final Map<SessionContext, RunnableQueue> singleQueueMap;
 	
 	private static class SingleCase {
 		public static final SessionQueueMgr INSTANCE = new SessionQueueMgr();

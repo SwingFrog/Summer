@@ -27,7 +27,7 @@ import io.netty.handler.codec.TooLongFrameException;
 public class ServerStringHandler extends SimpleChannelInboundHandler<String> {
 	
 	private static final Logger log = LoggerFactory.getLogger(ServerStringHandler.class);
-	private ServerContext serverContext;
+	private final ServerContext serverContext;
 	
 	public ServerStringHandler(ServerContext serverContext) {
 		this.serverContext = serverContext;

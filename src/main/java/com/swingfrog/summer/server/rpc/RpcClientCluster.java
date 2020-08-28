@@ -11,8 +11,8 @@ import com.swingfrog.summer.server.SessionContext;
 public class RpcClientCluster {
 
 	private int next = -1;
-	private List<RpcClientGroup> clientGroupList;
-	private Map<String, RpcClientGroup> nameToClientGroup;
+	private final List<RpcClientGroup> clientGroupList;
+	private final Map<String, RpcClientGroup> nameToClientGroup;
 	
 	public RpcClientCluster() {
 		clientGroupList = new ArrayList<>();

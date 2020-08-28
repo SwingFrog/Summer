@@ -17,8 +17,8 @@ import io.netty.handler.stream.ChunkedInput;
 
 public class ModelView implements WebView {
 
-	private String view;
-	private Map<String, Object> map;
+	private final String view;
+	private final Map<String, Object> map;
 	private ByteBuf byteBuf;
 	private volatile Map<String, String> headers;
 

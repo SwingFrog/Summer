@@ -10,7 +10,7 @@ public class ServerContext {
 	private SessionHandlerGroup sessionHandlerGroup;
 	private SessionContextGroup sessionContextGroup;
 	private ExecutorService eventExecutor;
-	private ExecutorService pushExecutor;
+	private final ExecutorService pushExecutor;
 	
 	public ServerContext(ServerConfig config,
 						 SessionHandlerGroup sessionHandlerGroup,

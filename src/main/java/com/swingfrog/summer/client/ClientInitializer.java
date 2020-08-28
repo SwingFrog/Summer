@@ -16,7 +16,7 @@ import io.netty.handler.codec.LengthFieldPrepender;
 
 public class ClientInitializer extends ChannelInitializer<SocketChannel> {
 
-	private ClientContext clientContext;
+	private final ClientContext clientContext;
 
 	public ClientInitializer(ClientContext clientContext) {
 		this.clientContext = clientContext;

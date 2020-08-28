@@ -21,10 +21,10 @@ import org.slf4j.LoggerFactory;
 public abstract class BaseDao<T> {
 
 	private static final Logger log = LoggerFactory.getLogger(BaseDao.class);
-	private QueryRunner queryRunner;
+	private final QueryRunner queryRunner;
 	private Class<T> clazz;
-	private BeanHandler<T> beanHandler;
-	private BeanListHandler<T> beanListHandler;
+	private final BeanHandler<T> beanHandler;
+	private final BeanListHandler<T> beanListHandler;
 
 	
 	@SuppressWarnings("unchecked")

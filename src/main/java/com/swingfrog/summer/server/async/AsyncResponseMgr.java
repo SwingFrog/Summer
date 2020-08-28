@@ -25,7 +25,7 @@ import java.util.function.Supplier;
 
 public class AsyncResponseMgr {
 
-    private static Logger log = LoggerFactory.getLogger(AsyncResponseMgr.class);
+    private static final Logger log = LoggerFactory.getLogger(AsyncResponseMgr.class);
 
     private static class SingleCase {
         public static final AsyncResponseMgr INSTANCE = new AsyncResponseMgr();

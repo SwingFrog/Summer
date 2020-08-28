@@ -13,7 +13,7 @@ import io.netty.handler.codec.MessageToMessageEncoder;
 
 public class StringPasswordLineEncoder extends MessageToMessageEncoder<String> {
 	
-	private String charset;
+	private final String charset;
 	private byte[] pass;
 	public StringPasswordLineEncoder (String charset, String password) {
 		this.charset = charset;

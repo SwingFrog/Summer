@@ -21,8 +21,8 @@ public class AsyncCacheRepositoryMgr {
     private static final Logger log = LoggerFactory.getLogger(AsyncCacheRepositoryMgr.class);
 
     private static ScheduledExecutorService scheduledExecutor;
-    private AsyncCacheConfig config = new AsyncCacheConfig();
-    private Set<Runnable> hooks = Sets.newConcurrentHashSet();
+    private final AsyncCacheConfig config = new AsyncCacheConfig();
+    private final Set<Runnable> hooks = Sets.newConcurrentHashSet();
 
     private static class SingleCase {
         public static final AsyncCacheRepositoryMgr INSTANCE = new AsyncCacheRepositoryMgr();

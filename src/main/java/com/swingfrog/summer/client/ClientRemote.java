@@ -13,8 +13,8 @@ import com.swingfrog.summer.server.exception.CodeException;
 
 public class ClientRemote {
 	
-	private static Logger log = LoggerFactory.getLogger(ClientRemote.class);
-	private ClientContext clientContext;
+	private static final Logger log = LoggerFactory.getLogger(ClientRemote.class);
+	private final ClientContext clientContext;
 	
 	public ClientRemote(ClientContext clientContext) {
 		this.clientContext = clientContext;

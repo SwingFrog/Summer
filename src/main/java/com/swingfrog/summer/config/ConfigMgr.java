@@ -9,7 +9,7 @@ import java.util.Properties;
 
 public class ConfigMgr {
 
-	private ServerConfig serverConfig;
+	private final ServerConfig serverConfig;
 	private ServerConfig[] minorConfigs;
 	private ClientConfig[] clientConfigs;
 

@@ -1,6 +1,5 @@
 package com.swingfrog.summer.server.rpc;
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -13,7 +12,7 @@ public class RpcClientMgr {
 	
 	private static final Logger log = LoggerFactory.getLogger(RpcClientMgr.class);
 	
-	private ConcurrentMap<String, RpcClientCluster> nameToCluster;
+	private final ConcurrentMap<String, RpcClientCluster> nameToCluster;
 	
 	private static class SingleCase {
 		public static final RpcClientMgr INSTANCE = new RpcClientMgr();

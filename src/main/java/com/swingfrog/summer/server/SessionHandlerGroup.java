@@ -7,7 +7,7 @@ import com.swingfrog.summer.protocol.SessionRequest;
 
 public class SessionHandlerGroup implements SessionHandler {
 
-	private List<SessionHandler> sessionHandlerList;
+	private final List<SessionHandler> sessionHandlerList;
 	
 	public SessionHandlerGroup() {
 		sessionHandlerList = Lists.newLinkedList();

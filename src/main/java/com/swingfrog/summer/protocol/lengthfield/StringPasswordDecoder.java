@@ -9,7 +9,7 @@ import io.netty.handler.codec.MessageToMessageDecoder;
 
 public class StringPasswordDecoder extends MessageToMessageDecoder<ByteBuf> {
 
-	private String charset;
+	private final String charset;
 	private byte[] pass;
 	
 	public StringPasswordDecoder(String charset, String password) {

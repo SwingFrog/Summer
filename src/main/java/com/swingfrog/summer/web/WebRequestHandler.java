@@ -59,7 +59,7 @@ public class WebRequestHandler extends SimpleChannelInboundHandler<HttpObject> {
 	private static final Logger log = LoggerFactory.getLogger(WebRequestHandler.class);
 	private static final HttpDataFactory factory =
             new DefaultHttpDataFactory(DefaultHttpDataFactory.MINSIZE);
-	private ServerContext serverContext;
+	private final ServerContext serverContext;
 	private HttpRequest httpRequest;
 	private HttpPostRequestDecoder postRequestDecoder;
 	

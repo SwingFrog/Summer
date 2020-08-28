@@ -25,11 +25,11 @@ import javassist.NotFoundException;
 
 public class PushDispatchMgr {
 
-	private static Logger log = LoggerFactory.getLogger(PushDispatchMgr.class);
-	private Map<String, PushClass> pushClassMap;
-	private ConcurrentMap<Long, SessionResponse> syncRemote;
-	private ConcurrentMap<Long, RemoteCallback> asyncRemote;
-	private ConcurrentMap<Long, Boolean> syncRemoteDiscard;
+	private static final Logger log = LoggerFactory.getLogger(PushDispatchMgr.class);
+	private final Map<String, PushClass> pushClassMap;
+	private final ConcurrentMap<Long, SessionResponse> syncRemote;
+	private final ConcurrentMap<Long, RemoteCallback> asyncRemote;
+	private final ConcurrentMap<Long, Boolean> syncRemoteDiscard;
 	
 	private static class SingleCase {
 		public static final PushDispatchMgr INSTANCE = new PushDispatchMgr();

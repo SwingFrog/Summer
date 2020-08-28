@@ -10,7 +10,7 @@ import com.swingfrog.summer.redis.RedisSource;
 public class SynchronizedMgr {
 
 	private static final Logger log = LoggerFactory.getLogger(SynchronizedMgr.class);
-	private RedisSource redisSource;
+	private final RedisSource redisSource;
 	
 	private static class SingleCase {
 		public static final SynchronizedMgr INSTANCE = new SynchronizedMgr();

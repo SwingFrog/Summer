@@ -6,7 +6,7 @@ import java.util.Set;
 
 public class RedisSet implements Set<String> {
 
-	private String sourceKey;
+	private final String sourceKey;
 	
 	RedisSet(String sourceKey) {
 		this.sourceKey = sourceKey;

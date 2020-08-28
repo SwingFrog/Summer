@@ -9,8 +9,8 @@ import java.util.Map;
 public class ClientCluster {
 
 	private int next = -1;
-	private List<ClientGroup> clientGroupList;
-	private Map<String, ClientGroup> nameToClientGroup;
+	private final List<ClientGroup> clientGroupList;
+	private final Map<String, ClientGroup> nameToClientGroup;
 	
 	public ClientCluster() {
 		clientGroupList = Lists.newLinkedList();

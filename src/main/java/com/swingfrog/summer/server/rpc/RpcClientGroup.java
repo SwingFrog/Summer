@@ -8,7 +8,7 @@ import com.swingfrog.summer.server.SessionContext;
 public class RpcClientGroup {
 
 	private int next = -1;
-	private List<SessionContext> clientList;
+	private final List<SessionContext> clientList;
 	
 	public RpcClientGroup() {
 		clientList = new ArrayList<>();

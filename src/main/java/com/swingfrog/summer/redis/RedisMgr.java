@@ -10,9 +10,8 @@ import redis.clients.jedis.JedisPoolConfig;
 
 public class RedisMgr {
 
-	private RedisConfig redisConfig;
 	private JedisPool jedisPool;
-	private ThreadLocal<ConnInfo> local = new ThreadLocal<ConnInfo>() {
+	private final ThreadLocal<ConnInfo> local = new ThreadLocal<ConnInfo>() {
 		protected ConnInfo initialValue() {
 			return new ConnInfo();
 		}
@@ -37,7 +36,7 @@ public class RedisMgr {
 	public void loadConfig(InputStream in) throws Exception {
 		Properties pro = new Properties();
 		pro.load(in);
-		redisConfig = new RedisConfig();
+		RedisConfig redisConfig = new RedisConfig();
 		redisConfig.setUrl(pro.getProperty("url"));
 		redisConfig.setPort(Integer.parseInt(pro.getProperty("port")));
 		redisConfig.setTimeout(Integer.parseInt(pro.getProperty("timeout")));

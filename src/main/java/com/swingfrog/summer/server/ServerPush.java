@@ -16,7 +16,7 @@ public class ServerPush {
 	
 	private static final Logger log = LoggerFactory.getLogger(ServerPush.class);
 
-	private ServerContext serverContext;
+	private final ServerContext serverContext;
 
 	public ServerPush(ServerContext serverContext) {
 		this.serverContext = serverContext;

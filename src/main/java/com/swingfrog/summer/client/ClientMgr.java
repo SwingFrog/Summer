@@ -1,6 +1,5 @@
 package com.swingfrog.summer.client;
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
@@ -21,9 +20,9 @@ import javassist.NotFoundException;
 public class ClientMgr {
 
 	private static final Logger log = LoggerFactory.getLogger(ClientMgr.class);
-	private Map<String, ClientCluster> nameToCluster;
-	private ConcurrentMap<Class<?>, Object> remoteMap;
-	private AtomicLong currentId = new AtomicLong(0);
+	private final Map<String, ClientCluster> nameToCluster;
+	private final ConcurrentMap<Class<?>, Object> remoteMap;
+	private final AtomicLong currentId = new AtomicLong(0);
 	
 	private static class SingleCase {
 		public static final ClientMgr INSTANCE = new ClientMgr();

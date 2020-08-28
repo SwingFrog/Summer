@@ -1,7 +1,6 @@
 package com.swingfrog.summer.proxy;
 
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -46,45 +45,42 @@ public class ProxyUtil {
 	
 	@SuppressWarnings("unchecked")
 	public static <T> T getProxyRemote(T remote) {
-		Object obj = ProxyFactory.getProxyInstance(remote, new ProxyMethodInterceptor() {
-			@Override
-			public Object intercept(Object obj, Method method, Object[] args) throws Throwable {
-				String synchronizedName = ContainerMgr.get().getSynchronizedName(method);
-				String value = null;
+		Object obj = ProxyFactory.getProxyInstance(remote, (obj1, method, args) -> {
+			String synchronizedName = ContainerMgr.get().getSynchronizedName(method);
+			String value = null;
+			if (synchronizedName != null) {
+				synchronizedName = String.join("-", "synchronized", synchronizedName);
+				value = UUID.randomUUID().toString();
+				SynchronizedMgr.get().lock(synchronizedName, value);
+			}
+			boolean transaction = false;
+			if (ContainerMgr.get().isTransaction(method)) {
+				DataBaseMgr.get().openTransaction();
+				transaction = true;
+			}
+			try {
+				DataBaseMgr.get().setDiscardConnectionLevelForRemote();
+				RedisMgr.get().setDiscardConnectionLevelForRemote();
+				Object res = method.invoke(obj1, args);
+				if (transaction) {
+					DataBaseMgr.get().getConnection().commit();
+				}
+				return res;
+			} catch (InvocationTargetException e) {
+				if (transaction) {
+					DataBaseMgr.get().getConnection().rollback();
+				}
+				throw e.getTargetException();
+			} catch (Exception e) {
+				if (transaction) {
+					DataBaseMgr.get().getConnection().rollback();
+				}
+				throw e;
+			} finally {
+				DataBaseMgr.get().discardConnectionFromRemote();
+				RedisMgr.get().discardConnectionFromRemote();
 				if (synchronizedName != null) {
-					synchronizedName = String.join("-", "synchronized", synchronizedName);
-					value = UUID.randomUUID().toString();
-					SynchronizedMgr.get().lock(synchronizedName, value);
-				}
-				boolean transaction = false;
-				if (ContainerMgr.get().isTransaction(method)) {
-					DataBaseMgr.get().openTransaction();
-					transaction = true;
-				}
-				try {
-					DataBaseMgr.get().setDiscardConnectionLevelForRemote();
-					RedisMgr.get().setDiscardConnectionLevelForRemote();
-					Object res = method.invoke(obj, args);
-					if (transaction) {
-						DataBaseMgr.get().getConnection().commit();
-					}
-					return res;
-				} catch (InvocationTargetException e) {
-					if (transaction) {
-						DataBaseMgr.get().getConnection().rollback();
-					}	
-					throw e.getTargetException();
-				} catch (Exception e) {
-					if (transaction) {
-						DataBaseMgr.get().getConnection().rollback();
-					}					
-					throw e;
-				} finally {
-					DataBaseMgr.get().discardConnectionFromRemote();
-					RedisMgr.get().discardConnectionFromRemote();
-					if (synchronizedName != null) {
-						SynchronizedMgr.get().unlock(synchronizedName, value);
-					}
+					SynchronizedMgr.get().unlock(synchronizedName, value);
 				}
 			}
 		});
