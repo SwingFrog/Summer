@@ -59,7 +59,7 @@ public class Server {
 		return new Server(config,
 				new NioEventLoopGroup(config.getBossThread(), new DefaultThreadFactory("ServerBoss")),
 				new NioEventLoopGroup(config.getWorkerThread(), new DefaultThreadFactory("ServerWorker")),
-				Executors.newFixedThreadPool(ThreadCountUtil.convert(config.getEventThread()), new DefaultThreadFactory("ServerEvent")),
+				Executors.newFixedThreadPool(ThreadCountUtil.cpuDenseness(config.getEventThread()), new DefaultThreadFactory("ServerEvent")),
 				Executors.newSingleThreadExecutor(new DefaultThreadFactory("ServerPush")));
 	}
 
@@ -90,7 +90,7 @@ public class Server {
 			return new Server(config,
 					new NioEventLoopGroup(config.getBossThread(), new DefaultThreadFactory("ServerBoss_" + config.getServerName(), true)),
 					new NioEventLoopGroup(config.getWorkerThread(), new DefaultThreadFactory("ServerWorker_" + config.getServerName(), true)),
-					Executors.newFixedThreadPool(ThreadCountUtil.convert(config.getEventThread()), new DefaultThreadFactory("ServerEvent_" + config.getServerName())),
+					Executors.newFixedThreadPool(ThreadCountUtil.cpuDenseness(config.getEventThread()), new DefaultThreadFactory("ServerEvent_" + config.getServerName())),
 					Executors.newSingleThreadExecutor(new DefaultThreadFactory("ServerPush_" + config.getServerName())));
 		}
 	}

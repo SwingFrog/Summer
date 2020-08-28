@@ -43,7 +43,7 @@ public class AsyncCacheRepositoryMgr {
         ConfigUtil.loadDataWithBean(pro, "asyncCache.", config);
         in.close();
         pro.clear();
-        config.setCoreThread(ThreadCountUtil.convert(config.getCoreThread()));
+        config.setCoreThread(ThreadCountUtil.ioDenseness(config.getCoreThread()));
         log.info("async cache repository manager loading config, core thread num[{}]", config.getCoreThread());
     }
 
