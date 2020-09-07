@@ -8,10 +8,12 @@ import com.swingfrog.summer.web.WebMgr;
 import com.swingfrog.summer.web.view.InteriorViewFactory;
 import com.swingfrog.summer.web.view.JSONView;
 import com.swingfrog.summer.web.view.WebView;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 public class TestWebBootstrap implements SummerApp {
+
+    private static final Logger log = LoggerFactory.getLogger(TestWebBootstrap.class);
 
     @Override
     public void init() {

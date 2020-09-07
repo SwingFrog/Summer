@@ -1,8 +1,11 @@
 # Summer
 这是一个支持分布式和集群的java游戏服务器框架，可用于开发棋牌、回合制等游戏。基于netty实现高性能通讯，支持tcp、http、websocket等协议。支持消息加解密、攻击拦截、黑白名单机制。封装了redis缓存、mysql数据库的连接与使用。轻量级，便于上手。
 
+[summer2 coding ...](https://github.com/SwingFrog/Summer2)
+
 ## 目录
 - 前言
+- 更新
 - 环境介绍与安装说明
 - 快捷上手
   - 创建项目
@@ -18,11 +21,17 @@
   - 运行机制
   - 其他介绍
 
-## 预告
-准备撸起袖子加油干，把summer2写出来！
+## 前言
+那些年，刚开始学习动态网站的开发，我的第一反应是，动态网站？是画面会动的那种网站？额...好像有点冷。经过一段时间的学习，还做了个小项目，没错是基于Servlet的，不敢相信吧？之后才学习了Spring、SpringMVC、MyBatis等框架，这一下子发现了新大陆，编写代码是如此便捷，框架帮我们做了很多事。但在享受便捷之前，需要先将项目搭建起来，弄好各种各样的配置，很多时候项目跑不起来大概率是配置没弄好。这个配置的问题令我们项目小组的每个成员都很头疼，我们渴望有一种框架，不需要怎么配置就能跑起来，而且是非常便捷的，连sql语句都可以不写，我们寄希望于Summer。Summer就是我们小组对美好框架的向往，可能每个人心中的Summer不一样。以至于出来工作后，我选择了游戏后端开发方向，于是我构建的Summer框架更倾向于游戏。当完成Summer时，我发现了SpringBoot，还有Spring Data Jpa，这不正是我想要的吗？无需配置就能跑起来，不用写Sql语句。但为时已晚...，Summer已在我心中埋下了种子，它已经悄悄发芽了。
 
 
 ## 更新
+### 2020.09.07
+1. SessionContext调整，将sessionId的hashcode作为sessionContext的hashcode。新增属性token，token可以在用户登录以后手动设置为用户ID，以此作为用户的唯一标识。
+2. SessionQueueMgr、SingleQueueMgr优化。SessionQueueMgr，不再使用直接使用SessionContext分配队列，改为使用SessionContext中的token分配队列，当token未设置时使用sessionId。
+3. http协议下，sessionId不再作为用户的唯一标识，sessionId仅作为链路标识。当用户请求接口携带的cookie数据中不存在token时，响应时会下发通过UUID生成的32位字符串作为token，用户下一次请求时就会携带有token。通过sessionContext.getToken()获取token，通过sessionContext.clearToken()清空token。
+4. test例子取消lombok依赖
+
 ### 2020.05.18
 1. 缓存仓库调整，当PrimaryKey为非自增模式时，使用CacheKey查询经历过remove，add的相同PrimaryKey的实体时，尽管实体中的CacheKey与查询的值不同也依旧能命中缓存，现将其进行修复。当主动remove时，会将存有对应PrimaryKey的CacheKey缓存清除。
 
@@ -118,7 +127,7 @@ Redis 5.0 (仅供参考)<br/>
     <dependency>
         <groupId>com.swingfrog.summer</groupId>
         <artifactId>summer</artifactId>
-        <version>1.0.14</version>
+        <version>1.0.15</version>
     </dependency>
 ```
 

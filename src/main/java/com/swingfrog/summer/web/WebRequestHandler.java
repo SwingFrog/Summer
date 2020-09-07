@@ -88,7 +88,6 @@ public class WebRequestHandler extends SimpleChannelInboundHandler<HttpObject> {
 		}
 		serverContext.getSessionContextGroup().createSession(ctx);
 		SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(ctx);
-		sctx.clearSessionId();
 		if (!serverContext.getSessionHandlerGroup().accpet(sctx)) {
 			log.warn("not accept client {}", sctx);
 			ctx.close();
@@ -134,7 +133,7 @@ public class WebRequestHandler extends SimpleChannelInboundHandler<HttpObject> {
 				if (uri == null) {
 					return;
 				}
-				sctx.setSessionId(parseSessionId(httpRequest.headers().get(HttpHeaderNames.COOKIE)));
+				sctx.setToken(parseToken(httpRequest.headers().get(HttpHeaderNames.COOKIE)));
 				sctx.setRealAddress(ForwardedAddressUtil.parse(httpRequest.headers().get(ForwardedAddressUtil.KEY)));
 				HttpMethod method = httpRequest.method();
 				if (HttpMethod.GET.equals(method)) {
@@ -330,7 +329,7 @@ public class WebRequestHandler extends SimpleChannelInboundHandler<HttpObject> {
 			response.headers().set(HttpHeaderNames.SERVER, Summer.NAME);
 			response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
 			if (sctx.getSessionId() == null) {
-				response.headers().set(HttpHeaderNames.SET_COOKIE, createSessionId());
+				response.headers().set(HttpHeaderNames.SET_COOKIE, createToken());
 			}
 			if (webView.getHeaders() != null) {
 				webView.getHeaders().forEach((key, value) -> response.headers().set(key, value));
@@ -343,21 +342,21 @@ public class WebRequestHandler extends SimpleChannelInboundHandler<HttpObject> {
 		}
 	}
 
-	private static String createSessionId() {
+	private static String createToken() {
 		return "sessionId=" + UUID.randomUUID().toString().replace("-", "").toLowerCase();
 	}
 
-	private static String parseSessionId(String cookie) {
+	private static String parseToken(String cookie) {
 		if (cookie == null)
 			return null;
-		String sessionId = "sessionId=";
-		int index = cookie.indexOf(sessionId);
+		String token = "token=";
+		int index = cookie.indexOf(token);
 		if (index == -1)
 			return null;
-		if (index + sessionId.length() + 32 > cookie.length()) {
+		if (index + token.length() + 32 > cookie.length()) {
 			return null;
 		}
-		return cookie.substring(index + sessionId.length(), index + sessionId.length() + 32);
+		return cookie.substring(index + token.length(), index + token.length() + 32);
 	}
 
 }

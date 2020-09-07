@@ -6,11 +6,13 @@ import com.swingfrog.summer.lifecycle.Lifecycle;
 import com.swingfrog.summer.lifecycle.LifecycleInfo;
 import com.swingfrog.summer.test.repository.dao.TestDao;
 import com.swingfrog.summer.test.repository.model.Test;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 @Service
 public class TestService implements Lifecycle {
+
+    private static final Logger log = LoggerFactory.getLogger(TestService.class);
 
     @Autowired
     private TestDao testDao;
@@ -25,11 +27,11 @@ public class TestService implements Lifecycle {
         log.info("TestService.start");
         System.out.println(testDao.list("type", 5));
         for (int i = 0; i < 10; i++) {
-            testDao.add(Test.of(i, i, "content" + i));
+            testDao.add(new Test(i, i, "content" + i));
         }
         System.out.println(testDao.list("type", 5));
         testDao.list("type", 5).forEach(testDao::remove);
-        testDao.add(Test.of(5, 0, "new"));
+        testDao.add(new Test(5, 0, "new"));
         System.out.println(testDao.list("type", 5));
         testDao.list().forEach(testDao::remove);
     }

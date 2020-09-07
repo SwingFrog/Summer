@@ -4,12 +4,13 @@ import com.google.common.collect.Queues;
 import com.swingfrog.summer.protocol.SessionRequest;
 import com.swingfrog.summer.server.async.AsyncResponseMgr;
 
+import java.util.Objects;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class SessionContext {
 
-	private String sessionId;
+	private final String sessionId;
 	private String directAddress;
 	private String realAddress;
 	private int port;
@@ -18,15 +19,15 @@ public class SessionContext {
 	private final AtomicInteger heartCount = new AtomicInteger(0);
 	private long lastRecvTime;
 	private final ConcurrentLinkedQueue<String> waitWriteQueue = Queues.newConcurrentLinkedQueue();
-	
-	public String getSessionId() {
-		return sessionId;
-	}
-	public void setSessionId(String sessionId) {
+
+	private Object token;
+
+	public SessionContext(String sessionId) {
 		this.sessionId = sessionId;
 	}
-	public void clearSessionId() {
-		sessionId = null;
+
+	public String getSessionId() {
+		return sessionId;
 	}
 	public String getDirectAddress() {
 		return directAddress;
@@ -76,6 +77,16 @@ public class SessionContext {
 	public int getWaitWriteQueueSize() {
 		return waitWriteQueue.size();
 	}
+	public Object getToken() {
+		return token;
+	}
+	public void setToken(Object token) {
+		this.token = token;
+	}
+	public void clearToken() {
+		token = null;
+	}
+
 	@Override
 	public String toString() {
 		return String.format("IP[%s:%s]", getAddress(), port);
@@ -83,4 +94,18 @@ public class SessionContext {
 	public void send(SessionRequest request, Object data) {
 		AsyncResponseMgr.get().sendResponse(this, request, data);
 	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		SessionContext that = (SessionContext) o;
+		return sessionId.equals(that.sessionId);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(sessionId);
+	}
+
 }

@@ -1,30 +1,27 @@
 package com.swingfrog.summer.concurrent;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class RunnableQueue {
 
-	private AtomicBoolean state;
-	private ConcurrentLinkedQueue<Runnable> queue;
+	public static final int STATUS_WAIT = 1;
+	public static final int STATUS_INTEND = 2;
+	public static final int STATUS_RUNNING = 3;
+
+	private final AtomicInteger status = new AtomicInteger(STATUS_WAIT);
+	private final ConcurrentLinkedQueue<Runnable> queue = new ConcurrentLinkedQueue<>();
 	
 	public static RunnableQueue build() {
-		RunnableQueue rq = new RunnableQueue();
-		rq.setState(new AtomicBoolean(true));
-		rq.setQueue(new ConcurrentLinkedQueue<>());
-		return rq;
+		return new RunnableQueue();
 	}
-	public AtomicBoolean getState() {
-		return state;
+
+	public AtomicInteger getStatus() {
+		return status;
 	}
-	public void setState(AtomicBoolean state) {
-		this.state = state;
-	}
+
 	public ConcurrentLinkedQueue<Runnable> getQueue() {
 		return queue;
-	}
-	public void setQueue(ConcurrentLinkedQueue<Runnable> queue) {
-		this.queue = queue;
 	}
 	
 }

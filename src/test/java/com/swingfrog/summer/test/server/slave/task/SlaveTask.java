@@ -7,11 +7,13 @@ import com.swingfrog.summer.app.Summer;
 import com.swingfrog.summer.client.ClientRemote;
 import com.swingfrog.summer.client.RemoteCallback;
 import com.swingfrog.summer.test.server.master.remote.MasterRemote;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 @Task
 public class SlaveTask {
+
+    private static final Logger log = LoggerFactory.getLogger(SlaveTask.class);
 
     @IntervalTask(3000)
     public void sendToMaster() {

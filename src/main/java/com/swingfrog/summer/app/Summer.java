@@ -5,6 +5,7 @@ import java.lang.reflect.Method;
 import java.util.Comparator;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import com.swingfrog.summer.db.repository.AsyncCacheRepositoryMgr;
 import com.swingfrog.summer.db.repository.RepositoryMgr;
@@ -84,11 +85,15 @@ public class Summer {
 				config.getServerProperties() == null ? "config/server.properties" : config.getServerProperties(),
 				config.getRedisProperties() == null ? "config/redis.properties" : config.getRedisProperties(),
 				config.getDbProperties() == null ? "config/db.properties" : config.getDbProperties(),
-				config.getTaskProperties() == null ? "config/task.properties" : config.getTaskProperties());
+				config.getTaskProperties() == null ? "config/task.properties" : config.getTaskProperties(),
+				config.getSessionQueueExpireTimeMs() == null ? TimeUnit.MINUTES.toMillis(10) : config.getSessionQueueExpireTimeMs(),
+				config.getSingleQueueExpireTimeMs() == null ? TimeUnit.MINUTES.toMillis(10) : config.getSingleQueueExpireTimeMs()
+		);
 	}
 
 	public static void hot(SummerApp app, String projectPackage, String libPath,
-			String serverProperties, String redisProperties, String dbProperties, String taskProperties) {
+			String serverProperties, String redisProperties, String dbProperties, String taskProperties,
+						   long sessionQueueExpireTimeMs, long singleQueueExpireTimeMs) {
 		try {
 			logo();
 			log.info("summer init...");
@@ -103,8 +108,8 @@ public class Summer {
 			ServerMgr.get().init();
 			ClientMgr.get().init();
 			EventBusMgr.get().init();
-			SessionQueueMgr.get().init(ServerMgr.get().getEventExecutor());
-			SingleQueueMgr.get().init(ServerMgr.get().getEventExecutor());
+			SessionQueueMgr.get().init(ServerMgr.get().getEventExecutor(), sessionQueueExpireTimeMs);
+			SingleQueueMgr.get().init(ServerMgr.get().getEventExecutor(), singleQueueExpireTimeMs);
 			ContainerMgr.get().autowired();
 			ContainerMgr.get().proxyObj();
 			app.init();

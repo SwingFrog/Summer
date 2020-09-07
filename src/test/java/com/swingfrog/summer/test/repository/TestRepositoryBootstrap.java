@@ -3,10 +3,12 @@ package com.swingfrog.summer.test.repository;
 import com.swingfrog.summer.app.Summer;
 import com.swingfrog.summer.app.SummerApp;
 import com.swingfrog.summer.app.SummerConfig;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 public class TestRepositoryBootstrap implements SummerApp {
+
+    private static final Logger log = LoggerFactory.getLogger(TestRepositoryBootstrap.class);
 
     @Override
     public void init() {

@@ -6,7 +6,7 @@
 
     <groupId>com.swingfrog.summer</groupId>
     <artifactId>summer</artifactId>
-    <version>1.0.14</version>
+    <version>1.0.15</version>
     <packaging>jar</packaging>
 
 
@@ -134,14 +134,6 @@
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <version>28.1-jre</version>
-        </dependency>
-
-        <!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>1.18.10</version>
-            <scope>provided</scope>
         </dependency>
 
     </dependencies>

@@ -5,17 +5,7 @@ import com.swingfrog.summer.db.repository.annotation.Column;
 import com.swingfrog.summer.db.repository.annotation.IndexKey;
 import com.swingfrog.summer.db.repository.annotation.PrimaryKey;
 import com.swingfrog.summer.db.repository.annotation.Table;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 
-@Getter
-@Setter
-@ToString
-@NoArgsConstructor
-@AllArgsConstructor(staticName = "of")
 @Table(name = "t_test", comment = "测试")
 public class Test {
 
@@ -30,5 +20,35 @@ public class Test {
 
     @Column(comment = "内容")
     private String content;
+
+    public Test(long id, int type, String content) {
+        this.id = id;
+        this.type = type;
+        this.content = content;
+    }
+
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
+    }
+
+    public int getType() {
+        return type;
+    }
+
+    public void setType(int type) {
+        this.type = type;
+    }
+
+    public String getContent() {
+        return content;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
+    }
 
 }

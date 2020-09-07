@@ -9,6 +9,8 @@ public class SummerConfig {
     private String redisProperties;
     private String dbProperties;
     private String taskProperties;
+    private Long sessionQueueExpireTimeMs;
+    private Long singleQueueExpireTimeMs;
 
     public SummerApp getApp() {
         return app;
@@ -70,6 +72,22 @@ public class SummerConfig {
         return new Builder();
     }
 
+    public Long getSessionQueueExpireTimeMs() {
+        return sessionQueueExpireTimeMs;
+    }
+
+    public void setSessionQueueExpireTimeMs(Long sessionQueueExpireTimeMs) {
+        this.sessionQueueExpireTimeMs = sessionQueueExpireTimeMs;
+    }
+
+    public Long getSingleQueueExpireTimeMs() {
+        return singleQueueExpireTimeMs;
+    }
+
+    public void setSingleQueueExpireTimeMs(Long singleQueueExpireTimeMs) {
+        this.singleQueueExpireTimeMs = singleQueueExpireTimeMs;
+    }
+
     public static final class Builder {
         private SummerApp app;
         private String projectPackage;
@@ -78,8 +96,15 @@ public class SummerConfig {
         private String redisProperties;
         private String dbProperties;
         private String taskProperties;
+        private Long sessionQueueExpireTimeMs;
+        private Long singleQueueExpireTimeMs;
 
-        private Builder() {}
+        private Builder() {
+        }
+
+        public static Builder builder() {
+            return new Builder();
+        }
 
         public Builder app(SummerApp app) {
             this.app = app;
@@ -116,6 +141,16 @@ public class SummerConfig {
             return this;
         }
 
+        public Builder sessionQueueExpireTimeMs(Long sessionQueueExpireTimeMs) {
+            this.sessionQueueExpireTimeMs = sessionQueueExpireTimeMs;
+            return this;
+        }
+
+        public Builder singleQueueExpireTimeMs(Long singleQueueExpireTimeMs) {
+            this.singleQueueExpireTimeMs = singleQueueExpireTimeMs;
+            return this;
+        }
+
         public SummerConfig build() {
             SummerConfig summerConfig = new SummerConfig();
             summerConfig.setApp(app);
@@ -125,6 +160,8 @@ public class SummerConfig {
             summerConfig.setRedisProperties(redisProperties);
             summerConfig.setDbProperties(dbProperties);
             summerConfig.setTaskProperties(taskProperties);
+            summerConfig.setSessionQueueExpireTimeMs(sessionQueueExpireTimeMs);
+            summerConfig.setSingleQueueExpireTimeMs(singleQueueExpireTimeMs);
             return summerConfig;
         }
     }

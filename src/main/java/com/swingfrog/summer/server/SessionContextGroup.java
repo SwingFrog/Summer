@@ -20,8 +20,7 @@ public class SessionContextGroup {
 	public void createSession(ChannelHandlerContext ctx) {
 		String id = ctx.channel().id().asLongText();
 		InetSocketAddress address = (InetSocketAddress)ctx.channel().remoteAddress();
-		SessionContext sctx = new SessionContext();
-		sctx.setSessionId(id);
+		SessionContext sctx = new SessionContext(id);
 		sctx.setDirectAddress(address.getHostString());
 		sctx.setPort(address.getPort());
 		sctx.setCurrentMsgId(0);
