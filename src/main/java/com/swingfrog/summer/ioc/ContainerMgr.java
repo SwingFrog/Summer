@@ -269,8 +269,8 @@ public class ContainerMgr {
 	}
 
 	@SuppressWarnings("unchecked")
-	public <T> Set<T> listDeclaredComponent(Class<T> clazz) {
-		return map.values().stream().filter(clazz::isInstance).map(obj -> (T)obj).collect(Collectors.toSet());
+	public <T> List<T> listDeclaredComponent(Class<T> clazz) {
+		return map.values().stream().filter(clazz::isInstance).map(obj -> (T)obj).collect(Collectors.toList());
 	}
 
 	@SuppressWarnings("unchecked")

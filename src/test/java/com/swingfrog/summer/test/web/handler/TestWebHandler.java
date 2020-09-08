@@ -9,8 +9,8 @@ import com.swingfrog.summer.server.SessionHandler;
 public class TestWebHandler implements SessionHandler {
 
     @Override
-    public boolean accpet(SessionContext ctx) {
-        return true;
+    public boolean accept(SessionContext ctx) {
+        return false;
     }
 
     @Override

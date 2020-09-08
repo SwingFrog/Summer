@@ -4,7 +4,7 @@ import com.swingfrog.summer.protocol.SessionRequest;
 
 public interface SessionHandler {
 
-	boolean accpet(SessionContext ctx);
+	boolean accept(SessionContext ctx);
 	
 	void added(SessionContext ctx);
 	

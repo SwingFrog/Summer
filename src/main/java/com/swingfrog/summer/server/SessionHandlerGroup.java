@@ -22,13 +22,13 @@ public class SessionHandlerGroup implements SessionHandler {
 	}
 
 	@Override
-	public boolean accpet(SessionContext ctx) {
+	public boolean accept(SessionContext ctx) {
 		for (SessionHandler sessionHandler : sessionHandlerList) {
-			if (!sessionHandler.accpet(ctx)) {
-				return false;
+			if (sessionHandler.accept(ctx)) {
+				return true;
 			}
 		}
-		return true;
+		return false;
 	}
 
 	@Override

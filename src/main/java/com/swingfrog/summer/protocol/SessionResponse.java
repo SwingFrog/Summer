@@ -1,6 +1,7 @@
 package com.swingfrog.summer.protocol;
 
 import java.util.Calendar;
+import java.util.Objects;
 
 import com.alibaba.fastjson.JSON;
 import com.swingfrog.summer.server.exception.CodeException;
@@ -109,5 +110,20 @@ public class SessionResponse {
 	public void setTime(long time) {
 		this.time = time;
 	}
-	
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		SessionResponse that = (SessionResponse) o;
+		return id == that.id &&
+				Objects.equals(remote, that.remote) &&
+				Objects.equals(method, that.method);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(id, remote, method);
+	}
+
 }

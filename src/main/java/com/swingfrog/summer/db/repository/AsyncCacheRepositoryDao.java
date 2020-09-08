@@ -9,7 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -23,23 +22,24 @@ public abstract class AsyncCacheRepositoryDao<T, K> extends CacheRepositoryDao<T
     private static final Logger log = LoggerFactory.getLogger(AsyncCacheRepositoryDao.class);
     private static final String PREFIX = "AsyncCacheRepositoryDao";
     private final ConcurrentLinkedQueue<Change<T, K>> waitChange = Queues.newConcurrentLinkedQueue();
-    private final ConcurrentMap<T, Long> waitSave = Maps.newConcurrentMap();
-    private final long delayTime = delayTime();
+    private final ConcurrentMap<K, Save<T, K>> waitSave = Maps.newConcurrentMap();
     private final Set<K> waitAdd = Sets.newConcurrentHashSet();
+    long delayTime;
 
     protected abstract long delayTime();
 
     @Override
     void init() {
         super.init();
+        delayTime = delayTime();
         AsyncCacheRepositoryMgr.get().getScheduledExecutor().scheduleWithFixedDelay(
                 () -> delay(false),
                 delayTime,
                 delayTime,
                 TimeUnit.MILLISECONDS);
         AsyncCacheRepositoryMgr.get().addHook(() -> delay(true));
-        if (delayTime >= expireTime()) {
-            throw new DaoRuntimeException(String.format("async cache repository delayTime[%s] must be less than expireTime[%s]", delayTime, expireTime()));
+        if (!isNeverExpire() && delayTime >= expireTime) {
+            throw new DaoRuntimeException(String.format("async cache repository delayTime[%s] must be less than expireTime[%s]", delayTime, expireTime));
         }
     }
 
@@ -72,15 +72,17 @@ public abstract class AsyncCacheRepositoryDao<T, K> extends CacheRepositoryDao<T
 
     private void delaySave(boolean force) {
         long time = System.currentTimeMillis();
-        List<T> list = waitSave.entrySet().stream()
-                .filter(entry -> force || time - entry.getValue() >= delayTime)
-                .map(Map.Entry::getKey)
+
+        List<Save<T, K>> saves = waitSave.values().stream()
+                .filter(value -> force || time - value.saveTime >= delayTime)
                 .collect(Collectors.toList());
-        if (!list.isEmpty()) {
-            super.save(list);
+
+        if (!saves.isEmpty()) {
+            saves.stream().map(value -> value.obj).forEach(super::save);
         }
-        list.stream().filter(k -> force || time - waitSave.get(k) >= delayTime).forEach(waitSave::remove);
-        log.info("async cache repository table[{}] delay save nowSaveCount[{}] waitSaveCount[{}]", tableMeta.getName(), list.size(), waitSave.size());
+
+        saves.stream().filter(value -> force || time - value.saveTime >= delayTime).forEach(value -> waitSave.remove(value.pk));
+        log.info("async cache repository table[{}] delay save nowSaveCount[{}] waitSaveCount[{}]", tableMeta.getName(), saves.size(), waitSave.size());
     }
 
     @SuppressWarnings("unchecked")
@@ -120,7 +122,7 @@ public abstract class AsyncCacheRepositoryDao<T, K> extends CacheRepositoryDao<T
             log.warn("async cache repository table[{}] primary key[{}] expire, can't save", tableMeta.getName(), pk);
             return false;
         }
-        waitSave.computeIfAbsent(obj, k -> System.currentTimeMillis());
+        waitSave.computeIfAbsent(pk, k -> new Save<>(obj, pk, System.currentTimeMillis()));
         return true;
     }
 
@@ -156,6 +158,17 @@ public abstract class AsyncCacheRepositoryDao<T, K> extends CacheRepositoryDao<T
         Change(K pk) {
             this.pk = pk;
             this.add = false;
+        }
+    }
+
+    private static class Save<T, K> {
+        T obj;
+        K pk;
+        long saveTime;
+        Save(T obj, K pk, long saveTime) {
+            this.obj = obj;
+            this.pk = pk;
+            this.saveTime = saveTime;
         }
     }
 

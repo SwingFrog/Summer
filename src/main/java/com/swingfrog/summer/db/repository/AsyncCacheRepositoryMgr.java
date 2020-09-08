@@ -1,6 +1,6 @@
 package com.swingfrog.summer.db.repository;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.Lists;
 import com.swingfrog.summer.config.ConfigUtil;
 import com.swingfrog.summer.util.ThreadCountUtil;
 import io.netty.util.concurrent.DefaultThreadFactory;
@@ -10,8 +10,8 @@ import org.slf4j.LoggerFactory;
 import java.beans.IntrospectionException;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.List;
 import java.util.Properties;
-import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -22,7 +22,7 @@ public class AsyncCacheRepositoryMgr {
 
     private static ScheduledExecutorService scheduledExecutor;
     private final AsyncCacheConfig config = new AsyncCacheConfig();
-    private final Set<Runnable> hooks = Sets.newConcurrentHashSet();
+    private final List<Runnable> hooks = Lists.newLinkedList();
 
     private static class SingleCase {
         public static final AsyncCacheRepositoryMgr INSTANCE = new AsyncCacheRepositoryMgr();

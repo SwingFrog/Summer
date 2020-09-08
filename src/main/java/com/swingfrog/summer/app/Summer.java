@@ -3,7 +3,7 @@ package com.swingfrog.summer.app;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.util.Comparator;
-import java.util.Set;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -178,7 +178,7 @@ public class Summer {
 		return ContainerMgr.get().getDeclaredComponent(clazz);
 	}
 	
-	public static <T> Set<T> listDeclaredComponent(Class<T> clazz) {
+	public static <T> List<T> listDeclaredComponent(Class<T> clazz) {
 		return ContainerMgr.get().listDeclaredComponent(clazz);
 	}
 	

@@ -23,34 +23,50 @@ public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
 
     private static final String PREFIX = "CacheRepositoryDao";
     private T EMPTY;
-    private final Cache<K, T> cache = CacheBuilder.newBuilder()
-            .expireAfterAccess(expireTime(), TimeUnit.MILLISECONDS)
-            .build();
+    private Cache<K, T> cache;
     private final Map<String, Cache<Object, Set<K>>> cachePkMap = Maps.newHashMap();
     private final Map<String, Cache<Object, Boolean>> cachePkFinishMap = Maps.newHashMap();
     private final AtomicLong findAllTime = new AtomicLong(0);
-    private final long expireTime = expireTime();
+    long expireTime;
 
+    // never expire if value less then zero
     protected abstract long expireTime();
 
     @Override
     void init() {
         super.init();
+        expireTime = expireTime();
         try {
             EMPTY = getEntityClass().newInstance();
         } catch (InstantiationException | IllegalAccessException e) {
             throw new DaoRuntimeException("cache repository EMPTY not null");
         }
-        tableMeta.getCacheKeys().forEach(columnMeta -> {
-            cachePkMap.put(columnMeta.getName(),
-                    CacheBuilder.newBuilder()
-                            .expireAfterAccess(expireTime, TimeUnit.MILLISECONDS)
-                            .build());
-            cachePkFinishMap.put(columnMeta.getName(),
-                    CacheBuilder.newBuilder()
-                            .expireAfterAccess(expireTime, TimeUnit.MILLISECONDS)
-                            .build());
-        });
+        if (isNeverExpire()) {
+            cache = CacheBuilder.newBuilder().build();
+            tableMeta.getCacheKeys().forEach(columnMeta -> {
+                cachePkMap.put(columnMeta.getName(), CacheBuilder.newBuilder().build());
+                cachePkFinishMap.put(columnMeta.getName(), CacheBuilder.newBuilder().build());
+            });
+        } else {
+            cache = CacheBuilder.newBuilder()
+                    .expireAfterAccess(expireTime, TimeUnit.MILLISECONDS)
+                    .build();
+            tableMeta.getCacheKeys().forEach(columnMeta -> {
+                cachePkMap.put(columnMeta.getName(),
+                        CacheBuilder.newBuilder()
+                                .expireAfterAccess(expireTime, TimeUnit.MILLISECONDS)
+                                .build());
+                cachePkFinishMap.put(columnMeta.getName(),
+                        CacheBuilder.newBuilder()
+                                .expireAfterAccess(expireTime, TimeUnit.MILLISECONDS)
+                                .build());
+            });
+        }
+
+    }
+
+    boolean isNeverExpire() {
+        return expireTime < 0;
     }
 
     @Override
@@ -217,9 +233,9 @@ public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
     @Override
     public List<T> list() {
         long time = System.currentTimeMillis();
-        if (time - expireTime() >= findAllTime.get()) {
+        if (time - expireTime >= findAllTime.get()) {
             synchronized (StringUtil.getString(PREFIX, tableMeta.getName(), "list")) {
-                if (time - expireTime() >= findAllTime.get()) {
+                if (time - expireTime >= findAllTime.get()) {
                     listPrimaryKey().forEach(this::get);
                 }
             }

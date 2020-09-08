@@ -21,6 +21,10 @@ public class Test {
     @Column(comment = "内容")
     private String content;
 
+    public Test() {
+
+    }
+
     public Test(long id, int type, String content) {
         this.id = id;
         this.type = type;
@@ -51,4 +55,12 @@ public class Test {
         this.content = content;
     }
 
+    @Override
+    public String toString() {
+        return "Test{" +
+                "id=" + id +
+                ", type=" + type +
+                ", content='" + content + '\'' +
+                '}';
+    }
 }

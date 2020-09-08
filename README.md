@@ -22,11 +22,13 @@
 
 
 ## 更新说明
-### 2020.09.07
-1. SessionContext调整，将sessionId的hashcode作为sessionContext的hashcode。新增属性token，token可以在用户登录以后手动设置为用户ID，以此作为用户的唯一标识。
+### 2020.09.08
+1. SessionContext调整，新增属性token，token可以在用户登录以后手动设置为用户ID，以此作为用户的唯一标识。
 2. SessionQueueMgr、SingleQueueMgr优化。SessionQueueMgr，不再使用直接使用SessionContext分配队列，改为使用SessionContext中的token分配队列，当token未设置时使用sessionId。
 3. http协议下，sessionId不再作为用户的唯一标识，sessionId仅作为链路标识。当用户请求接口携带的cookie数据中不存在token时，响应时会下发通过UUID生成的32位字符串作为token，用户下一次请求时就会携带有token。通过sessionContext.getToken()获取token，通过sessionContext.clearToken()清空token。
-4. test例子取消lombok依赖
+4. 修复部分因为hashcode引发的问题。修复方式，将set改为list，重写hashcode，map中的key如果无法重写hashcode则对结构进行调整。
+5. 修正SessionHandler中的accept拼写错误
+6. test例子取消lombok依赖。
 
 ### 2020.05.18
 1. 缓存仓库调整，当PrimaryKey为非自增模式时，使用CacheKey查询经历过remove，add的相同PrimaryKey的实体时，尽管实体中的CacheKey与查询的值不同也依旧能命中缓存，现将其进行修复。当主动remove时，会将存有对应PrimaryKey的CacheKey缓存清除。
