@@ -24,11 +24,11 @@ public class SessionHandlerGroup implements SessionHandler {
 	@Override
 	public boolean accept(SessionContext ctx) {
 		for (SessionHandler sessionHandler : sessionHandlerList) {
-			if (sessionHandler.accept(ctx)) {
-				return true;
+			if (!sessionHandler.accept(ctx)) {
+				return false;
 			}
 		}
-		return false;
+		return true;
 	}
 
 	@Override
