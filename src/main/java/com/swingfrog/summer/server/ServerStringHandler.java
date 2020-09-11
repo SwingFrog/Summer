@@ -54,7 +54,7 @@ public class ServerStringHandler extends SimpleChannelInboundHandler<String> {
 		}
 		serverContext.getSessionContextGroup().createSession(ctx);
 		SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(ctx);
-		if (serverContext.getSessionHandlerGroup().accept(sctx)) {
+		if (!serverContext.getSessionHandlerGroup().accept(sctx)) {
 			log.warn("not accept client {}", sctx);
 			ctx.close();
 		}
