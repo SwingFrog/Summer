@@ -37,7 +37,7 @@ public class ClientMgr {
 		return SingleCase.INSTANCE;
 	}
 	
-	public void init() throws NotFoundException, SchedulerException {
+	public void init() throws NotFoundException {
 		log.info("client init...");
 		ClientConfig[] configs = ConfigMgr.get().getClientConfigs();
 		if (configs != null) {
@@ -61,7 +61,7 @@ public class ClientMgr {
 		}
 	}
 	
-	public void connectAll() {
+	public void connectAll() throws SchedulerException {
 		if (nameToCluster.size() > 0) {
 			log.info("clients connect...");
 			for (ClientCluster clientCluster : nameToCluster.values()) {

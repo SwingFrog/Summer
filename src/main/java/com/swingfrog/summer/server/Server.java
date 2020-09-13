@@ -6,6 +6,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import com.swingfrog.summer.task.TaskTrigger;
 import com.swingfrog.summer.util.ThreadCountUtil;
 import io.netty.buffer.PooledByteBufAllocator;
 import org.quartz.SchedulerException;
@@ -30,12 +31,27 @@ public class Server {
 	private final ServerPush serverPush;
 	private final EventLoopGroup bossGroup;
 	private final EventLoopGroup workerGroup;
+	private final TaskTrigger checkHeartTask;
 
 	public Server(ServerConfig config, EventLoopGroup bossGroup, EventLoopGroup workerGroup, ExecutorService eventExecutor, ExecutorService pushExecutor) {
 		serverContext = new ServerContext(config, new SessionHandlerGroup(), new SessionContextGroup(), eventExecutor, pushExecutor);
 		serverPush = new ServerPush(serverContext);
 		this.bossGroup = bossGroup;
 		this.workerGroup = workerGroup;
+
+		long intervalTime = serverContext.getConfig().getHeartSec() * 1000;
+		checkHeartTask = TaskUtil.getIntervalTask(intervalTime, intervalTime, serverContext.getConfig().getServerName(), () -> {
+			log.info("check all client connect");
+			long time = System.currentTimeMillis() - intervalTime;
+			Iterator<SessionContext> ite = serverContext.getSessionContextGroup().iteratorSession();
+			while (ite.hasNext()) {
+				SessionContext sctx = ite.next();
+				long recvTime = sctx.getLastRecvTime();
+				if (recvTime < time) {
+					serverContext.getSessionHandlerGroup().heartTimeOut(sctx);
+				}
+			}
+		});
 	}
 
 	public static Server create(ServerConfig config) {
@@ -107,7 +123,7 @@ public class Server {
 					.childOption(ChannelOption.TCP_NODELAY, true);
 			b.childHandler(new ServerInitializer(serverContext));
 			b.bind(serverContext.getConfig().getAddress(), serverContext.getConfig().getPort()).sync();
-			startCheckHeartTimeTask();
+			TaskMgr.get().start(checkHeartTask);
 			log.info("server[{}] launch success", serverContext.getConfig().getServerName());
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
@@ -117,7 +133,22 @@ public class Server {
 
 	public void shutdown() {
 		log.info("server[{}] shutdown", serverContext.getConfig().getServerName());
+		try {
+			TaskMgr.get().stop(checkHeartTask);
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
+		}
 		if (!serverContext.getConfig().isUseMainServerThreadPool()) {
+			try {
+				bossGroup.shutdownGracefully().sync();
+			} catch (InterruptedException e) {
+				log.error(e.getMessage(), e);
+			}
+			try {
+				workerGroup.shutdownGracefully().sync();
+			} catch (InterruptedException e) {
+				log.error(e.getMessage(), e);
+			}
 			serverContext.getEventExecutor().shutdown();
 			try {
 				while (!serverContext.getEventExecutor().isTerminated()) {
@@ -134,16 +165,6 @@ public class Server {
 			} catch (InterruptedException e){
 				log.error(e.getMessage(), e);
 			}
-			try {
-				bossGroup.shutdownGracefully().sync();
-			} catch (InterruptedException e) {
-				log.error(e.getMessage(), e);
-			}
-			try {
-				workerGroup.shutdownGracefully().sync();
-			} catch (InterruptedException e) {
-				log.error(e.getMessage(), e);
-			}
 		}
 	}
 
@@ -157,21 +178,6 @@ public class Server {
 	
 	public void closeSession(SessionContext sctx) {
 		serverContext.getSessionContextGroup().getChannelBySession(sctx).close();
-	}
-
-	private void startCheckHeartTimeTask() throws SchedulerException {
-		int interval = serverContext.getConfig().getHeartSec() / 2;
-		TaskMgr.get().start(TaskUtil.getIntervalTask(interval * 1000, interval * 1000, serverContext.getConfig().getServerName(), () -> {
-			log.info("check all client connect");
-			Iterator<SessionContext> ite = serverContext.getSessionContextGroup().iteratorSession();
-			while (ite.hasNext()) {
-				SessionContext ctx = ite.next();
-				ctx.setHeartCount(ctx.getHeartCount() + interval);
-				if (ctx.getHeartCount() >= serverContext.getConfig().getHeartSec()) {
-					serverContext.getSessionHandlerGroup().heartTimeOut(ctx);
-				}
-			}
-		}));
 	}
 
 	public ExecutorService getEventExecutor() {

@@ -40,36 +40,33 @@ public class ClientStringHandler extends SimpleChannelInboundHandler<String> {
 	public void channelInactive(ChannelHandlerContext ctx) {
 		log.warn("client connect break");
 		clientContext.setChannel(null);
-		ctx.channel().eventLoop().execute(() -> {
-			try {
-				Thread.sleep(clientContext.getConfig().getReconnectMs());
-			} catch (InterruptedException e) {
-				log.error(e.getMessage(), e);
-			}
-			clientContext.getClient().connect();
-		});
+		if (clientContext.getClient().isActive()) {
+			ctx.channel().eventLoop().execute(() -> {
+				try {
+					Thread.sleep(clientContext.getConfig().getReconnectMs());
+				} catch (InterruptedException e) {
+					log.error(e.getMessage(), e);
+				}
+				clientContext.getClient().reconnect();
+			});
+		}
 	}
 	
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, String msg) {
-		clientContext.setHeartCount(0);
+		clientContext.setLastRecvTime(System.currentTimeMillis());
 		if ("pong".equals(msg)) {
-			
-		} else {
-			try {
-				SessionResponse response = JSON.parseObject(msg, SessionResponse.class);
-				if (response.getId() == 0) {
-					clientContext.getPushGroup().execute(()->{
-						PushDispatchMgr.get().processPush(response);
-					});
-				} else {
-					clientContext.getEventGroup().execute(()->{
-						PushDispatchMgr.get().processRemote(response);
-					});
-				}
-			} catch (Exception e) {
-				log.error(e.getMessage(), e);
+			return;
+		}
+		try {
+			SessionResponse response = JSON.parseObject(msg, SessionResponse.class);
+			if (response.getId() == 0) {
+				clientContext.getPushExecutor().execute(()-> PushDispatchMgr.get().processPush(response));
+			} else {
+				clientContext.getEventExecutor().execute(()-> PushDispatchMgr.get().processRemote(response));
 			}
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
 		}
 	}
 	

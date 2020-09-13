@@ -22,6 +22,10 @@
 
 
 ## 更新说明
+### 2020.09.13
+1. 心跳机制优化。
+2. 用户请求默认在用户队列中进行处理，@SessionQueue废弃。
+
 ### 2020.09.08
 1. SessionContext调整，新增属性token，token可以在用户登录以后手动设置为用户ID，以此作为用户的唯一标识。
 2. SessionQueueMgr、SingleQueueMgr优化。SessionQueueMgr，不再使用直接使用SessionContext分配队列，改为使用SessionContext中的token分配队列，当token未设置时使用sessionId。

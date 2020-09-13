@@ -308,18 +308,17 @@ public class Summer {
 	}
 	
 	public static void logo() {
-		StringBuilder logo = new StringBuilder();
-		logo.append("\n");
-		logo.append("\n");
-		logo.append("   SSSSSSSSSSSSSSS\n SS:::::::::::::::S\nS:::::SSSSSS::::::S\nS:::::S     SSSSSSS\nS:::::S            uuuuuu    uuuuuu     mmmmmmm    mmmmmmm      mmmmmmm    mmmmmmm       eeeeeeeeeeee    rrrrr   rrrrrrrrr\nS:::::S            u::::u    u::::u   mm:::::::m  m:::::::mm  mm:::::::m  m:::::::mm   ee::::::::::::ee  r::::rrr:::::::::r\n S::::SSSS         u::::u    u::::u  m::::::::::mm::::::::::mm::::::::::mm::::::::::m e::::::eeeee:::::eer:::::::::::::::::r\n  SS::::::SSSSS    u::::u    u::::u  m::::::::::::::::::::::mm::::::::::::::::::::::me::::::e     e:::::err::::::rrrrr::::::r\n    SSS::::::::SS  u::::u    u::::u  m:::::mmm::::::mmm:::::mm:::::mmm::::::mmm:::::me:::::::eeeee::::::e r:::::r     r:::::r\n       SSSSSS::::S u::::u    u::::u  m::::m   m::::m   m::::mm::::m   m::::m   m::::me:::::::::::::::::e  r:::::r     rrrrrrr\n            S:::::Su::::u    u::::u  m::::m   m::::m   m::::mm::::m   m::::m   m::::me::::::eeeeeeeeeee   r:::::r\n            S:::::Su:::::uuuu:::::u  m::::m   m::::m   m::::mm::::m   m::::m   m::::me:::::::e            r:::::r\nSSSSSSS     S:::::Su:::::::::::::::uum::::m   m::::m   m::::mm::::m   m::::m   m::::me::::::::e           r:::::r\nS::::::SSSSSS:::::S u:::::::::::::::um::::m   m::::m   m::::mm::::m   m::::m   m::::m e::::::::eeeeeeee   r:::::r\nS:::::::::::::::SS   uu::::::::uu:::um::::m   m::::m   m::::mm::::m   m::::m   m::::m  ee:::::::::::::e   r:::::r\n SSSSSSSSSSSSSSS       uuuuuuuu  uuuummmmmm   mmmmmm   mmmmmmmmmmmm   mmmmmm   mmmmmm    eeeeeeeeeeeeee   rrrrrrr");
-		logo.append("\n");
-		logo.append("\n");
-		logo.append("\n");
-		logo.append("                                            Summer Server Powered by Toke 2018");
-		logo.append("\n");
-		logo.append("\n");
-		logo.append("-----------------------------------------------------------------------------------------------------------------------------");
-		log.info(logo.toString());
+		String logo = "\n" +
+				"\n" +
+				"   SSSSSSSSSSSSSSS\n SS:::::::::::::::S\nS:::::SSSSSS::::::S\nS:::::S     SSSSSSS\nS:::::S            uuuuuu    uuuuuu     mmmmmmm    mmmmmmm      mmmmmmm    mmmmmmm       eeeeeeeeeeee    rrrrr   rrrrrrrrr\nS:::::S            u::::u    u::::u   mm:::::::m  m:::::::mm  mm:::::::m  m:::::::mm   ee::::::::::::ee  r::::rrr:::::::::r\n S::::SSSS         u::::u    u::::u  m::::::::::mm::::::::::mm::::::::::mm::::::::::m e::::::eeeee:::::eer:::::::::::::::::r\n  SS::::::SSSSS    u::::u    u::::u  m::::::::::::::::::::::mm::::::::::::::::::::::me::::::e     e:::::err::::::rrrrr::::::r\n    SSS::::::::SS  u::::u    u::::u  m:::::mmm::::::mmm:::::mm:::::mmm::::::mmm:::::me:::::::eeeee::::::e r:::::r     r:::::r\n       SSSSSS::::S u::::u    u::::u  m::::m   m::::m   m::::mm::::m   m::::m   m::::me:::::::::::::::::e  r:::::r     rrrrrrr\n            S:::::Su::::u    u::::u  m::::m   m::::m   m::::mm::::m   m::::m   m::::me::::::eeeeeeeeeee   r:::::r\n            S:::::Su:::::uuuu:::::u  m::::m   m::::m   m::::mm::::m   m::::m   m::::me:::::::e            r:::::r\nSSSSSSS     S:::::Su:::::::::::::::uum::::m   m::::m   m::::mm::::m   m::::m   m::::me::::::::e           r:::::r\nS::::::SSSSSS:::::S u:::::::::::::::um::::m   m::::m   m::::mm::::m   m::::m   m::::m e::::::::eeeeeeee   r:::::r\nS:::::::::::::::SS   uu::::::::uu:::um::::m   m::::m   m::::mm::::m   m::::m   m::::m  ee:::::::::::::e   r:::::r\n SSSSSSSSSSSSSSS       uuuuuuuu  uuuummmmmm   mmmmmm   mmmmmmmmmmmm   mmmmmm   mmmmmm    eeeeeeeeeeeeee   rrrrrrr" +
+				"\n" +
+				"\n" +
+				"\n" +
+				"                                            Summer Server Powered by Toke 2018" +
+				"\n" +
+				"\n" +
+				"-----------------------------------------------------------------------------------------------------------------------------";
+		log.info(logo);
 	}
 
 }

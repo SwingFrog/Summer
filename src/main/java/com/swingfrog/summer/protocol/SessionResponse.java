@@ -1,6 +1,5 @@
 package com.swingfrog.summer.protocol;
 
-import java.util.Calendar;
 import java.util.Objects;
 
 import com.alibaba.fastjson.JSON;
@@ -22,7 +21,7 @@ public class SessionResponse {
 		sr.setRemote(remote);
 		sr.setMethod(method);
 		sr.setData(data);
-		sr.setTime(Calendar.getInstance().getTimeInMillis());
+		sr.setTime(System.currentTimeMillis());
 		return sr;
 	}
 	
@@ -32,7 +31,7 @@ public class SessionResponse {
 		sr.setRemote(remote);
 		sr.setMethod(method);
 		sr.setData(data);
-		sr.setTime(Calendar.getInstance().getTimeInMillis());
+		sr.setTime(System.currentTimeMillis());
 		return sr;
 	}
 	
@@ -47,7 +46,7 @@ public class SessionResponse {
 		sr.setRemote(remote);
 		sr.setMethod(method);
 		sr.setData(e.getMsg());
-		sr.setTime(Calendar.getInstance().getTimeInMillis());
+		sr.setTime(System.currentTimeMillis());
 		return sr;
 	}
 	
@@ -62,7 +61,7 @@ public class SessionResponse {
 		sr.setRemote(remote);
 		sr.setMethod(method);
 		sr.setData(e.getMsg());
-		sr.setTime(Calendar.getInstance().getTimeInMillis());
+		sr.setTime(System.currentTimeMillis());
 		return sr;
 	}
 	

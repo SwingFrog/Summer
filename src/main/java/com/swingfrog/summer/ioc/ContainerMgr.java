@@ -24,7 +24,6 @@ import com.swingfrog.summer.annotation.IntervalTask;
 import com.swingfrog.summer.annotation.Push;
 import com.swingfrog.summer.annotation.Remote;
 import com.swingfrog.summer.annotation.Service;
-import com.swingfrog.summer.annotation.SessionQueue;
 import com.swingfrog.summer.annotation.SingleQueue;
 import com.swingfrog.summer.annotation.Synchronized;
 import com.swingfrog.summer.annotation.Task;
@@ -56,7 +55,6 @@ public class ContainerMgr {
 	private final List<Class<?>> handlerList = Lists.newLinkedList();
 	private final Map<String, List<Class<?>>> handlerMap = Maps.newHashMap();
 	private final Map<Method, MatchGroupKey> singleQueueMap = Maps.newHashMap();
-	private final List<Method> sessionQueueList = Lists.newLinkedList();
 	private final Map<Method, String> synchronizedMap = Maps.newHashMap();
 	private final List<TaskTrigger> taskList = Lists.newLinkedList();
 	private final List<Class<?>> eventList = Lists.newLinkedList();
@@ -175,9 +173,6 @@ public class ContainerMgr {
 				if (singleQueue != null) {
 					log.info("open single queue[{}] {}.{}", singleQueue.value(), clazz.getSimpleName(), method.getName());
 					singleQueueMap.put(method, new MatchGroupKey(singleQueue.value()));
-				} else if (method.isAnnotationPresent(SessionQueue.class)) {
-					log.info("open session queue {}.{}", clazz.getSimpleName(), method.getName());
-					sessionQueueList.add(method);
 				}
 			}
 		}
@@ -315,10 +310,6 @@ public class ContainerMgr {
 	
 	public String getSynchronizedName(Method method) {
 		return synchronizedMap.get(method);
-	}
-	
-	public boolean isSessionQueue(Method method) {
-		return sessionQueueList.contains(method);
 	}
 	
 	public Iterator<Class<?>> iteratorEventList() {

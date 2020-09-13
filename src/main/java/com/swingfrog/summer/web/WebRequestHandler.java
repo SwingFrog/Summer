@@ -2,13 +2,11 @@ package com.swingfrog.summer.web;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Method;
-import java.net.InetSocketAddress;
 import java.net.URLDecoder;
-import java.util.Calendar;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
+import com.swingfrog.summer.server.AbstractServerHandler;
 import com.swingfrog.summer.server.async.ProcessResult;
 import com.swingfrog.summer.statistics.RemoteStatistics;
 import com.swingfrog.summer.util.ForwardedAddressUtil;
@@ -17,23 +15,16 @@ import org.slf4j.LoggerFactory;
 
 import com.alibaba.fastjson.JSONObject;
 import com.swingfrog.summer.app.Summer;
-import com.swingfrog.summer.concurrent.MatchGroupKey;
-import com.swingfrog.summer.concurrent.SessionQueueMgr;
-import com.swingfrog.summer.concurrent.SingleQueueMgr;
-import com.swingfrog.summer.ioc.ContainerMgr;
 import com.swingfrog.summer.server.RemoteDispatchMgr;
 import com.swingfrog.summer.server.ServerContext;
 import com.swingfrog.summer.server.SessionContext;
 import com.swingfrog.summer.server.exception.CodeException;
 import com.swingfrog.summer.server.exception.CodeMsg;
 import com.swingfrog.summer.server.exception.SessionException;
-import com.swingfrog.summer.server.rpc.RpcClientMgr;
 import com.swingfrog.summer.web.view.FileView;
 import com.swingfrog.summer.web.view.WebView;
 
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.handler.codec.TooLongFrameException;
 import io.netty.handler.codec.http.DefaultHttpResponse;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpHeaderNames;
@@ -54,75 +45,20 @@ import io.netty.handler.codec.http.multipart.InterfaceHttpData;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder.EndOfDataDecoderException;
 import io.netty.handler.codec.http.multipart.InterfaceHttpData.HttpDataType;
 
-public class WebRequestHandler extends SimpleChannelInboundHandler<HttpObject> {
+public class WebRequestHandler extends AbstractServerHandler<HttpObject> {
 
 	private static final Logger log = LoggerFactory.getLogger(WebRequestHandler.class);
 	private static final HttpDataFactory factory =
             new DefaultHttpDataFactory(DefaultHttpDataFactory.MINSIZE);
-	private final ServerContext serverContext;
 	private HttpRequest httpRequest;
 	private HttpPostRequestDecoder postRequestDecoder;
 	
 	public WebRequestHandler(ServerContext serverContext) {
-		this.serverContext = serverContext;
+		super(serverContext);
 	}
 	
 	@Override
-	public void channelRegistered(ChannelHandlerContext ctx) {
-		if (serverContext.getConfig().isAllowAddressEnable()) {
-			String address = ((InetSocketAddress)ctx.channel().remoteAddress()).getHostString();
-			String[] addressList = serverContext.getConfig().getAllowAddressList();
-			boolean allow = false;
-			for (String s : addressList) {
-				if (address.equals(s)) {
-					allow = true;
-					break;
-				}
-			}
-			if (!allow) {
-				log.warn("not allow {} connect", address);
-				ctx.close();
-				return;
-			}
-			log.info("allow {} connect", address);
-		}
-		serverContext.getSessionContextGroup().createSession(ctx);
-		SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(ctx);
-		if (!serverContext.getSessionHandlerGroup().accept(sctx)) {
-			log.warn("not accept client {}", sctx);
-			ctx.close();
-		}
-	}
-	
-	@Override
-	public void channelActive(ChannelHandlerContext ctx) {
-		SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(ctx);
-		log.info("added client {}", sctx);
-		serverContext.getSessionHandlerGroup().added(sctx);
-	}
-	
-	@Override
-	public void channelInactive(ChannelHandlerContext ctx) {
-		SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(ctx);
-		if (sctx != null) {
-			log.info("removed client {}", sctx);
-			serverContext.getSessionHandlerGroup().removed(sctx);
-			serverContext.getSessionContextGroup().destroySession(ctx);
-			RpcClientMgr.get().remove(sctx);
-			SessionQueueMgr.get().shutdown(sctx);
-		}
-	}
-	
-	@Override
-	protected void channelRead0(ChannelHandlerContext ctx, HttpObject httpObject) {
-		SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(ctx);
-		long now = Calendar.getInstance().getTimeInMillis();
-		long last = sctx.getLastRecvTime();
-		sctx.setLastRecvTime(now);
-		if ((now - last) < serverContext.getConfig().getColdDownMs()) {
-			serverContext.getSessionHandlerGroup().sendTooFastMsg(sctx);
-		}
-		sctx.setHeartCount(0);
+	protected void recv(ChannelHandlerContext ctx, SessionContext sctx, HttpObject httpObject) {
 		try {
 			if (httpObject instanceof HttpRequest) {
 				httpRequest = (HttpRequest) httpObject;
@@ -167,16 +103,6 @@ public class WebRequestHandler extends SimpleChannelInboundHandler<HttpObject> {
 				postRequestDecoder = null;
 				httpRequest = null;
 			}
-		}
-	}
-
-	@Override
-	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-		SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(ctx);
-		if (cause instanceof TooLongFrameException) {
-			serverContext.getSessionHandlerGroup().lengthTooLongMsg(sctx);
-		} else {
-			log.error(cause.getMessage(), cause);
 		}
 	}
 	
@@ -255,61 +181,36 @@ public class WebRequestHandler extends SimpleChannelInboundHandler<HttpObject> {
 	
 	private void doWork(ChannelHandlerContext ctx, SessionContext sctx, WebRequest request) {
 		log.debug("server request {} from {}", request, sctx);
-		if (serverContext.getSessionHandlerGroup().receive(sctx, request)) {
-			RemoteStatistics.start(request, 0);
-			Runnable event = ()-> {
-				try {
-					ProcessResult<WebView> processResult = RemoteDispatchMgr.get().webProcess(serverContext, request, sctx);
-					if (processResult.isAsync()) {
-						return;
-					}
-					WebView webView = processResult.getValue();
-					if (webView == null) {
-						writeResponse(ctx, sctx, request, WebMgr.get().getInteriorViewFactory().createBlankView());
-					} else {
-						webView.ready();
-						writeResponse(ctx, sctx, request, webView);
-					}
-				} catch (CodeException ce) {
-					log.warn(ce.getMessage(), ce);
-					WebView webView = WebMgr.get().getInteriorViewFactory().createErrorView(500, ce.getCode(), ce.getMsg());
-					writeResponse(ctx, sctx, request, webView);
-				} catch (Throwable e) {
-					log.error(e.getMessage(), e);
-					CodeMsg ce = SessionException.INVOKE_ERROR;
-					WebView webView = WebMgr.get().getInteriorViewFactory().createErrorView(500, ce.getCode(), ce.getMsg());
-					writeResponse(ctx, sctx, request, webView);
-				}
-				RemoteStatistics.finish(request, 0);
-			};
-			Method method = RemoteDispatchMgr.get().getMethod(request);
-			if (method != null) {
-				MatchGroupKey matchGroupKey = ContainerMgr.get().getSingleQueueKey(method);
-				if (matchGroupKey != null) {
-					if (matchGroupKey.hasKeys()) {
-						Object[] partKeys = new Object[matchGroupKey.getKeys().size()];
-						for (int i = 0; i < matchGroupKey.getKeys().size(); i++) {
-							String key = request.getData().getString(matchGroupKey.getKeys().get(i));
-							if (key == null) {
-								key = "";
-							}
-							partKeys[i] = key;
-						}
-						SingleQueueMgr.get().execute(matchGroupKey.getMainKey(partKeys).intern(), event);
-					} else {									
-						SingleQueueMgr.get().execute(matchGroupKey.getMainKey().intern(), event);
-					}
-				} else {
-					if (ContainerMgr.get().isSessionQueue(method)) {
-						SessionQueueMgr.get().execute(sctx, event);
-					} else {
-						serverContext.getEventExecutor().execute(event);
-					}
-				}
-			} else {
-				serverContext.getEventExecutor().execute(event);
-			}
+		if (!serverContext.getSessionHandlerGroup().receive(sctx, request)) {
+			return;
 		}
+		RemoteStatistics.start(request, 0);
+		Runnable runnable = () -> {
+			try {
+				ProcessResult<WebView> processResult = RemoteDispatchMgr.get().webProcess(serverContext, request, sctx);
+				if (processResult.isAsync()) {
+					return;
+				}
+				WebView webView = processResult.getValue();
+				if (webView == null) {
+					writeResponse(ctx, sctx, request, WebMgr.get().getInteriorViewFactory().createBlankView());
+				} else {
+					webView.ready();
+					writeResponse(ctx, sctx, request, webView);
+				}
+			} catch (CodeException ce) {
+				log.warn(ce.getMessage(), ce);
+				WebView webView = WebMgr.get().getInteriorViewFactory().createErrorView(500, ce.getCode(), ce.getMsg());
+				writeResponse(ctx, sctx, request, webView);
+			} catch (Throwable e) {
+				log.error(e.getMessage(), e);
+				CodeMsg ce = SessionException.INVOKE_ERROR;
+				WebView webView = WebMgr.get().getInteriorViewFactory().createErrorView(500, ce.getCode(), ce.getMsg());
+				writeResponse(ctx, sctx, request, webView);
+			}
+			RemoteStatistics.finish(request, 0);
+		};
+		submitRunnable(sctx, request, runnable);
 	}
 
 	private void writeResponse(ChannelHandlerContext ctx, SessionContext sctx, WebRequest request, WebView webView) {

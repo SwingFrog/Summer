@@ -1,5 +1,7 @@
 package com.swingfrog.summer.client;
 
+import com.swingfrog.summer.task.TaskTrigger;
+import com.swingfrog.summer.util.ThreadCountUtil;
 import org.quartz.SchedulerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,16 +18,19 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.concurrent.DefaultThreadFactory;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
 public class Client {
 
 	private static final Logger log = LoggerFactory.getLogger(Client.class);
 	private final ClientContext clientContext;
 	private final ClientRemote clientRemote;
 	private final EventLoopGroup workerGroup;
-	private final int id;
+	private final TaskTrigger checkHeartTask;
+	private volatile boolean active;
 	
-	public Client(int id, ClientConfig config) throws SchedulerException {
-		this.id = id;
+	public Client(int id, ClientConfig config) {
 		log.info("client cluster {}", config.getCluster());
 		log.info("client serverName {}", config.getServerName());
 		log.info("client address {}", config.getAddress());
@@ -40,13 +45,37 @@ public class Client {
 		log.info("client reconnectMs {}", config.getReconnectMs());
 		log.info("client syncRemoteTimeOutMs {}", config.getSyncRemoteTimeOutMs());
 		log.info("client connectNum {}", config.getConnectNum());
-		workerGroup = new NioEventLoopGroup(config.getWorkerThread(), new DefaultThreadFactory("ClientWorker", true));
-		clientContext = new ClientContext(config, this, new NioEventLoopGroup(config.getEventThread(), new DefaultThreadFactory("ClientEvent", true)));
+		workerGroup = new NioEventLoopGroup(config.getWorkerThread(), new DefaultThreadFactory("ClientWorker_" + config.getServerName()));
+		clientContext = new ClientContext(config,
+				this,
+				Executors.newFixedThreadPool(ThreadCountUtil.cpuDenseness(config.getEventThread()), new DefaultThreadFactory("ClientEvent_" + config.getServerName())),
+				Executors.newSingleThreadExecutor(new DefaultThreadFactory("ClientPush_" + config.getServerName())));
 		clientRemote = new ClientRemote(clientContext);
-		startCheckHeartTimeTask();
+
+		long intervalTime = clientContext.getConfig().getHeartSec() * 1000;
+		checkHeartTask = TaskUtil.getIntervalTask(intervalTime / 2, intervalTime / 2, clientContext.getConfig().getServerName()+"_"+id, () -> {
+			if (clientContext.getChannel() != null) {
+				log.info("check connect for {}_{}", clientContext.getConfig().getServerName(), id);
+				clientContext.getChannel().writeAndFlush("ping");
+				long time = System.currentTimeMillis() - intervalTime;
+				long recvTime = clientContext.getLastRecvTime();
+				if (recvTime < time) {
+					clientContext.getChannel().close();
+				}
+			}
+		});
 	}
 
-	public void connect() {
+	public void connect() throws SchedulerException {
+		active = true;
+		TaskMgr.get().start(checkHeartTask);
+		reconnect();
+	}
+
+	public void reconnect() {
+		if (!active) {
+			return;
+		}
 		try {
 			log.info("client[{}] connect {}:{}", clientContext.getConfig().getServerName(), clientContext.getConfig().getAddress(), clientContext.getConfig().getPort());
 			Bootstrap b = new Bootstrap();
@@ -60,9 +89,31 @@ public class Client {
 
 	public void shutdown() {
 		log.info("client[{}] shutdown", clientContext.getConfig().getServerName());
+		active = false;
+		try {
+			TaskMgr.get().stop(checkHeartTask);
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
+		}
 		try {
 			workerGroup.shutdownGracefully().sync();
 		} catch (InterruptedException e) {
+			log.error(e.getMessage(), e);
+		}
+		clientContext.getEventExecutor().shutdown();
+		try {
+			while (!clientContext.getEventExecutor().isTerminated()) {
+				clientContext.getEventExecutor().awaitTermination(1, TimeUnit.SECONDS);
+			}
+		} catch (InterruptedException e){
+			log.error(e.getMessage(), e);
+		}
+		clientContext.getPushExecutor().shutdown();
+		try {
+			while (!clientContext.getPushExecutor().isTerminated()) {
+				clientContext.getPushExecutor().awaitTermination(1, TimeUnit.SECONDS);
+			}
+		} catch (InterruptedException e){
 			log.error(e.getMessage(), e);
 		}
 	}
@@ -73,38 +124,27 @@ public class Client {
 			if (f.isSuccess()) {
 				log.info("connect {} success", clientContext.getConfig().getServerName());
 			} else {
-				f.channel().eventLoop().execute(()->{
-					try {
-						Thread.sleep(clientContext.getConfig().getReconnectMs());
-					} catch (InterruptedException e) {
-						log.error(e.getMessage(), e);
-					}
-					log.info("reconnect for {}", clientContext.getConfig().getServerName());
-					connect();
-				});
+				if (active) {
+					f.channel().eventLoop().execute(()->{
+						try {
+							Thread.sleep(clientContext.getConfig().getReconnectMs());
+						} catch (InterruptedException e) {
+							log.error(e.getMessage(), e);
+						}
+						log.info("reconnect for {}", clientContext.getConfig().getServerName());
+						reconnect();
+					});
+				}
 			}
 		} 
-	}
-	
-	public void destroyWorkerGroup() {
-		workerGroup.shutdownGracefully();
 	}
 	
 	public ClientRemote getClientRemote() {
 		return clientRemote;
 	}
 
-	private void startCheckHeartTimeTask() throws SchedulerException {
-		int interval = clientContext.getConfig().getHeartSec() / 2;
-		TaskMgr.get().start(TaskUtil.getIntervalTask(interval * 1000, interval * 1000, clientContext.getConfig().getServerName()+"_"+id, () -> {
-			if (clientContext.getChannel() != null) {
-				log.info("check connect for {}_{}", clientContext.getConfig().getServerName(), id);
-				clientContext.getChannel().writeAndFlush("ping");
-				clientContext.setHeartCount(clientContext.getHeartCount() + interval);
-				if (clientContext.getHeartCount() > clientContext.getConfig().getHeartSec()) {
-					clientContext.getChannel().close();
-				}
-			}
-		}));
+	public boolean isActive() {
+		return active;
 	}
+
 }

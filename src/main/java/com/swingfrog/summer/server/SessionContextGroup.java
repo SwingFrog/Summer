@@ -24,8 +24,7 @@ public class SessionContextGroup {
 		sctx.setDirectAddress(address.getHostString());
 		sctx.setPort(address.getPort());
 		sctx.setCurrentMsgId(0);
-		sctx.setHeartCount(0);
-		sctx.setLastRecvTime(0);
+		sctx.setLastRecvTime(System.currentTimeMillis());
 		channelToSessionMap.put(ctx.channel().id(), sctx);
 		sessionToChannelMap.put(sctx, ctx);
 	}

@@ -6,7 +6,6 @@ import com.swingfrog.summer.server.async.AsyncResponseMgr;
 
 import java.util.Objects;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class SessionContext {
 
@@ -15,9 +14,8 @@ public class SessionContext {
 	private String realAddress;
 	private int port;
 	
-	private long currentMsgId;
-	private final AtomicInteger heartCount = new AtomicInteger(0);
-	private long lastRecvTime;
+	private volatile long currentMsgId;
+	private volatile long lastRecvTime;
 	private final ConcurrentLinkedQueue<String> waitWriteQueue = Queues.newConcurrentLinkedQueue();
 
 	private Object token;
@@ -55,15 +53,6 @@ public class SessionContext {
 	}
 	public void setCurrentMsgId(long currentMsgId) {
 		this.currentMsgId = currentMsgId;
-	}
-	public int getHeartCount() {
-		return heartCount.get();
-	}
-	public void setHeartCount(int heartCount) {
-		this.heartCount.set(heartCount);
-	}
-	public void incrementHeartCount() {
-		heartCount.incrementAndGet();
 	}
 	public long getLastRecvTime() {
 		return lastRecvTime;

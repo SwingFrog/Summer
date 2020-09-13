@@ -6,10 +6,10 @@ import java.util.concurrent.ExecutorService;
 
 public class ServerContext {
 
-	private ServerConfig config;
-	private SessionHandlerGroup sessionHandlerGroup;
-	private SessionContextGroup sessionContextGroup;
-	private ExecutorService eventExecutor;
+	private final ServerConfig config;
+	private final SessionHandlerGroup sessionHandlerGroup;
+	private final SessionContextGroup sessionContextGroup;
+	private final ExecutorService eventExecutor;
 	private final ExecutorService pushExecutor;
 	
 	public ServerContext(ServerConfig config,
@@ -26,26 +26,14 @@ public class ServerContext {
 	public ServerConfig getConfig() {
 		return config;
 	}
-	public void setConfig(ServerConfig config) {
-		this.config = config;
-	}
 	public SessionHandlerGroup getSessionHandlerGroup() {
 		return sessionHandlerGroup;
-	}
-	public void setSessionHandlerGroup(SessionHandlerGroup sessionHandlerGroup) {
-		this.sessionHandlerGroup = sessionHandlerGroup;
 	}
 	public SessionContextGroup getSessionContextGroup() {
 		return sessionContextGroup;
 	}
-	public void setSessionContextGroup(SessionContextGroup sessionContextGroup) {
-		this.sessionContextGroup = sessionContextGroup;
-	}
 	public ExecutorService getEventExecutor() {
 		return eventExecutor;
-	}
-	public void setEventExecutor(ExecutorService eventExecutor) {
-		this.eventExecutor = eventExecutor;
 	}
 	public ExecutorService getPushExecutor() {
 		return pushExecutor;
