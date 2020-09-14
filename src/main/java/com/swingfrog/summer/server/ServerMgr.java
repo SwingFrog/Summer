@@ -62,6 +62,7 @@ public class ServerMgr {
 			}
 		}
 		RemoteDispatchMgr.get().init();
+		RemoteProtobufDispatchMgr.get().init();
 	}
 	
 	public void launch() {

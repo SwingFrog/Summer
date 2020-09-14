@@ -22,5 +22,6 @@ public @interface Remote {
 
     boolean filter() default false;
     String serverName() default "";
+    boolean protobuf() default false;
 
 }

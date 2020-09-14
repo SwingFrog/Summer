@@ -9,7 +9,6 @@ import java.util.concurrent.TimeUnit;
 import com.swingfrog.summer.task.TaskTrigger;
 import com.swingfrog.summer.util.ThreadCountUtil;
 import io.netty.buffer.PooledByteBufAllocator;
-import org.quartz.SchedulerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

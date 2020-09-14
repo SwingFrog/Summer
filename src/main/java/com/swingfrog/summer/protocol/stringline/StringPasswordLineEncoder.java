@@ -5,6 +5,7 @@ import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.util.List;
 
+import com.swingfrog.summer.util.PasswordUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
@@ -34,15 +35,7 @@ public class StringPasswordLineEncoder extends MessageToMessageEncoder<String> {
 			out.add(ByteBufUtil.encodeString(ctx.alloc(), CharBuffer.wrap(msg), Charset.forName(charset)));
 		} else {
 			byte[] bytes = msg.getBytes(charset);
-			int index = bytes.length % 10;
-			for (int i = 0; i < bytes.length; i++) {
-				if (index >= pass.length)
-					index = 0;
-				int res = bytes[i] ^ pass[index];
-				if (res != 10 && res != 13)
-					bytes[i] = (byte)res;
-				index++;
-			}
+			PasswordUtil.convertForLine(pass, bytes);
 			ByteBuf buf = Unpooled.buffer(bytes.length+2);
 			buf.writeBytes(bytes);
 			buf.writeByte('\r');

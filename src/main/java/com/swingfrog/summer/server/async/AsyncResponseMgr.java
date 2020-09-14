@@ -3,10 +3,10 @@ package com.swingfrog.summer.server.async;
 import com.alibaba.fastjson.JSON;
 import com.swingfrog.summer.protocol.SessionRequest;
 import com.swingfrog.summer.protocol.SessionResponse;
+import com.swingfrog.summer.protocol.ProtocolConst;
 import com.swingfrog.summer.server.Server;
-import com.swingfrog.summer.server.ServerConst;
 import com.swingfrog.summer.server.ServerMgr;
-import com.swingfrog.summer.server.ServerStringHandler;
+import com.swingfrog.summer.server.ServerWriteHelper;
 import com.swingfrog.summer.server.SessionContext;
 import com.swingfrog.summer.server.exception.CodeException;
 import com.swingfrog.summer.server.exception.SessionException;
@@ -73,7 +73,7 @@ public class AsyncResponseMgr {
             return;
         }
         ChannelHandlerContext ctx = server.getServerContext().getSessionContextGroup().getChannelBySession(sctx);
-        if (ServerConst.SERVER_PROTOCOL_HTTP.equals(server.getServerContext().getConfig().getProtocol())) {
+        if (ProtocolConst.SERVER_PROTOCOL_HTTP.equals(server.getServerContext().getConfig().getProtocol())) {
             WebView webView;
             if (data == null) {
                 webView = WebMgr.get().getInteriorViewFactory().createBlankView();
@@ -97,7 +97,7 @@ public class AsyncResponseMgr {
         } else {
             String response = SessionResponse.buildMsg(request, data).toJSONString();
             log.debug("server async response {} to {}", response, sctx);
-            ServerStringHandler.write(ctx, server.getServerContext(), sctx, response);
+            ServerWriteHelper.write(ctx, server.getServerContext(), sctx, response);
             RemoteStatistics.finish(request, response.length());
         }
     }
@@ -110,14 +110,14 @@ public class AsyncResponseMgr {
             log.error("Async send response failure. cause: can't found server by session context");
             return;
         }
-        if (ServerConst.SERVER_PROTOCOL_HTTP.equals(server.getServerContext().getConfig().getProtocol())) {
+        if (ProtocolConst.SERVER_PROTOCOL_HTTP.equals(server.getServerContext().getConfig().getProtocol())) {
             log.error("Http protocol can't send error response");
             return;
         }
         ChannelHandlerContext ctx = server.getServerContext().getSessionContextGroup().getChannelBySession(sctx);
         String response = SessionResponse.buildError(request, ce).toJSONString();
         log.debug("server async response error {} to {}", response, sctx);
-        ServerStringHandler.write(ctx, server.getServerContext(), sctx, response);
+        ServerWriteHelper.write(ctx, server.getServerContext(), sctx, response);
         RemoteStatistics.finish(request, response.length());
     }
 
@@ -129,14 +129,14 @@ public class AsyncResponseMgr {
             log.error("Async send response failure. cause: can't found server by session context");
             return;
         }
-        if (ServerConst.SERVER_PROTOCOL_HTTP.equals(server.getServerContext().getConfig().getProtocol())) {
+        if (ProtocolConst.SERVER_PROTOCOL_HTTP.equals(server.getServerContext().getConfig().getProtocol())) {
             log.error("Http protocol can't send error response");
             return;
         }
         ChannelHandlerContext ctx = server.getServerContext().getSessionContextGroup().getChannelBySession(sctx);
         String response = SessionResponse.buildError(request, SessionException.INVOKE_ERROR).toJSONString();
         log.debug("server async response error {} to {}", response, sctx);
-        ServerStringHandler.write(ctx, server.getServerContext(), sctx, response);
+        ServerWriteHelper.write(ctx, server.getServerContext(), sctx, response);
         RemoteStatistics.finish(request, response.length());
     }
 

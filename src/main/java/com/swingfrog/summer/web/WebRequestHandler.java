@@ -9,6 +9,7 @@ import java.util.concurrent.ExecutorService;
 import com.swingfrog.summer.server.AbstractServerHandler;
 import com.swingfrog.summer.server.async.ProcessResult;
 import com.swingfrog.summer.statistics.RemoteStatistics;
+import com.swingfrog.summer.struct.AutowireParam;
 import com.swingfrog.summer.util.ForwardedAddressUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -184,10 +185,14 @@ public class WebRequestHandler extends AbstractServerHandler<HttpObject> {
 		if (!serverContext.getSessionHandlerGroup().receive(sctx, request)) {
 			return;
 		}
+
+		AutowireParam autowireParam = new AutowireParam();
+		serverContext.getSessionHandlerGroup().autowireParam(sctx, autowireParam);
+
 		RemoteStatistics.start(request, 0);
 		Runnable runnable = () -> {
 			try {
-				ProcessResult<WebView> processResult = RemoteDispatchMgr.get().webProcess(serverContext, request, sctx);
+				ProcessResult<WebView> processResult = RemoteDispatchMgr.get().webProcess(serverContext, request, sctx, autowireParam);
 				if (processResult.isAsync()) {
 					return;
 				}

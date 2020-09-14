@@ -1,27 +1,40 @@
 package com.swingfrog.summer.server;
 
 import com.swingfrog.summer.protocol.SessionRequest;
+import com.swingfrog.summer.protocol.protobuf.ProtobufRequest;
+import com.swingfrog.summer.struct.AutowireParam;
 
 public interface SessionHandler {
 
-	boolean accept(SessionContext ctx);
+	default boolean accept(SessionContext ctx) {
+		return true;
+	}
 	
-	void added(SessionContext ctx);
+	default void added(SessionContext ctx) {}
 	
 	void removed(SessionContext ctx);
 	
-	boolean receive(SessionContext ctx, SessionRequest request);
-	
-	void heartTimeOut(SessionContext ctx);
-	
-	void sendTooFastMsg(SessionContext ctx);
-	
-	void lengthTooLongMsg(SessionContext ctx);
-	
-	void unableParseMsg(SessionContext ctx);
-	
-	void repetitionMsg(SessionContext ctx);
+	default boolean receive(SessionContext ctx, SessionRequest request) {
+		return true;
+	}
 
-	void sending(SessionContext ctx);
+	// only protobuf
+	default boolean receive(SessionContext ctx, ProtobufRequest request) {
+		return true;
+	}
+
+	default void autowireParam(SessionContext ctx, AutowireParam autowireParam) {}
+
+	default void heartTimeOut(SessionContext ctx) {}
+
+	default void sendTooFastMsg(SessionContext ctx) {}
+
+	default void lengthTooLongMsg(SessionContext ctx) {}
+
+	default void unableParseMsg(SessionContext ctx) {}
+
+	default void repetitionMsg(SessionContext ctx) {}
+
+	default void sending(SessionContext ctx) {}
 	
 }

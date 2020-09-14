@@ -137,8 +137,8 @@ public class PushDispatchMgr {
 	}
 	
 	private static class PushClass {
-		private Class<?> clazz;
-		private Map<String, PushMethod> pushMethodMap = new HashMap<>();
+		private final Class<?> clazz;
+		private final Map<String, PushMethod> pushMethodMap = new HashMap<>();
 		public PushClass(Class<?> clazz) throws NotFoundException {
 			this.clazz = clazz;
 			Method[] methods = clazz.getDeclaredMethods();
@@ -155,10 +155,10 @@ public class PushDispatchMgr {
 	}
 	
 	private static class PushMethod {
-		private Method method;
-		private String[] params;
-		private Type[] paramTypes;
-		private Parameter[] parameters;
+		private final Method method;
+		private final String[] params;
+		private final Type[] paramTypes;
+		private final Parameter[] parameters;
 		public PushMethod(Method method, MethodParameterName mpn) throws NotFoundException {
 			this.method = method;
 			paramTypes = method.getGenericParameterTypes();

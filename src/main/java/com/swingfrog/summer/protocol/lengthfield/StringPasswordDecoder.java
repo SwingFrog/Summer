@@ -3,6 +3,7 @@ package com.swingfrog.summer.protocol.lengthfield;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
 
+import com.swingfrog.summer.util.PasswordUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
@@ -28,14 +29,7 @@ public class StringPasswordDecoder extends MessageToMessageDecoder<ByteBuf> {
 		byte[] bytes = new byte[msg.readableBytes()];
 		msg.readBytes(bytes);
 		if (pass != null) {
-			int index = bytes.length % 10;
-			for (int i = 0; i < bytes.length; i++) {
-				if (index >= pass.length)
-					index = 0;
-				int res = bytes[i] ^ pass[index];
-				bytes[i] = (byte)res;
-				index++;
-			}
+			PasswordUtil.convert(pass, bytes);
 		}
 		out.add(new String(bytes, charset));
 	}

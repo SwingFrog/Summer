@@ -2,6 +2,7 @@ package com.swingfrog.summer.server;
 
 import com.swingfrog.summer.server.async.ProcessResult;
 import com.swingfrog.summer.statistics.RemoteStatistics;
+import com.swingfrog.summer.struct.AutowireParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,6 +44,10 @@ public class ServerStringHandler extends AbstractServerHandler<String> {
 			if (!serverContext.getSessionHandlerGroup().receive(sctx, request)) {
 				return;
 			}
+
+			AutowireParam autowireParam = new AutowireParam();
+			serverContext.getSessionHandlerGroup().autowireParam(sctx, autowireParam);
+
 			RemoteStatistics.start(request, msg.length());
 			Runnable runnable = () -> {
 				if (!ctx.channel().isActive()) {
@@ -50,7 +55,7 @@ public class ServerStringHandler extends AbstractServerHandler<String> {
 					return;
 				}
 				try {
-					ProcessResult<SessionResponse> processResult = RemoteDispatchMgr.get().process(serverContext, request, sctx);
+					ProcessResult<SessionResponse> processResult = RemoteDispatchMgr.get().process(serverContext, request, sctx, autowireParam);
 					if (processResult.isAsync()) {
 						return;
 					}
@@ -89,19 +94,7 @@ public class ServerStringHandler extends AbstractServerHandler<String> {
 	}
 
 	private void writeResponse(ChannelHandlerContext ctx, SessionContext sctx, String response) {
-		write(ctx, serverContext, sctx, response);
-	}
-
-	public static void write(ChannelHandlerContext ctx, ServerContext serverContext, SessionContext sctx, String response) {
-		if (!ctx.channel().isActive()) {
-			return;
-		}
-		if (sctx.getWaitWriteQueueSize() == 0 && ctx.channel().isWritable()) {
-			ctx.writeAndFlush(response);
-		} else {
-			sctx.getWaitWriteQueue().add(response);
-		}
-		serverContext.getSessionHandlerGroup().sending(sctx);
+		ServerWriteHelper.write(ctx, serverContext, sctx, response);
 	}
 
 }

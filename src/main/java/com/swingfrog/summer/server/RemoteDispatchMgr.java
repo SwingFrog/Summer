@@ -11,6 +11,7 @@ import java.util.Map;
 import com.swingfrog.summer.annotation.Remote;
 import com.swingfrog.summer.server.async.AsyncResponse;
 import com.swingfrog.summer.server.async.ProcessResult;
+import com.swingfrog.summer.struct.AutowireParam;
 import com.swingfrog.summer.util.JSONConvertUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,6 +52,10 @@ public class RemoteDispatchMgr {
 		Iterator<Class<?>> ite = ContainerMgr.get().iteratorRemoteList();
 		while (ite.hasNext()) {
 			Class<?> clazz = ite.next();
+			Remote remote = clazz.getAnnotation(Remote.class);
+			if (remote.protobuf()) {
+				continue;
+			}
 			log.info("server register remote {}", clazz.getSimpleName());
 			remoteClassMap.put(clazz.getSimpleName(), new RemoteClass(clazz));
 		}
@@ -69,7 +74,9 @@ public class RemoteDispatchMgr {
 		return null;
 	}
 	
-	private Object invoke(ServerContext serverContext, String remote, String method, JSONObject data, Map<Class<?>, Object> autoObj, Map<String, Object> autoNameObj) throws Throwable {
+	private Object invoke(ServerContext serverContext, String remote, String method, JSONObject data, AutowireParam autowireParam) throws Throwable {
+		Map<Class<?>, Object> objForTypes = autowireParam.getTypes();
+		Map<String, Object> objForNames = autowireParam.getNames();
 		RemoteClass remoteClass = remoteClassMap.get(remote);
 		if (remoteClass != null) {
 			if (remoteClass.filter && !remoteClass.serverName.equals(serverContext.getConfig().getServerName())) {
@@ -100,10 +107,10 @@ public class RemoteDispatchMgr {
 								}
 							} else {
 								if (auto) {
-									if (autoObj != null && autoObj.containsKey(type)) {
-										obj[i] = autoObj.get(type);
-									} else if (autoNameObj != null && autoNameObj.containsKey(param)) {
-										obj[i] = autoNameObj.get(param);
+									if (objForTypes != null && objForTypes.containsKey(type)) {
+										obj[i] = objForTypes.get(type);
+									} else if (objForNames != null && objForNames.containsKey(param)) {
+										obj[i] = objForNames.get(param);
 									} else {
 										obj[i] = ContainerMgr.get().getComponent((Class<?>) type);
 										if (obj[i] == null) {
@@ -139,32 +146,34 @@ public class RemoteDispatchMgr {
 		}
 	}
 	
-	public ProcessResult<SessionResponse> process(ServerContext serverContext, SessionRequest req, SessionContext sctx) throws Throwable {
+	public ProcessResult<SessionResponse> process(ServerContext serverContext, SessionRequest req, SessionContext sctx,
+												  AutowireParam autowireParam) throws Throwable {
 		String remote = req.getRemote();
 		String method = req.getMethod();
 		JSONObject data = req.getData();
-		Map<Class<?>, Object> autoObj = new HashMap<>();
-		autoObj.put(SessionContext.class, sctx);
-		autoObj.put(SessionRequest.class, req);
-		Object result = invoke(serverContext, remote, method, data, autoObj, null);
+		Map<Class<?>, Object> objForTypes = autowireParam.getTypes();
+		objForTypes.putIfAbsent(SessionContext.class, sctx);
+		objForTypes.putIfAbsent(SessionRequest.class, req);
+		Object result = invoke(serverContext, remote, method, data, autowireParam);
 		if (result instanceof AsyncResponse) {
 			return new ProcessResult<>(true, null);
 		}
 		return new ProcessResult<>(false, SessionResponse.buildMsg(req, result));
 	}
 	
-	public ProcessResult<WebView> webProcess(ServerContext serverContext, WebRequest req, SessionContext sctx) throws Throwable {
+	public ProcessResult<WebView> webProcess(ServerContext serverContext, WebRequest req, SessionContext sctx,
+											 AutowireParam autowireParam) throws Throwable {
 		String remote = req.getRemote();
 		String method = req.getMethod();
 		JSONObject data = req.getData();
-		Map<Class<?>, Object> autoObj = new HashMap<>();
-		autoObj.put(SessionContext.class, sctx);
-		autoObj.put(SessionRequest.class, req);
-		Map<String, Object> autoNameObj = new HashMap<>();
+		Map<Class<?>, Object> objForTypes = autowireParam.getTypes();
+		Map<String, Object> objForNames = autowireParam.getNames();
+		objForTypes.putIfAbsent(SessionContext.class, sctx);
+		objForTypes.putIfAbsent(SessionRequest.class, req);
 		for (String key : req.getFileUploadMap().keySet()) {
-			autoNameObj.put(key, req.getFileUploadMap().get(key));
+			objForNames.putIfAbsent(key, req.getFileUploadMap().get(key));
 		}
-		Object result = invoke(serverContext, remote, method, data, autoObj, autoNameObj);
+		Object result = invoke(serverContext, remote, method, data, autowireParam);
 		if (result instanceof AsyncResponse) {
 			return new ProcessResult<>(true, null);
 		}
@@ -178,10 +187,10 @@ public class RemoteDispatchMgr {
 	}
 	
 	private static class RemoteClass {
-		private boolean filter;
-		private String serverName;
-		private Class<?> clazz;
-		private Map<String, RemoteMethod> remoteMethodMap = new HashMap<>();
+		private final boolean filter;
+		private final String serverName;
+		private final Class<?> clazz;
+		private final Map<String, RemoteMethod> remoteMethodMap = new HashMap<>();
 		public RemoteClass(Class<?> clazz) throws NotFoundException {
 			this.clazz = clazz;
 			this.filter = clazz.getAnnotation(Remote.class).filter();
@@ -201,10 +210,10 @@ public class RemoteDispatchMgr {
 	}
 	
 	private static class RemoteMethod {
-		private Method method;
-		private String[] params;
-		private Type[] paramTypes;
-		private Parameter[] parameters;
+		private final Method method;
+		private final String[] params;
+		private final Type[] paramTypes;
+		private final Parameter[] parameters;
 		public RemoteMethod(Method method, MethodParameterName mpn) throws NotFoundException {
 			this.method = method;
 			paramTypes = method.getGenericParameterTypes();

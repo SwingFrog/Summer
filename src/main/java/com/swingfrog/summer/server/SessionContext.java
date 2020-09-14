@@ -1,8 +1,6 @@
 package com.swingfrog.summer.server;
 
 import com.google.common.collect.Queues;
-import com.swingfrog.summer.protocol.SessionRequest;
-import com.swingfrog.summer.server.async.AsyncResponseMgr;
 
 import java.util.Objects;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -16,7 +14,7 @@ public class SessionContext {
 	
 	private volatile long currentMsgId;
 	private volatile long lastRecvTime;
-	private final ConcurrentLinkedQueue<String> waitWriteQueue = Queues.newConcurrentLinkedQueue();
+	private final ConcurrentLinkedQueue<Object> waitWriteQueue = Queues.newConcurrentLinkedQueue();
 
 	private Object token;
 
@@ -60,7 +58,7 @@ public class SessionContext {
 	public void setLastRecvTime(long lastRecvTime) {
 		this.lastRecvTime = lastRecvTime;
 	}
-	ConcurrentLinkedQueue<String> getWaitWriteQueue() {
+	ConcurrentLinkedQueue<Object> getWaitWriteQueue() {
 		return waitWriteQueue;
 	}
 	public int getWaitWriteQueueSize() {
@@ -79,9 +77,6 @@ public class SessionContext {
 	@Override
 	public String toString() {
 		return String.format("IP[%s:%s]", getAddress(), port);
-	}
-	public void send(SessionRequest request, Object data) {
-		AsyncResponseMgr.get().sendResponse(this, request, data);
 	}
 
 	@Override

@@ -5,7 +5,7 @@ import com.swingfrog.summer.protocol.lengthfield.StringPasswordDecoder;
 import com.swingfrog.summer.protocol.lengthfield.StringPasswordEncoder;
 import com.swingfrog.summer.protocol.stringline.StringPasswordLineDecoder;
 import com.swingfrog.summer.protocol.stringline.StringPasswordLineEncoder;
-import com.swingfrog.summer.server.ServerConst;
+import com.swingfrog.summer.protocol.ProtocolConst;
 import com.swingfrog.summer.server.exception.NotFoundProtocolException;
 
 import io.netty.channel.ChannelInitializer;
@@ -29,24 +29,31 @@ public class ClientInitializer extends ChannelInitializer<SocketChannel> {
 	protected void initChannel(SocketChannel sc) {
 		ChannelPipeline pipeline = sc.pipeline();
 		ClientConfig config = clientContext.getConfig();
-		if (ServerConst.SERVER_PROTOCOL_STRING_LINE.equals(config.getProtocol())) {
-			pipeline.addLast(new StringPasswordLineDecoder(config.getMsgLength(), config.getCharset(), config.getPassword()));
-			pipeline.addLast(new StringPasswordLineEncoder(config.getCharset(), config.getPassword()));
-		} else if (ServerConst.SERVER_PROTOCOL_LENGTH_FIELD.equals(config.getProtocol())) {
-			pipeline.addLast(new LengthFieldBasedFrameDecoder(config.getMsgLength(), 0, 4, 0, 4));
-			pipeline.addLast(new LengthFieldPrepender(4));
-			pipeline.addLast(new StringPasswordDecoder(config.getCharset(), config.getPassword()));
-			pipeline.addLast(new StringPasswordEncoder(config.getCharset(), config.getPassword()));
-		} else {
-			throw new NotFoundProtocolException(config.getProtocol());
+		String protocol = config.getProtocol();
+		switch (protocol) {
+			case ProtocolConst.SERVER_PROTOCOL_STRING_LINE:
+				pipeline.addLast(new StringPasswordLineDecoder(config.getMsgLength(), config.getCharset(), config.getPassword()));
+				pipeline.addLast(new StringPasswordLineEncoder(config.getCharset(), config.getPassword()));
+				break;
+			case ProtocolConst.SERVER_PROTOCOL_LENGTH_FIELD:
+				pipeline.addLast(new LengthFieldBasedFrameDecoder(config.getMsgLength(), 0, 4, 0, 4));
+				pipeline.addLast(new LengthFieldPrepender(4));
+				pipeline.addLast(new StringPasswordDecoder(config.getCharset(), config.getPassword()));
+				pipeline.addLast(new StringPasswordEncoder(config.getCharset(), config.getPassword()));
+				break;
+			default:
+				throw new NotFoundProtocolException(config.getProtocol());
 		}
 		pipeline.addLast(new ClientStringHandler(clientContext));
 	}
 
 	private boolean checkProtocol() {
 		String protocol = clientContext.getConfig().getProtocol();
-		if (ServerConst.SERVER_PROTOCOL_STRING_LINE.equals(protocol)) {
-			return true;
-		} else return ServerConst.SERVER_PROTOCOL_LENGTH_FIELD.equals(protocol);
+		switch (protocol) {
+			case ProtocolConst.SERVER_PROTOCOL_STRING_LINE:
+			case ProtocolConst.SERVER_PROTOCOL_LENGTH_FIELD:
+				return true;
+		}
+		return false;
 	}
 }

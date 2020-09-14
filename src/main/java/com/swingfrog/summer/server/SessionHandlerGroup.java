@@ -4,6 +4,8 @@ import java.util.List;
 
 import com.google.common.collect.Lists;
 import com.swingfrog.summer.protocol.SessionRequest;
+import com.swingfrog.summer.protocol.protobuf.ProtobufRequest;
+import com.swingfrog.summer.struct.AutowireParam;
 
 public class SessionHandlerGroup implements SessionHandler {
 
@@ -53,6 +55,23 @@ public class SessionHandlerGroup implements SessionHandler {
 			}
 		}
 		return true;
+	}
+
+	@Override
+	public boolean receive(SessionContext ctx, ProtobufRequest request) {
+		for (SessionHandler sessionHandler : sessionHandlerList) {
+			if (!sessionHandler.receive(ctx, request)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	@Override
+	public void autowireParam(SessionContext ctx, AutowireParam autowireParam) {
+		for (SessionHandler sessionHandler : sessionHandlerList) {
+			sessionHandler.autowireParam(ctx, autowireParam);
+		}
 	}
 
 	@Override
