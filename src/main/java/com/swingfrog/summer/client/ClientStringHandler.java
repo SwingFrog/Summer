@@ -1,5 +1,6 @@
 package com.swingfrog.summer.client;
 
+import com.swingfrog.summer.protocol.ProtocolConst;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +29,9 @@ public class ClientStringHandler extends SimpleChannelInboundHandler<String> {
 	@Override
 	public void channelActive(ChannelHandlerContext ctx) {
 		clientContext.setChannel(ctx);
-		ctx.writeAndFlush(String.format("rpc\t%s\t%s", ConfigMgr.get().getServerConfig().getCluster(), ConfigMgr.get().getServerConfig().getServerName()));
+		ctx.writeAndFlush(ProtocolConst.RPC
+				+ ProtocolConst.RPC_SPLIT + ConfigMgr.get().getServerConfig().getCluster()
+				+ ProtocolConst.RPC_SPLIT + ConfigMgr.get().getServerConfig().getServerName());
 		SessionRequest sessionRequest;
 		while ((sessionRequest = clientContext.getRequestQueue().poll()) != null) {
 			sessionRequest.setId(ClientMgr.get().incrementCurrentId());
@@ -55,7 +58,7 @@ public class ClientStringHandler extends SimpleChannelInboundHandler<String> {
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, String msg) {
 		clientContext.setLastRecvTime(System.currentTimeMillis());
-		if ("pong".equals(msg)) {
+		if (ProtocolConst.PONG.equals(msg)) {
 			return;
 		}
 		try {

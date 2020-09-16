@@ -1,5 +1,6 @@
 package com.swingfrog.summer.server;
 
+import com.swingfrog.summer.protocol.ProtocolConst;
 import com.swingfrog.summer.server.async.ProcessResult;
 import com.swingfrog.summer.statistics.RemoteStatistics;
 import com.swingfrog.summer.struct.AutowireParam;
@@ -25,11 +26,11 @@ public class ServerStringHandler extends AbstractServerHandler<String> {
 	
 	@Override
 	protected void recv(ChannelHandlerContext ctx, SessionContext sctx, String msg) {
-		if ("ping".equals(msg)) {
-			ctx.writeAndFlush("pong");
+		if (ProtocolConst.PING.equals(msg)) {
+			ctx.writeAndFlush(ProtocolConst.PONG);
 			return;
-		} else if (msg.startsWith("rpc")) {
-			String[] msgs = msg.split("\t");
+		} else if (msg.startsWith(ProtocolConst.RPC)) {
+			String[] msgs = msg.split(ProtocolConst.RPC_SPLIT);
 			RpcClientMgr.get().add(sctx, msgs[1], msgs[2]);
 			return;
 		}
@@ -48,10 +49,10 @@ public class ServerStringHandler extends AbstractServerHandler<String> {
 			AutowireParam autowireParam = new AutowireParam();
 			serverContext.getSessionHandlerGroup().autowireParam(sctx, autowireParam);
 
-			RemoteStatistics.start(request, msg.length());
+			RemoteStatistics.start(sctx, request, msg.length());
 			Runnable runnable = () -> {
 				if (!ctx.channel().isActive()) {
-					RemoteStatistics.discard(request);
+					RemoteStatistics.discard(sctx, request);
 					return;
 				}
 				try {
@@ -62,19 +63,19 @@ public class ServerStringHandler extends AbstractServerHandler<String> {
 					String response = processResult.getValue().toJSONString();
 					log.debug("server response {} to {}", response, sctx);
 					writeResponse(ctx, sctx, response);
-					RemoteStatistics.finish(request, response.length());
+					RemoteStatistics.finish(sctx, request, response.length());
 				} catch (CodeException ce) {
 					log.warn(ce.getMessage(), ce);
 					String response = SessionResponse.buildError(request, ce).toJSONString();
 					log.debug("server response error {} to {}", response, sctx);
 					writeResponse(ctx, sctx, response);
-					RemoteStatistics.finish(request, response.length());
+					RemoteStatistics.finish(sctx, request, response.length());
 				} catch (Throwable e) {
 					log.error(e.getMessage(), e);
 					String response = SessionResponse.buildError(request, SessionException.INVOKE_ERROR).toJSONString();
 					log.debug("server response error {} to {}", response, sctx);
 					writeResponse(ctx, sctx, response);
-					RemoteStatistics.finish(request, response.length());
+					RemoteStatistics.finish(sctx, request, response.length());
 				}
 			};
 			submitRunnable(sctx, request, runnable);

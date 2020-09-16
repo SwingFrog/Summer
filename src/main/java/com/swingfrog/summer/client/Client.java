@@ -1,5 +1,6 @@
 package com.swingfrog.summer.client;
 
+import com.swingfrog.summer.protocol.ProtocolConst;
 import com.swingfrog.summer.task.TaskTrigger;
 import com.swingfrog.summer.util.ThreadCountUtil;
 import org.quartz.SchedulerException;
@@ -56,7 +57,7 @@ public class Client {
 		checkHeartTask = TaskUtil.getIntervalTask(intervalTime / 2, intervalTime / 2, clientContext.getConfig().getServerName()+"_"+id, () -> {
 			if (clientContext.getChannel() != null) {
 				log.info("check connect for {}_{}", clientContext.getConfig().getServerName(), id);
-				clientContext.getChannel().writeAndFlush("ping");
+				clientContext.getChannel().writeAndFlush(ProtocolConst.PING);
 				long time = System.currentTimeMillis() - intervalTime;
 				long recvTime = clientContext.getLastRecvTime();
 				if (recvTime < time) {

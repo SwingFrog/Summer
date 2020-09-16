@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+option java_package = "com.swingfrog.summer.protocol.protobuf.proto";
+option java_outer_classname = "CommonProto";
+
+// className_type_messageId
+
+message HeartBeat_Req_0 {
+}
+message HearBeat_Resp_0 {
+    int64 time = 1;
+}
+
+message ErrorCode_Push_1 {
+    int32 reqId = 1;
+    int32 code  = 2;
+    string msg  = 3;
+}

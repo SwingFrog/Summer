@@ -61,61 +61,61 @@ public class PushDispatchMgr {
 		String method = sessionResponse.getMethod();
 		JSONObject data = (JSONObject) sessionResponse.getData();
 		PushClass pushClass = pushClassMap.get(push);
-		if (pushClass != null) {
-			PushMethod pushMethod = pushClass.getPushMethod(method);
-			if (pushMethod != null) {
-				Object remoteObj = ContainerMgr.get().getDeclaredComponent(pushClass.getClazz());
-				Method remoteMod = pushMethod.getMethod();
-				String[] params = pushMethod.getParams();
-				Type[] paramTypes = pushMethod.paramTypes();
-				Parameter[] parameters = pushMethod.getParameters();
-				boolean auto = ContainerMgr.get().isAutowiredParameter(pushClass.getClazz());
-				Object[] obj = new Object[params.length];
-				for (int i = 0; i < params.length; i++) {
-					String param = params[i];
-					Type type = paramTypes[i];
-					Parameter parameter = parameters[i];
-					if (JSONConvertUtil.containsType(type)) {
-						obj[i] = JSONConvertUtil.convert(type, data, param);
-					} else {
-						if (data.containsKey(param)) {
+		if (pushClass == null) {
+			log.error("client push[{}] method[{}] not found", push, method);
+			return;
+		}
+		PushMethod pushMethod = pushClass.getPushMethod(method);
+		if (pushMethod == null) {
+			log.error("client push[{}] method[{}] not found", push, method);
+			return;
+		}
+		Object remoteObj = ContainerMgr.get().getDeclaredComponent(pushClass.getClazz());
+		Method remoteMod = pushMethod.getMethod();
+		String[] params = pushMethod.getParams();
+		Type[] paramTypes = pushMethod.paramTypes();
+		Parameter[] parameters = pushMethod.getParameters();
+		boolean auto = ContainerMgr.get().isAutowiredParameter(pushClass.getClazz());
+		Object[] obj = new Object[params.length];
+		for (int i = 0; i < params.length; i++) {
+			String param = params[i];
+			Type type = paramTypes[i];
+			Parameter parameter = parameters[i];
+			if (JSONConvertUtil.containsType(type)) {
+				obj[i] = JSONConvertUtil.convert(type, data, param);
+			} else {
+				if (data.containsKey(param)) {
+					try {
+						obj[i] = JSON.parseObject(data.getString(param), type);
+					} catch (Exception e) {
+						log.error(e.getMessage(), e);
+					}
+				} else {
+					if (auto) {
+						obj[i] = ContainerMgr.get().getComponent((Class<?>) type);
+						if (obj[i] == null) {
 							try {
-								obj[i] = JSON.parseObject(data.getString(param), type);
+								obj[i] = ((Class<?>) type).newInstance();
 							} catch (Exception e) {
 								log.error(e.getMessage(), e);
 							}
-						} else {
-							if (auto) {
-								obj[i] = ContainerMgr.get().getComponent((Class<?>) type);
-								if (obj[i] == null) {
-									try {
-										obj[i] = ((Class<?>) type).newInstance();
-									} catch (Exception e) {
-										log.error(e.getMessage(), e);
-									}
-								}
-							} 
-						}
-					}
-					if (obj[i] == null) {
-						if (!parameter.isAnnotationPresent(Optional.class)) {
-							log.error("client push[{}] method[{}] parameter[{}] error", push, method, data);
-							return;
 						}
 					}
 				}
-				try {
-					remoteMod.invoke(remoteObj, obj);
-				} catch (InvocationTargetException e) {
-					log.error(e.getTargetException().getMessage(), e.getTargetException());
-				} catch (Exception e) {
-					log.error(e.getMessage(), e);
-				}
-			} else {
-				log.error("client push[{}] method[{}] not found", push, method);
 			}
-		} else {
-			log.error("client push[{}] method[{}] not found", push, method);
+			if (obj[i] == null) {
+				if (!parameter.isAnnotationPresent(Optional.class)) {
+					log.error("client push[{}] method[{}] parameter[{}] error", push, method, data);
+					return;
+				}
+			}
+		}
+		try {
+			remoteMod.invoke(remoteObj, obj);
+		} catch (InvocationTargetException e) {
+			log.error(e.getTargetException().getMessage(), e.getTargetException());
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
 		}
 	}
 	

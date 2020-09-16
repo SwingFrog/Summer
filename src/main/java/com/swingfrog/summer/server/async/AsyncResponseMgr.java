@@ -93,12 +93,12 @@ public class AsyncResponseMgr {
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
             }
-            RemoteStatistics.finish(request, 0);
+            RemoteStatistics.finish(sctx, request, 0);
         } else {
             String response = SessionResponse.buildMsg(request, data).toJSONString();
             log.debug("server async response {} to {}", response, sctx);
             ServerWriteHelper.write(ctx, server.getServerContext(), sctx, response);
-            RemoteStatistics.finish(request, response.length());
+            RemoteStatistics.finish(sctx, request, response.length());
         }
     }
 
@@ -118,7 +118,7 @@ public class AsyncResponseMgr {
         String response = SessionResponse.buildError(request, ce).toJSONString();
         log.debug("server async response error {} to {}", response, sctx);
         ServerWriteHelper.write(ctx, server.getServerContext(), sctx, response);
-        RemoteStatistics.finish(request, response.length());
+        RemoteStatistics.finish(sctx, request, response.length());
     }
 
     public void sendErrorResponse(SessionContext sctx, SessionRequest request, Exception e) {
@@ -137,7 +137,7 @@ public class AsyncResponseMgr {
         String response = SessionResponse.buildError(request, SessionException.INVOKE_ERROR).toJSONString();
         log.debug("server async response error {} to {}", response, sctx);
         ServerWriteHelper.write(ctx, server.getServerContext(), sctx, response);
-        RemoteStatistics.finish(request, response.length());
+        RemoteStatistics.finish(sctx, request, response.length());
     }
 
 }

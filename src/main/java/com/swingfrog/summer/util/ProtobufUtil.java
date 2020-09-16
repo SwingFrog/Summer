@@ -1,6 +1,10 @@
 package com.swingfrog.summer.util;
 
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Message;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 public class ProtobufUtil {
 
@@ -20,6 +24,19 @@ public class ProtobufUtil {
         } catch (Exception e) {
             return -1;
         }
+    }
+
+    public static Message getDefaultInstance(Class<?> clazz) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        Method method = clazz.getDeclaredMethod("getDefaultInstance");
+        return (Message) method.invoke(null);
+    }
+
+    public static Message parseMessage(Message message, byte[] bytes) throws InvalidProtocolBufferException {
+        return message.getParserForType().parseFrom(bytes);
+    }
+
+    public static int getMessageSize(Message message) {
+        return message.getSerializedSize();
     }
 
 }

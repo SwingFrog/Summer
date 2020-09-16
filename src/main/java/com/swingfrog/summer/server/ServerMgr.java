@@ -6,14 +6,13 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ExecutorService;
 
+import com.swingfrog.summer.protocol.ProtocolConst;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.swingfrog.summer.config.ConfigMgr;
 import com.swingfrog.summer.config.ServerConfig;
 import com.swingfrog.summer.ioc.ContainerMgr;
-
-import javassist.NotFoundException;
 
 public class ServerMgr {
 
@@ -33,12 +32,13 @@ public class ServerMgr {
 		return SingleCase.INSTANCE;
 	}
 	
-	public void init() throws NotFoundException {
+	public void init() throws Exception {
 		log.info("server init...");
 		ServerConfig serverConfig = ConfigMgr.get().getServerConfig();
 		if (serverConfig == null) {
 			throw new NullPointerException("serverConfig is null");
 		}
+		boolean protobuf = ProtocolConst.isProtobuf(serverConfig.getProtocol());
 		server = Server.create(serverConfig);
 		Iterator<Class<?>> iteratorHandler = ContainerMgr.get().iteratorHandlerList();
 		while (iteratorHandler.hasNext()) {
@@ -59,10 +59,13 @@ public class ServerMgr {
 					}
 				}
 				serverMap.put(sc.getServerName(), s);
+				protobuf |= ProtocolConst.isProtobuf(sc.getProtocol());
 			}
 		}
 		RemoteDispatchMgr.get().init();
-		RemoteProtobufDispatchMgr.get().init();
+		if (protobuf) {
+			RemoteProtobufDispatchMgr.get().init();
+		}
 	}
 	
 	public void launch() {

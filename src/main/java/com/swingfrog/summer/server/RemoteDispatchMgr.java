@@ -78,71 +78,69 @@ public class RemoteDispatchMgr {
 		Map<Class<?>, Object> objForTypes = autowireParam.getTypes();
 		Map<String, Object> objForNames = autowireParam.getNames();
 		RemoteClass remoteClass = remoteClassMap.get(remote);
-		if (remoteClass != null) {
-			if (remoteClass.filter && !remoteClass.serverName.equals(serverContext.getConfig().getServerName())) {
-				throw new CodeException(SessionException.REMOTE_WAS_PROTECTED);
-			}
-			RemoteMethod remoteMethod = remoteClass.getRemoteMethod(method);
-			if (remoteMethod != null) {
-				Object remoteObj = ContainerMgr.get().getDeclaredComponent(remoteClass.getClazz());
-				Method remoteMod = remoteMethod.getMethod();
-				String[] params = remoteMethod.getParams();
-				Type[] paramTypes = remoteMethod.paramTypes();
-				Parameter[] parameters = remoteMethod.getParameters();
-				boolean auto = ContainerMgr.get().isAutowiredParameter(remoteClass.getClazz());
-				Object[] obj = new Object[params.length];
-				try {
-					for (int i = 0; i < params.length; i++) {
-						String param = params[i];
-						Type type = paramTypes[i];
-						Parameter parameter = parameters[i];
-						if (JSONConvertUtil.containsType(type)) {
-							obj[i] = JSONConvertUtil.convert(type, data, param);
-						} else {
-							if (data.containsKey(param)) {
-								try {
-									obj[i] = JSON.parseObject(data.getString(param), type);
-								} catch (Exception e) {
-									log.error(e.getMessage(), e);
-								}
-							} else {
-								if (auto) {
-									if (objForTypes != null && objForTypes.containsKey(type)) {
-										obj[i] = objForTypes.get(type);
-									} else if (objForNames != null && objForNames.containsKey(param)) {
-										obj[i] = objForNames.get(param);
-									} else {
-										obj[i] = ContainerMgr.get().getComponent((Class<?>) type);
-										if (obj[i] == null) {
-											try {
-												obj[i] = ((Class<?>) type).newInstance();
-											} catch (Exception e) {
-												log.error(e.getMessage(), e);
-											}
-										}
-									}
-								} 
-							}
+		if (remoteClass == null) {
+			throw new CodeException(SessionException.REMOTE_NOT_EXIST);
+		}
+		if (remoteClass.isFilter() && !remoteClass.getServerName().equals(serverContext.getConfig().getServerName())) {
+			throw new CodeException(SessionException.REMOTE_WAS_PROTECTED);
+		}
+		RemoteMethod remoteMethod = remoteClass.getRemoteMethod(method);
+		if (remoteMethod == null) {
+			throw new CodeException(SessionException.METHOD_NOT_EXIST);
+		}
+		Object remoteObj = ContainerMgr.get().getDeclaredComponent(remoteClass.getClazz());
+		Method remoteMod = remoteMethod.getMethod();
+		String[] params = remoteMethod.getParams();
+		Parameter[] parameters = remoteMethod.getParameters();
+		boolean auto = ContainerMgr.get().isAutowiredParameter(remoteClass.getClazz());
+		Object[] obj = new Object[params.length];
+		try {
+			for (int i = 0; i < parameters.length; i++) {
+				String param = params[i];
+				Parameter parameter = parameters[i];
+				Type type = parameter.getParameterizedType();
+				if (JSONConvertUtil.containsType(type)) {
+					obj[i] = JSONConvertUtil.convert(type, data, param);
+				} else {
+					if (data.containsKey(param)) {
+						try {
+							obj[i] = JSON.parseObject(data.getString(param), type);
+						} catch (Exception e) {
+							log.error(e.getMessage(), e);
 						}
-						if (obj[i] == null) {
-							if (!parameter.isAnnotationPresent(Optional.class)) {
-								throw new CodeException(SessionException.PARAMETER_ERROR);
+					} else {
+						if (auto) {
+							Class<?> typeClazz = parameter.getType();
+							if (objForTypes != null && objForTypes.containsKey(typeClazz)) {
+								obj[i] = objForTypes.get(typeClazz);
+							} else if (objForNames != null && objForNames.containsKey(param)) {
+								obj[i] = objForNames.get(param);
+							} else {
+								obj[i] = ContainerMgr.get().getComponent(typeClazz);
+								if (obj[i] == null) {
+									try {
+										obj[i] = ((Class<?>) type).newInstance();
+									} catch (Exception e) {
+										log.error(e.getMessage(), e);
+									}
+								}
 							}
 						}
 					}
-				} catch (Exception e) {
-					throw new CodeException(SessionException.PARAMETER_ERROR);
 				}
-				try {
-					return remoteMod.invoke(remoteObj, obj);
-				} catch (InvocationTargetException e) {
-					throw e.getTargetException();
+				if (obj[i] == null) {
+					if (!parameter.isAnnotationPresent(Optional.class)) {
+						throw new CodeException(SessionException.PARAMETER_ERROR);
+					}
 				}
-			} else {
-				throw new CodeException(SessionException.METHOD_NOT_EXIST);
 			}
-		} else {
-			throw new CodeException(SessionException.REMOTE_NOT_EXIST);
+		} catch (Exception e) {
+			throw new CodeException(SessionException.PARAMETER_ERROR);
+		}
+		try {
+			return remoteMod.invoke(remoteObj, obj);
+		} catch (InvocationTargetException e) {
+			throw e.getTargetException();
 		}
 	}
 	
@@ -193,13 +191,19 @@ public class RemoteDispatchMgr {
 		private final Map<String, RemoteMethod> remoteMethodMap = new HashMap<>();
 		public RemoteClass(Class<?> clazz) throws NotFoundException {
 			this.clazz = clazz;
-			this.filter = clazz.getAnnotation(Remote.class).filter();
-			this.serverName = clazz.getAnnotation(Remote.class).serverName();
+			filter = clazz.getAnnotation(Remote.class).filter();
+			serverName = clazz.getAnnotation(Remote.class).serverName();
 			Method[] methods = clazz.getDeclaredMethods();
 			for (Method method : methods) {
 				log.info("remote register {}.{}", clazz.getSimpleName(), method.getName());
 				remoteMethodMap.put(method.getName(), new RemoteMethod(method, new MethodParameterName(clazz)));
 			}
+		}
+		public boolean isFilter() {
+			return filter;
+		}
+		public String getServerName() {
+			return serverName;
 		}
 		public Class<?> getClazz() {
 			return clazz;
@@ -212,11 +216,9 @@ public class RemoteDispatchMgr {
 	private static class RemoteMethod {
 		private final Method method;
 		private final String[] params;
-		private final Type[] paramTypes;
 		private final Parameter[] parameters;
 		public RemoteMethod(Method method, MethodParameterName mpn) throws NotFoundException {
 			this.method = method;
-			paramTypes = method.getGenericParameterTypes();
 			params = mpn.getParameterNameByMethod(method);
 			parameters = method.getParameters();
 		}
@@ -225,9 +227,6 @@ public class RemoteDispatchMgr {
 		}
 		public String[] getParams() {
 			return params;
-		}
-		public Type[] paramTypes() {
-			return paramTypes;
 		}
 		public Parameter[] getParameters() {
 			return parameters;

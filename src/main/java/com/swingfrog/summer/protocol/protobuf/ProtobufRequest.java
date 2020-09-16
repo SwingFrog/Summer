@@ -2,6 +2,9 @@ package com.swingfrog.summer.protocol.protobuf;
 
 import java.util.Objects;
 
+/**
+ * for easy access on session handler
+ */
 public class ProtobufRequest {
 
     private int id;

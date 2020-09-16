@@ -189,7 +189,7 @@ public class WebRequestHandler extends AbstractServerHandler<HttpObject> {
 		AutowireParam autowireParam = new AutowireParam();
 		serverContext.getSessionHandlerGroup().autowireParam(sctx, autowireParam);
 
-		RemoteStatistics.start(request, 0);
+		RemoteStatistics.start(sctx, request, 0);
 		Runnable runnable = () -> {
 			try {
 				ProcessResult<WebView> processResult = RemoteDispatchMgr.get().webProcess(serverContext, request, sctx, autowireParam);
@@ -213,7 +213,7 @@ public class WebRequestHandler extends AbstractServerHandler<HttpObject> {
 				WebView webView = WebMgr.get().getInteriorViewFactory().createErrorView(500, ce.getCode(), ce.getMsg());
 				writeResponse(ctx, sctx, request, webView);
 			}
-			RemoteStatistics.finish(request, 0);
+			RemoteStatistics.finish(sctx, request, 0);
 		};
 		submitRunnable(sctx, request, runnable);
 	}

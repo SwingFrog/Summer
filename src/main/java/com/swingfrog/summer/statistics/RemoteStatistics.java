@@ -2,6 +2,7 @@ package com.swingfrog.summer.statistics;
 
 import com.google.common.collect.Maps;
 import com.swingfrog.summer.protocol.SessionRequest;
+import com.swingfrog.summer.server.SessionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,6 +13,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentMap;
 
 public class RemoteStatistics {
@@ -20,7 +22,8 @@ public class RemoteStatistics {
 
     private static volatile boolean open = true;
     private String exportDir = "statistics";
-    private final ConcurrentMap<SessionRequest, Req> requestMap = Maps.newConcurrentMap();
+
+    private final ConcurrentMap<Integer, Req> requestMap = Maps.newConcurrentMap();
     private final ConcurrentMap<String, Statistics> remoteMethodMap = Maps.newConcurrentMap();
 
     private static class Req {
@@ -43,9 +46,9 @@ public class RemoteStatistics {
         }
     }
     private static class Statistics {
-        private Value consumeMs = new Value();
-        private Value reqSize = new Value();
-        private Value respSize = new Value();
+        private final Value consumeMs = new Value();
+        private final Value reqSize = new Value();
+        private final Value respSize = new Value();
     }
 
     private static class SingleCase {
@@ -59,19 +62,19 @@ public class RemoteStatistics {
         this.exportDir = exportDir;
     }
 
-    private void add(SessionRequest request, int reqSize) {
+    private void add(SessionContext sctx, SessionRequest request, int reqSize) {
         Req req = new Req();
         req.time = System.currentTimeMillis();
         req.size = reqSize;
-        requestMap.putIfAbsent(request, req);
+        requestMap.putIfAbsent(Objects.hash(sctx, request), req);
     }
 
-    private void remove(SessionRequest request) {
-        requestMap.remove(request);
+    private void remove(SessionContext sctx, SessionRequest request) {
+        requestMap.remove(Objects.hash(sctx, request));
     }
 
-    private void finishRemove(SessionRequest request, int respSize) {
-        Req req = requestMap.remove(request);
+    private void finishRemove(SessionContext sctx, SessionRequest request, int respSize) {
+        Req req = requestMap.remove(Objects.hash(sctx, request));
         if (req == null) {
             return;
         }
@@ -145,21 +148,21 @@ public class RemoteStatistics {
         return open;
     }
 
-    public static void start(SessionRequest request, int reqSize) {
+    public static void start(SessionContext sctx, SessionRequest request, int reqSize) {
         if (open) {
-            get().add(request, reqSize);
+            get().add(sctx, request, reqSize);
         }
     }
 
-    public static void finish(SessionRequest request, int respSize) {
+    public static void finish(SessionContext sctx, SessionRequest request, int respSize) {
         if (open) {
-            get().finishRemove(request, respSize);
+            get().finishRemove(sctx, request, respSize);
         }
     }
 
-    public static void discard(SessionRequest request) {
+    public static void discard(SessionContext sctx, SessionRequest request) {
         if (open) {
-            get().remove(request);
+            get().remove(sctx, request);
         }
     }
 
