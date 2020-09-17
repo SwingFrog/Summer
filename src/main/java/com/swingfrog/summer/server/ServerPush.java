@@ -3,6 +3,9 @@ package com.swingfrog.summer.server;
 import java.util.Iterator;
 import java.util.List;
 
+import com.google.protobuf.Message;
+import com.swingfrog.summer.protocol.protobuf.Protobuf;
+import com.swingfrog.summer.protocol.protobuf.ProtobufMgr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -146,19 +149,120 @@ public class ServerPush {
 		}
 	}
 
+	// protobuf
+
+	public void asyncPushToSessionContext(SessionContext sessionContext, Message response) {
+		Integer messageId = ProtobufMgr.get().getMessageId(response.getClass());
+		if (messageId == null) {
+			log.error("protobuf[{}] not found", response.getClass().getName());
+			return;
+		}
+		Protobuf protobuf = Protobuf.of(messageId, response);
+		serverContext.getPushExecutor().execute(()->{
+			log.debug("server push to {} {}", sessionContext, response);
+			ChannelHandlerContext ctx = serverContext.getSessionContextGroup().getChannelBySession(sessionContext);
+			write(ctx, sessionContext, protobuf);
+		});
+	}
+
+	public void syncPushToSessionContext(SessionContext sessionContext, Message response) {
+		Integer messageId = ProtobufMgr.get().getMessageId(response.getClass());
+		if (messageId == null) {
+			log.error("protobuf[{}] not found", response.getClass().getName());
+			return;
+		}
+		Protobuf protobuf = Protobuf.of(messageId, response);
+		log.debug("server push to {} {}", sessionContext, response);
+		ChannelHandlerContext ctx = serverContext.getSessionContextGroup().getChannelBySession(sessionContext);
+		write(ctx, sessionContext, protobuf);
+	}
+
+	public void asyncPushToSessionContexts(List<SessionContext> sessionContexts, Message response) {
+		Integer messageId = ProtobufMgr.get().getMessageId(response.getClass());
+		if (messageId == null) {
+			log.error("protobuf[{}] not found", response.getClass().getName());
+			return;
+		}
+		Protobuf protobuf = Protobuf.of(messageId, response);
+		SessionContextGroup group = serverContext.getSessionContextGroup();
+		serverContext.getPushExecutor().execute(()->{
+			log.debug("server push to {} {}", sessionContexts, response);
+			for (SessionContext sessionContext : sessionContexts) {
+				ChannelHandlerContext ctx = group.getChannelBySession(sessionContext);
+				if (ctx != null) {
+					SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(ctx);
+					write(ctx, sctx, protobuf);
+				}
+			}
+		});
+	}
+
+	public void syncPushToSessionContexts(List<SessionContext> sessionContexts, Message response) {
+		Integer messageId = ProtobufMgr.get().getMessageId(response.getClass());
+		if (messageId == null) {
+			log.error("protobuf[{}] not found", response.getClass().getName());
+			return;
+		}
+		Protobuf protobuf = Protobuf.of(messageId, response);
+		SessionContextGroup group = serverContext.getSessionContextGroup();
+		log.debug("server push to {} {}", sessionContexts, response);
+		for (SessionContext sessionContext : sessionContexts) {
+			ChannelHandlerContext ctx = group.getChannelBySession(sessionContext);
+			if (ctx != null) {
+				SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(ctx);
+				write(ctx, sctx, protobuf);
+			}
+		}
+	}
+
+	public void asyncPushToAll(Message response) {
+		Integer messageId = ProtobufMgr.get().getMessageId(response.getClass());
+		if (messageId == null) {
+			log.error("protobuf[{}] not found", response.getClass().getName());
+			return;
+		}
+		Protobuf protobuf = Protobuf.of(messageId, response);
+		SessionContextGroup group = serverContext.getSessionContextGroup();
+		serverContext.getPushExecutor().execute(()->{
+			log.debug("server push to all {}", response);
+			Iterator<ChannelHandlerContext> ite = group.iteratorChannel();
+			while (ite.hasNext()) {
+				ChannelHandlerContext ctx = ite.next();
+				SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(ctx);
+				write(ctx, sctx, protobuf);
+			}
+		});
+	}
+
+	public void syncPushToAll(Message response) {
+		Integer messageId = ProtobufMgr.get().getMessageId(response.getClass());
+		if (messageId == null) {
+			log.error("protobuf[{}] not found", response.getClass().getName());
+			return;
+		}
+		Protobuf protobuf = Protobuf.of(messageId, response);
+		SessionContextGroup group = serverContext.getSessionContextGroup();
+		log.debug("server push to all {}", response);
+		Iterator<ChannelHandlerContext> ite = group.iteratorChannel();
+		while (ite.hasNext()) {
+			ChannelHandlerContext ctx = ite.next();
+			SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(ctx);
+			write(ctx, sctx, protobuf);
+		}
+	}
+
 	private void write(ChannelHandlerContext ctx, SessionContext sctx, String response) {
 		if (ctx == null) {
 			return;
 		}
-		if (!ctx.channel().isActive()) {
+		ServerWriteHelper.write(ctx, serverContext, sctx, response);
+	}
+
+	private void write(ChannelHandlerContext ctx, SessionContext sctx, Protobuf protobuf) {
+		if (ctx == null) {
 			return;
 		}
-		if (sctx.getWaitWriteQueueSize() == 0 && ctx.channel().isWritable()) {
-			ctx.writeAndFlush(response);
-		} else {
-			sctx.getWaitWriteQueue().add(response);
-		}
-		serverContext.getSessionHandlerGroup().sending(sctx);
+		ServerWriteHelper.write(ctx, serverContext, sctx, protobuf);
 	}
 
 }

@@ -11,8 +11,8 @@ message HearBeat_Resp_0 {
     int64 time = 1;
 }
 
-message ErrorCode_Push_1 {
+message ErrorCode_Resp_1 {
     int32 reqId = 1;
-    int32 code  = 2;
+    int64 code  = 2;
     string msg  = 3;
 }

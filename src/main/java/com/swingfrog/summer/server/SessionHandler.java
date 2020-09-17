@@ -11,8 +11,8 @@ public interface SessionHandler {
 	}
 	
 	default void added(SessionContext ctx) {}
-	
-	void removed(SessionContext ctx);
+
+	default void removed(SessionContext ctx) {}
 	
 	default boolean receive(SessionContext ctx, SessionRequest request) {
 		return true;

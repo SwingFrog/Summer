@@ -1,13 +1,14 @@
 package com.swingfrog.summer.server;
 
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Message;
 import com.swingfrog.summer.annotation.Optional;
 import com.swingfrog.summer.annotation.Remote;
 import com.swingfrog.summer.ioc.ContainerMgr;
 import com.swingfrog.summer.ioc.MethodParameterName;
 import com.swingfrog.summer.protocol.protobuf.Protobuf;
+import com.swingfrog.summer.protocol.protobuf.ProtobufMgr;
 import com.swingfrog.summer.protocol.protobuf.ProtobufRequest;
-import com.swingfrog.summer.protocol.protobuf.ProtobufResponse;
 import com.swingfrog.summer.server.async.AsyncResponse;
 import com.swingfrog.summer.server.async.ProcessResult;
 import com.swingfrog.summer.server.exception.CodeException;
@@ -58,7 +59,7 @@ public class RemoteProtobufDispatchMgr {
             MethodParameterName mpn = new MethodParameterName(clazz);
             for (Method method : methods) {
                 RemoteMethod remoteMethod = new RemoteMethod(remoteClass, method, mpn);
-                int messageId = ProtobufUtil.getMessageId(remoteMethod.getMessageTemplate());
+                int messageId = remoteMethod.getMessageId();
                 if (remoteMethodMap.putIfAbsent(messageId, remoteMethod) != null) {
                     throw new RuntimeException("protobuf message repeat");
                 }
@@ -66,15 +67,7 @@ public class RemoteProtobufDispatchMgr {
         }
     }
 
-    public Method getMethod(ProtobufRequest req) {
-        RemoteMethod remoteMethod = remoteMethodMap.get(req.getId());
-        if (remoteMethod != null) {
-            return remoteMethod.getMethod();
-        }
-        return null;
-    }
-
-    private Object invoke(ServerContext serverContext, ProtobufRequest req, Protobuf data, AutowireParam autowireParam) throws Throwable {
+    private Object invoke(ServerContext serverContext, ProtobufRequest req, Message reqMessage, AutowireParam autowireParam) throws Throwable {
         Map<Class<?>, Object> objForTypes = autowireParam.getTypes();
         Map<String, Object> objForNames = autowireParam.getNames();
         int messageId = req.getId();
@@ -86,7 +79,7 @@ public class RemoteProtobufDispatchMgr {
         if (remoteClass.isFilter() && !remoteClass.getServerName().equals(serverContext.getConfig().getServerName())) {
             throw new CodeException(SessionException.REMOTE_WAS_PROTECTED);
         }
-        Message message = ProtobufUtil.parseMessage(remoteMethod.getMessageTemplate(), data.getBytes());
+
         int messageIndex = remoteMethod.getMessageIndex();
         Object remoteObj = ContainerMgr.get().getDeclaredComponent(remoteClass.getClazz());
         Method remoteMod = remoteMethod.getMethod();
@@ -100,7 +93,7 @@ public class RemoteProtobufDispatchMgr {
                 Parameter parameter = parameters[i];
                 Type type = parameter.getParameterizedType();
                 if (i == messageIndex) {
-                    obj[i] = message;
+                    obj[i] = reqMessage;
                 } else {
                     if (auto) {
                         Class<?> typeClazz = parameter.getType();
@@ -136,19 +129,28 @@ public class RemoteProtobufDispatchMgr {
         }
     }
 
-    public ProcessResult<ProtobufResponse> process(ServerContext serverContext, ProtobufRequest req, Protobuf data, SessionContext sctx,
+    public ProcessResult<Message> process(ServerContext serverContext, ProtobufRequest req, Message reqMessage, SessionContext sctx,
                                                    AutowireParam autowireParam) throws Throwable {
         Map<Class<?>, Object> objForTypes = autowireParam.getTypes();
         objForTypes.putIfAbsent(SessionContext.class, sctx);
         objForTypes.putIfAbsent(ProtobufRequest.class, req);
-        Object result = invoke(serverContext, req, data, autowireParam);
+        Object result = invoke(serverContext, req, reqMessage, autowireParam);
         if (result instanceof AsyncResponse) {
             return new ProcessResult<>(true, null);
         }
         if (result instanceof Message) {
-            return new ProcessResult<>(false, ProtobufResponse.of(req.getId(), (Message) result));
+            return new ProcessResult<>(false, (Message) result);
         }
         return null;
+    }
+
+    public Message parse(Protobuf data) throws InvalidProtocolBufferException {
+        int messageId = data.getId();
+        Message messageTemplate = ProtobufMgr.get().getMessageTemplate(messageId);
+        if (messageTemplate == null) {
+            throw new CodeException(SessionException.PROTOBUF_NOT_EXIST);
+        }
+        return ProtobufUtil.parseMessage(messageTemplate, data.getBytes());
     }
 
     private static class RemoteMethod {
@@ -156,13 +158,14 @@ public class RemoteProtobufDispatchMgr {
         private final Method method;
         private final String[] params;
         private final Parameter[] parameters;
-        private Message messageTemplate;
         private int messageIndex;
+        private int messageId;
         public RemoteMethod(RemoteClass remoteClass, Method method, MethodParameterName mpn) throws Exception {
             this.remoteClass = remoteClass;
             this.method = method;
             params = mpn.getParameterNameByMethod(method);
             parameters = method.getParameters();
+            Message messageTemplate = null;
             for (int i = 0; i < parameters.length; i++) {
                 Class<?> typeClazz = parameters[i].getType();
                 if (Message.class.isAssignableFrom(typeClazz)) {
@@ -173,6 +176,8 @@ public class RemoteProtobufDispatchMgr {
             }
             if (messageTemplate == null)
                 throw new RuntimeException("not found protobuf message in remote method");
+            messageId = ProtobufUtil.getMessageId(messageTemplate);
+            ProtobufMgr.get().registerMessage(messageId, messageTemplate);
         }
         public RemoteClass getRemoteClass() {
             return remoteClass;
@@ -186,11 +191,11 @@ public class RemoteProtobufDispatchMgr {
         public Parameter[] getParameters() {
             return parameters;
         }
-        public Message getMessageTemplate() {
-            return messageTemplate;
-        }
         public int getMessageIndex() {
             return messageIndex;
+        }
+        public int getMessageId() {
+            return messageId;
         }
     }
 

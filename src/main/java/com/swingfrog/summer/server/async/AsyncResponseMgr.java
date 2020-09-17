@@ -1,14 +1,19 @@
 package com.swingfrog.summer.server.async;
 
 import com.alibaba.fastjson.JSON;
+import com.google.protobuf.Message;
 import com.swingfrog.summer.protocol.SessionRequest;
 import com.swingfrog.summer.protocol.SessionResponse;
 import com.swingfrog.summer.protocol.ProtocolConst;
+import com.swingfrog.summer.protocol.protobuf.ErrorCodeProtobufBuilder;
+import com.swingfrog.summer.protocol.protobuf.Protobuf;
+import com.swingfrog.summer.protocol.protobuf.ProtobufRequest;
 import com.swingfrog.summer.server.Server;
 import com.swingfrog.summer.server.ServerMgr;
 import com.swingfrog.summer.server.ServerWriteHelper;
 import com.swingfrog.summer.server.SessionContext;
 import com.swingfrog.summer.server.exception.CodeException;
+import com.swingfrog.summer.server.exception.CodeMsg;
 import com.swingfrog.summer.server.exception.SessionException;
 import com.swingfrog.summer.statistics.RemoteStatistics;
 import com.swingfrog.summer.web.WebMgr;
@@ -20,7 +25,6 @@ import io.netty.channel.ChannelHandlerContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Objects;
 import java.util.function.Supplier;
 
 public class AsyncResponseMgr {
@@ -44,10 +48,11 @@ public class AsyncResponseMgr {
             sendResponse(sctx, request, runnable.get());
         } catch (CodeException ce) {
             log.warn(ce.getMessage(), ce);
-            sendErrorResponse(sctx, request, ce);
-        } catch (Exception e) {
+            sendErrorResponse(sctx, request, ce.getCode(), ce.getMsg());
+        } catch (Throwable e) {
             log.error(e.getMessage(), e);
-            sendErrorResponse(sctx, request, e);
+            CodeMsg codeMsg = SessionException.INVOKE_ERROR;
+            sendErrorResponse(sctx, request, codeMsg.getCode(), codeMsg.getMsg());
         }
     }
 
@@ -57,23 +62,36 @@ public class AsyncResponseMgr {
             sendResponse(sctx, request, null);
         } catch (CodeException ce) {
             log.warn(ce.getMessage(), ce);
-            sendErrorResponse(sctx, request, ce);
-        } catch (Exception e) {
+            sendErrorResponse(sctx, request, ce.getCode(), ce.getMsg());
+        } catch (Throwable e) {
             log.error(e.getMessage(), e);
-            sendErrorResponse(sctx, request, e);
+            CodeMsg codeMsg = SessionException.INVOKE_ERROR;
+            sendErrorResponse(sctx, request, codeMsg.getCode(), codeMsg.getMsg());
         }
     }
 
-    public void sendResponse(SessionContext sctx, SessionRequest request, Object data) {
-        Objects.requireNonNull(sctx);
-        Objects.requireNonNull(request);
+    public void process(SessionContext sctx, ProtobufRequest request, Supplier<? extends Message> runnable) {
+        try {
+            sendResponse(sctx, request, runnable.get());
+        } catch (CodeException ce) {
+            log.warn(ce.getMessage(), ce);
+            sendErrorResponse(sctx, request, ce.getCode(), ce.getMsg());
+        } catch (Throwable e) {
+            log.error(e.getMessage(), e);
+            CodeMsg codeMsg = SessionException.INVOKE_ERROR;
+            sendErrorResponse(sctx, request, codeMsg.getCode(), codeMsg.getMsg());
+        }
+    }
+
+    private void sendResponse(SessionContext sctx, SessionRequest request, Object data) {
         Server server = ServerMgr.get().findServer(sctx);
         if (server == null) {
             log.error("Async send response failure. cause: can't found server by session context");
             return;
         }
         ChannelHandlerContext ctx = server.getServerContext().getSessionContextGroup().getChannelBySession(sctx);
-        if (ProtocolConst.SERVER_PROTOCOL_HTTP.equals(server.getServerContext().getConfig().getProtocol())) {
+        String protocol = server.getServerContext().getConfig().getProtocol();
+        if (ProtocolConst.isHttp(protocol)) {
             WebView webView;
             if (data == null) {
                 webView = WebMgr.get().getInteriorViewFactory().createBlankView();
@@ -102,42 +120,47 @@ public class AsyncResponseMgr {
         }
     }
 
-    public void sendErrorResponse(SessionContext sctx, SessionRequest request, CodeException ce) {
-        Objects.requireNonNull(sctx);
-        Objects.requireNonNull(request);
+    private void sendErrorResponse(SessionContext sctx, SessionRequest request, long code, String msg) {
         Server server = ServerMgr.get().findServer(sctx);
         if (server == null) {
             log.error("Async send response failure. cause: can't found server by session context");
             return;
         }
-        if (ProtocolConst.SERVER_PROTOCOL_HTTP.equals(server.getServerContext().getConfig().getProtocol())) {
+        String protocol = server.getServerContext().getConfig().getProtocol();
+        if (ProtocolConst.isHttp(protocol)) {
             log.error("Http protocol can't send error response");
             return;
         }
         ChannelHandlerContext ctx = server.getServerContext().getSessionContextGroup().getChannelBySession(sctx);
-        String response = SessionResponse.buildError(request, ce).toJSONString();
+        String response = SessionResponse.buildError(request, code, msg).toJSONString();
         log.debug("server async response error {} to {}", response, sctx);
         ServerWriteHelper.write(ctx, server.getServerContext(), sctx, response);
         RemoteStatistics.finish(sctx, request, response.length());
     }
 
-    public void sendErrorResponse(SessionContext sctx, SessionRequest request, Exception e) {
-        Objects.requireNonNull(sctx);
-        Objects.requireNonNull(request);
+    private void sendResponse(SessionContext sctx, ProtobufRequest request, Message response) {
         Server server = ServerMgr.get().findServer(sctx);
         if (server == null) {
             log.error("Async send response failure. cause: can't found server by session context");
             return;
         }
-        if (ProtocolConst.SERVER_PROTOCOL_HTTP.equals(server.getServerContext().getConfig().getProtocol())) {
-            log.error("Http protocol can't send error response");
+        ChannelHandlerContext ctx = server.getServerContext().getSessionContextGroup().getChannelBySession(sctx);
+        log.debug("server async response {} to {}", response, sctx);
+        ServerWriteHelper.write(ctx, server.getServerContext(), sctx, Protobuf.of(request.getId(), response));
+        RemoteStatistics.finish(sctx, request, response.getSerializedSize());
+    }
+
+    private void sendErrorResponse(SessionContext sctx, ProtobufRequest request, long code, String msg) {
+        Server server = ServerMgr.get().findServer(sctx);
+        if (server == null) {
+            log.error("Async send response failure. cause: can't found server by session context");
             return;
         }
         ChannelHandlerContext ctx = server.getServerContext().getSessionContextGroup().getChannelBySession(sctx);
-        String response = SessionResponse.buildError(request, SessionException.INVOKE_ERROR).toJSONString();
+        Message response = ErrorCodeProtobufBuilder.build(request.getId(), code, msg);
         log.debug("server async response error {} to {}", response, sctx);
         ServerWriteHelper.write(ctx, server.getServerContext(), sctx, response);
-        RemoteStatistics.finish(sctx, request, response.length());
+        RemoteStatistics.finish(sctx, request, response.getSerializedSize());
     }
 
 }

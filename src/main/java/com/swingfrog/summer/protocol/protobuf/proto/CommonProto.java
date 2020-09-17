@@ -921,8 +921,8 @@ public final class CommonProto {
 
   }
 
-  public interface ErrorCode_Push_1OrBuilder extends
-      // @@protoc_insertion_point(interface_extends:ErrorCode_Push_1)
+  public interface ErrorCode_Resp_1OrBuilder extends
+      // @@protoc_insertion_point(interface_extends:ErrorCode_Resp_1)
       com.google.protobuf.MessageOrBuilder {
 
     /**
@@ -932,10 +932,10 @@ public final class CommonProto {
     int getReqId();
 
     /**
-     * <code>int32 code = 2;</code>
+     * <code>int64 code = 2;</code>
      * @return The code.
      */
-    int getCode();
+    long getCode();
 
     /**
      * <code>string msg = 3;</code>
@@ -950,18 +950,18 @@ public final class CommonProto {
         getMsgBytes();
   }
   /**
-   * Protobuf type {@code ErrorCode_Push_1}
+   * Protobuf type {@code ErrorCode_Resp_1}
    */
-  public static final class ErrorCode_Push_1 extends
+  public static final class ErrorCode_Resp_1 extends
       com.google.protobuf.GeneratedMessageV3 implements
-      // @@protoc_insertion_point(message_implements:ErrorCode_Push_1)
-      ErrorCode_Push_1OrBuilder {
+      // @@protoc_insertion_point(message_implements:ErrorCode_Resp_1)
+      ErrorCode_Resp_1OrBuilder {
   private static final long serialVersionUID = 0L;
-    // Use ErrorCode_Push_1.newBuilder() to construct.
-    private ErrorCode_Push_1(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+    // Use ErrorCode_Resp_1.newBuilder() to construct.
+    private ErrorCode_Resp_1(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
       super(builder);
     }
-    private ErrorCode_Push_1() {
+    private ErrorCode_Resp_1() {
       msg_ = "";
     }
 
@@ -969,7 +969,7 @@ public final class CommonProto {
     @SuppressWarnings({"unused"})
     protected java.lang.Object newInstance(
         UnusedPrivateParameter unused) {
-      return new ErrorCode_Push_1();
+      return new ErrorCode_Resp_1();
     }
 
     @java.lang.Override
@@ -977,7 +977,7 @@ public final class CommonProto {
     getUnknownFields() {
       return this.unknownFields;
     }
-    private ErrorCode_Push_1(
+    private ErrorCode_Resp_1(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
@@ -1002,7 +1002,7 @@ public final class CommonProto {
             }
             case 16: {
 
-              code_ = input.readInt32();
+              code_ = input.readInt64();
               break;
             }
             case 26: {
@@ -1032,15 +1032,15 @@ public final class CommonProto {
     }
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return com.swingfrog.summer.protocol.protobuf.proto.CommonProto.internal_static_ErrorCode_Push_1_descriptor;
+      return com.swingfrog.summer.protocol.protobuf.proto.CommonProto.internal_static_ErrorCode_Resp_1_descriptor;
     }
 
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return com.swingfrog.summer.protocol.protobuf.proto.CommonProto.internal_static_ErrorCode_Push_1_fieldAccessorTable
+      return com.swingfrog.summer.protocol.protobuf.proto.CommonProto.internal_static_ErrorCode_Resp_1_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Push_1.class, com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Push_1.Builder.class);
+              com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Resp_1.class, com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Resp_1.Builder.class);
     }
 
     public static final int REQID_FIELD_NUMBER = 1;
@@ -1055,13 +1055,13 @@ public final class CommonProto {
     }
 
     public static final int CODE_FIELD_NUMBER = 2;
-    private int code_;
+    private long code_;
     /**
-     * <code>int32 code = 2;</code>
+     * <code>int64 code = 2;</code>
      * @return The code.
      */
     @java.lang.Override
-    public int getCode() {
+    public long getCode() {
       return code_;
     }
 
@@ -1120,8 +1120,8 @@ public final class CommonProto {
       if (reqId_ != 0) {
         output.writeInt32(1, reqId_);
       }
-      if (code_ != 0) {
-        output.writeInt32(2, code_);
+      if (code_ != 0L) {
+        output.writeInt64(2, code_);
       }
       if (!getMsgBytes().isEmpty()) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 3, msg_);
@@ -1139,9 +1139,9 @@ public final class CommonProto {
         size += com.google.protobuf.CodedOutputStream
           .computeInt32Size(1, reqId_);
       }
-      if (code_ != 0) {
+      if (code_ != 0L) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(2, code_);
+          .computeInt64Size(2, code_);
       }
       if (!getMsgBytes().isEmpty()) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, msg_);
@@ -1156,10 +1156,10 @@ public final class CommonProto {
       if (obj == this) {
        return true;
       }
-      if (!(obj instanceof com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Push_1)) {
+      if (!(obj instanceof com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Resp_1)) {
         return super.equals(obj);
       }
-      com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Push_1 other = (com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Push_1) obj;
+      com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Resp_1 other = (com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Resp_1) obj;
 
       if (getReqId()
           != other.getReqId()) return false;
@@ -1181,7 +1181,8 @@ public final class CommonProto {
       hash = (37 * hash) + REQID_FIELD_NUMBER;
       hash = (53 * hash) + getReqId();
       hash = (37 * hash) + CODE_FIELD_NUMBER;
-      hash = (53 * hash) + getCode();
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getCode());
       hash = (37 * hash) + MSG_FIELD_NUMBER;
       hash = (53 * hash) + getMsg().hashCode();
       hash = (29 * hash) + unknownFields.hashCode();
@@ -1189,69 +1190,69 @@ public final class CommonProto {
       return hash;
     }
 
-    public static com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Push_1 parseFrom(
+    public static com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Resp_1 parseFrom(
         java.nio.ByteBuffer data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Push_1 parseFrom(
+    public static com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Resp_1 parseFrom(
         java.nio.ByteBuffer data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Push_1 parseFrom(
+    public static com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Resp_1 parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Push_1 parseFrom(
+    public static com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Resp_1 parseFrom(
         com.google.protobuf.ByteString data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Push_1 parseFrom(byte[] data)
+    public static com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Resp_1 parseFrom(byte[] data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Push_1 parseFrom(
+    public static com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Resp_1 parseFrom(
         byte[] data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Push_1 parseFrom(java.io.InputStream input)
+    public static com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Resp_1 parseFrom(java.io.InputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseWithIOException(PARSER, input);
     }
-    public static com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Push_1 parseFrom(
+    public static com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Resp_1 parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
-    public static com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Push_1 parseDelimitedFrom(java.io.InputStream input)
+    public static com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Resp_1 parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseDelimitedWithIOException(PARSER, input);
     }
-    public static com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Push_1 parseDelimitedFrom(
+    public static com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Resp_1 parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
     }
-    public static com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Push_1 parseFrom(
+    public static com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Resp_1 parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessageV3
           .parseWithIOException(PARSER, input);
     }
-    public static com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Push_1 parseFrom(
+    public static com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Resp_1 parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
@@ -1264,7 +1265,7 @@ public final class CommonProto {
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
     }
-    public static Builder newBuilder(com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Push_1 prototype) {
+    public static Builder newBuilder(com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Resp_1 prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
     @java.lang.Override
@@ -1280,26 +1281,26 @@ public final class CommonProto {
       return builder;
     }
     /**
-     * Protobuf type {@code ErrorCode_Push_1}
+     * Protobuf type {@code ErrorCode_Resp_1}
      */
     public static final class Builder extends
         com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:ErrorCode_Push_1)
-        com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Push_1OrBuilder {
+        // @@protoc_insertion_point(builder_implements:ErrorCode_Resp_1)
+        com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Resp_1OrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
-        return com.swingfrog.summer.protocol.protobuf.proto.CommonProto.internal_static_ErrorCode_Push_1_descriptor;
+        return com.swingfrog.summer.protocol.protobuf.proto.CommonProto.internal_static_ErrorCode_Resp_1_descriptor;
       }
 
       @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
-        return com.swingfrog.summer.protocol.protobuf.proto.CommonProto.internal_static_ErrorCode_Push_1_fieldAccessorTable
+        return com.swingfrog.summer.protocol.protobuf.proto.CommonProto.internal_static_ErrorCode_Resp_1_fieldAccessorTable
             .ensureFieldAccessorsInitialized(
-                com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Push_1.class, com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Push_1.Builder.class);
+                com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Resp_1.class, com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Resp_1.Builder.class);
       }
 
-      // Construct using com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Push_1.newBuilder()
+      // Construct using com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Resp_1.newBuilder()
       private Builder() {
         maybeForceBuilderInitialization();
       }
@@ -1319,7 +1320,7 @@ public final class CommonProto {
         super.clear();
         reqId_ = 0;
 
-        code_ = 0;
+        code_ = 0L;
 
         msg_ = "";
 
@@ -1329,17 +1330,17 @@ public final class CommonProto {
       @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
-        return com.swingfrog.summer.protocol.protobuf.proto.CommonProto.internal_static_ErrorCode_Push_1_descriptor;
+        return com.swingfrog.summer.protocol.protobuf.proto.CommonProto.internal_static_ErrorCode_Resp_1_descriptor;
       }
 
       @java.lang.Override
-      public com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Push_1 getDefaultInstanceForType() {
-        return com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Push_1.getDefaultInstance();
+      public com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Resp_1 getDefaultInstanceForType() {
+        return com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Resp_1.getDefaultInstance();
       }
 
       @java.lang.Override
-      public com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Push_1 build() {
-        com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Push_1 result = buildPartial();
+      public com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Resp_1 build() {
+        com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Resp_1 result = buildPartial();
         if (!result.isInitialized()) {
           throw newUninitializedMessageException(result);
         }
@@ -1347,8 +1348,8 @@ public final class CommonProto {
       }
 
       @java.lang.Override
-      public com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Push_1 buildPartial() {
-        com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Push_1 result = new com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Push_1(this);
+      public com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Resp_1 buildPartial() {
+        com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Resp_1 result = new com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Resp_1(this);
         result.reqId_ = reqId_;
         result.code_ = code_;
         result.msg_ = msg_;
@@ -1390,20 +1391,20 @@ public final class CommonProto {
       }
       @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Push_1) {
-          return mergeFrom((com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Push_1)other);
+        if (other instanceof com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Resp_1) {
+          return mergeFrom((com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Resp_1)other);
         } else {
           super.mergeFrom(other);
           return this;
         }
       }
 
-      public Builder mergeFrom(com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Push_1 other) {
-        if (other == com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Push_1.getDefaultInstance()) return this;
+      public Builder mergeFrom(com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Resp_1 other) {
+        if (other == com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Resp_1.getDefaultInstance()) return this;
         if (other.getReqId() != 0) {
           setReqId(other.getReqId());
         }
-        if (other.getCode() != 0) {
+        if (other.getCode() != 0L) {
           setCode(other.getCode());
         }
         if (!other.getMsg().isEmpty()) {
@@ -1425,11 +1426,11 @@ public final class CommonProto {
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws java.io.IOException {
-        com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Push_1 parsedMessage = null;
+        com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Resp_1 parsedMessage = null;
         try {
           parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
         } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          parsedMessage = (com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Push_1) e.getUnfinishedMessage();
+          parsedMessage = (com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Resp_1) e.getUnfinishedMessage();
           throw e.unwrapIOException();
         } finally {
           if (parsedMessage != null) {
@@ -1470,33 +1471,33 @@ public final class CommonProto {
         return this;
       }
 
-      private int code_ ;
+      private long code_ ;
       /**
-       * <code>int32 code = 2;</code>
+       * <code>int64 code = 2;</code>
        * @return The code.
        */
       @java.lang.Override
-      public int getCode() {
+      public long getCode() {
         return code_;
       }
       /**
-       * <code>int32 code = 2;</code>
+       * <code>int64 code = 2;</code>
        * @param value The code to set.
        * @return This builder for chaining.
        */
-      public Builder setCode(int value) {
+      public Builder setCode(long value) {
         
         code_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>int32 code = 2;</code>
+       * <code>int64 code = 2;</code>
        * @return This builder for chaining.
        */
       public Builder clearCode() {
         
-        code_ = 0;
+        code_ = 0L;
         onChanged();
         return this;
       }
@@ -1589,41 +1590,41 @@ public final class CommonProto {
       }
 
 
-      // @@protoc_insertion_point(builder_scope:ErrorCode_Push_1)
+      // @@protoc_insertion_point(builder_scope:ErrorCode_Resp_1)
     }
 
-    // @@protoc_insertion_point(class_scope:ErrorCode_Push_1)
-    private static final com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Push_1 DEFAULT_INSTANCE;
+    // @@protoc_insertion_point(class_scope:ErrorCode_Resp_1)
+    private static final com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Resp_1 DEFAULT_INSTANCE;
     static {
-      DEFAULT_INSTANCE = new com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Push_1();
+      DEFAULT_INSTANCE = new com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Resp_1();
     }
 
-    public static com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Push_1 getDefaultInstance() {
+    public static com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Resp_1 getDefaultInstance() {
       return DEFAULT_INSTANCE;
     }
 
-    private static final com.google.protobuf.Parser<ErrorCode_Push_1>
-        PARSER = new com.google.protobuf.AbstractParser<ErrorCode_Push_1>() {
+    private static final com.google.protobuf.Parser<ErrorCode_Resp_1>
+        PARSER = new com.google.protobuf.AbstractParser<ErrorCode_Resp_1>() {
       @java.lang.Override
-      public ErrorCode_Push_1 parsePartialFrom(
+      public ErrorCode_Resp_1 parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
-        return new ErrorCode_Push_1(input, extensionRegistry);
+        return new ErrorCode_Resp_1(input, extensionRegistry);
       }
     };
 
-    public static com.google.protobuf.Parser<ErrorCode_Push_1> parser() {
+    public static com.google.protobuf.Parser<ErrorCode_Resp_1> parser() {
       return PARSER;
     }
 
     @java.lang.Override
-    public com.google.protobuf.Parser<ErrorCode_Push_1> getParserForType() {
+    public com.google.protobuf.Parser<ErrorCode_Resp_1> getParserForType() {
       return PARSER;
     }
 
     @java.lang.Override
-    public com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Push_1 getDefaultInstanceForType() {
+    public com.swingfrog.summer.protocol.protobuf.proto.CommonProto.ErrorCode_Resp_1 getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
 
@@ -1640,10 +1641,10 @@ public final class CommonProto {
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_HearBeat_Resp_0_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_ErrorCode_Push_1_descriptor;
+    internal_static_ErrorCode_Resp_1_descriptor;
   private static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-      internal_static_ErrorCode_Push_1_fieldAccessorTable;
+      internal_static_ErrorCode_Resp_1_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -1655,7 +1656,7 @@ public final class CommonProto {
     java.lang.String[] descriptorData = {
       "\n\014common.proto\"\021\n\017HeartBeat_Req_0\"\037\n\017Hea" +
       "rBeat_Resp_0\022\014\n\004time\030\001 \001(\003\"<\n\020ErrorCode_" +
-      "Push_1\022\r\n\005reqId\030\001 \001(\005\022\014\n\004code\030\002 \001(\005\022\013\n\003m" +
+      "Resp_1\022\r\n\005reqId\030\001 \001(\005\022\014\n\004code\030\002 \001(\003\022\013\n\003m" +
       "sg\030\003 \001(\tB;\n,com.swingfrog.summer.protoco" +
       "l.protobuf.protoB\013CommonProtob\006proto3"
     };
@@ -1675,11 +1676,11 @@ public final class CommonProto {
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_HearBeat_Resp_0_descriptor,
         new java.lang.String[] { "Time", });
-    internal_static_ErrorCode_Push_1_descriptor =
+    internal_static_ErrorCode_Resp_1_descriptor =
       getDescriptor().getMessageTypes().get(2);
-    internal_static_ErrorCode_Push_1_fieldAccessorTable = new
+    internal_static_ErrorCode_Resp_1_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
-        internal_static_ErrorCode_Push_1_descriptor,
+        internal_static_ErrorCode_Resp_1_descriptor,
         new java.lang.String[] { "ReqId", "Code", "Msg", });
   }
 

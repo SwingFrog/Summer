@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+option java_package = "com.swingfrog.summer.test.protobuf.proto";
+option java_outer_classname = "TestProto";
+
+// className_type_messageId
+
+message HelloWorld_Req_101 {
+
+}
+message HelloWorld_Resp_101 {
+    string msg = 1;
+}
+
+message Add_Req_102 {
+    int32 a = 1;
+    int32 b = 2;
+}
+message Add_Resp_102 {
+    int32 sum = 1;
+}
+
+message Notice_Push_103 {
+    int64 value = 1;
+}

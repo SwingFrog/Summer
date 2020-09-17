@@ -25,7 +25,7 @@ public class ProtobufPasswordDecoder extends MessageToMessageDecoder<ByteBuf> {
             PasswordUtil.convert(pass, bytes);
         }
         msg.readBytes(bytes);
-        out.add(new Protobuf(id, bytes));
+        out.add(Protobuf.of(id, bytes));
     }
 
 }

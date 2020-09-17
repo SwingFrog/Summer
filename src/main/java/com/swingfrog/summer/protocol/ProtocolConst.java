@@ -16,8 +16,11 @@ public class ProtocolConst {
 	public static final String RPC_SPLIT = "\t";
 
 	public static final int PROTOBUF_HEART_BEAT_REQ_ID = 0;
-	public static final int PROTOBUF_HEART_BEAT_RESP_ID = 1;
-	public static final int PROTOBUF_ERROR_CODE_PUSH_ID = 2;
+	public static final int PROTOBUF_ERROR_CODE_RESP_ID = 1;
+
+	public static boolean isHttp(String protocol) {
+		return protocol.contains("Http");
+	}
 
 	public static boolean isProtobuf(String protocol) {
 		return protocol.contains("Protobuf");

@@ -7,4 +7,6 @@ public class SessionException {
 	public static CodeMsg METHOD_NOT_EXIST = new CodeMsg(102, "method not exist");
 	public static CodeMsg PARAMETER_ERROR = new CodeMsg(103, "parameter error");
 	public static CodeMsg REMOTE_WAS_PROTECTED = new CodeMsg(104, "remote was protected");
+	public static CodeMsg PROTOBUF_NOT_EXIST = new CodeMsg(105, "protobuf not exist");
+
 }

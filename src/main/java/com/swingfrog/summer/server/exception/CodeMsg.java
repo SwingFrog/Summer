@@ -2,8 +2,8 @@ package com.swingfrog.summer.server.exception;
 
 public class CodeMsg {
 	
-	private long code;
-	private String msg;
+	private final long code;
+	private final String msg;
 	
 	public CodeMsg(long code, String msg) {
 		this.code = code;

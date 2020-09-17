@@ -38,16 +38,20 @@ public class SessionResponse {
 	public static SessionResponse buildMsg(SessionRequest req, Object data) {
 		return buildMsg(req.getId(), req.getRemote(), req.getMethod(), data);
 	}
-	
-	public static SessionResponse buildError(long id, String remote, String method, CodeException e) {
+
+	public static SessionResponse buildError(long id, String remote, String method, long code, String msg) {
 		SessionResponse sr = new SessionResponse();
-		sr.setCode(e.getCode());
+		sr.setCode(code);
 		sr.setId(id);
 		sr.setRemote(remote);
 		sr.setMethod(method);
-		sr.setData(e.getMsg());
+		sr.setData(msg);
 		sr.setTime(System.currentTimeMillis());
 		return sr;
+	}
+	
+	public static SessionResponse buildError(long id, String remote, String method, CodeException e) {
+		return buildError(id, remote, method, e.getCode(), e.getMsg());
 	}
 	
 	public static SessionResponse buildError(SessionRequest req, CodeException e) {
@@ -55,18 +59,15 @@ public class SessionResponse {
 	}
 	
 	public static SessionResponse buildError(long id, String remote, String method, CodeMsg e) {
-		SessionResponse sr = new SessionResponse();
-		sr.setCode(e.getCode());
-		sr.setId(id);
-		sr.setRemote(remote);
-		sr.setMethod(method);
-		sr.setData(e.getMsg());
-		sr.setTime(System.currentTimeMillis());
-		return sr;
+		return buildError(id, remote, method, e.getCode(), e.getMsg());
 	}
 	
 	public static SessionResponse buildError(SessionRequest req, CodeMsg e) {
 		return buildError(req.getId(), req.getRemote(), req.getMethod(), e);
+	}
+
+	public static SessionResponse buildError(SessionRequest req, long code, String msg) {
+		return buildError(req.getId(), req.getRemote(), req.getMethod(), code, msg);
 	}
 	
 	public String toJSONString() {

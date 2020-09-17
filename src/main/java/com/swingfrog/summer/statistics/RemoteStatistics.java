@@ -2,6 +2,8 @@ package com.swingfrog.summer.statistics;
 
 import com.google.common.collect.Maps;
 import com.swingfrog.summer.protocol.SessionRequest;
+import com.swingfrog.summer.protocol.protobuf.ProtobufMgr;
+import com.swingfrog.summer.protocol.protobuf.ProtobufRequest;
 import com.swingfrog.summer.server.SessionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +26,7 @@ public class RemoteStatistics {
     private String exportDir = "statistics";
 
     private final ConcurrentMap<Integer, Req> requestMap = Maps.newConcurrentMap();
+    private final ConcurrentMap<Integer, Req> requestProtobufMap = Maps.newConcurrentMap();
     private final ConcurrentMap<String, Statistics> remoteMethodMap = Maps.newConcurrentMap();
 
     private static class Req {
@@ -80,6 +83,27 @@ public class RemoteStatistics {
         }
         int consumeMs = (int) (System.currentTimeMillis() - req.time);
         statistics(String.join(".", request.getRemote(), request.getMethod()).intern(), consumeMs, req.size, respSize);
+    }
+
+    private void add(SessionContext sctx, ProtobufRequest request, int reqSize) {
+        Req req = new Req();
+        req.time = System.currentTimeMillis();
+        req.size = reqSize;
+        requestProtobufMap.putIfAbsent(Objects.hash(sctx, request), req);
+    }
+
+    private void remove(SessionContext sctx, ProtobufRequest request) {
+        requestProtobufMap.remove(Objects.hash(sctx, request));
+    }
+
+    private void finishRemove(SessionContext sctx, ProtobufRequest request, int respSize) {
+        Req req = requestProtobufMap.remove(Objects.hash(sctx, request));
+        if (req == null) {
+            return;
+        }
+        int consumeMs = (int) (System.currentTimeMillis() - req.time);
+        String protoName = ProtobufMgr.get().getProtoName(request.getId());
+        statistics(protoName == null ? "" : protoName, consumeMs, req.size, respSize);
     }
 
     private void statistics(String remoteMethod, int consumeMs, int reqSize, int respSize) {
@@ -161,6 +185,24 @@ public class RemoteStatistics {
     }
 
     public static void discard(SessionContext sctx, SessionRequest request) {
+        if (open) {
+            get().remove(sctx, request);
+        }
+    }
+
+    public static void start(SessionContext sctx, ProtobufRequest request, int reqSize) {
+        if (open) {
+            get().add(sctx, request, reqSize);
+        }
+    }
+
+    public static void finish(SessionContext sctx, ProtobufRequest request, int respSize) {
+        if (open) {
+            get().finishRemove(sctx, request, respSize);
+        }
+    }
+
+    public static void discard(SessionContext sctx, ProtobufRequest request) {
         if (open) {
             get().remove(sctx, request);
         }

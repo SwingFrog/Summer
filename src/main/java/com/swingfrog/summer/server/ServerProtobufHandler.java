@@ -3,10 +3,9 @@ package com.swingfrog.summer.server;
 import com.google.protobuf.Message;
 import com.swingfrog.summer.concurrent.SessionQueueMgr;
 import com.swingfrog.summer.protocol.ProtocolConst;
-import com.swingfrog.summer.protocol.SessionResponse;
+import com.swingfrog.summer.protocol.protobuf.ErrorCodeProtobufBuilder;
 import com.swingfrog.summer.protocol.protobuf.Protobuf;
 import com.swingfrog.summer.protocol.protobuf.ProtobufRequest;
-import com.swingfrog.summer.protocol.protobuf.ProtobufResponse;
 import com.swingfrog.summer.protocol.protobuf.proto.CommonProto;
 import com.swingfrog.summer.server.async.ProcessResult;
 import com.swingfrog.summer.server.exception.CodeException;
@@ -26,14 +25,14 @@ public class ServerProtobufHandler extends AbstractServerHandler<Protobuf> {
     }
 
     @Override
-    protected void recv(ChannelHandlerContext ctx, SessionContext sctx, Protobuf protobuf) throws Exception {
+    protected void recv(ChannelHandlerContext ctx, SessionContext sctx, Protobuf protobuf) {
         int messageId = protobuf.getId();
         if (messageId == ProtocolConst.PROTOBUF_HEART_BEAT_REQ_ID) {
             CommonProto.HearBeat_Resp_0 resp = CommonProto.HearBeat_Resp_0
                     .newBuilder()
                     .setTime(System.currentTimeMillis())
                     .build();
-            ctx.writeAndFlush(new Protobuf(messageId, resp.toByteArray()));
+            ctx.writeAndFlush(Protobuf.of(messageId, resp.toByteArray()));
             return;
         }
         try {
@@ -46,33 +45,38 @@ public class ServerProtobufHandler extends AbstractServerHandler<Protobuf> {
             AutowireParam autowireParam = new AutowireParam();
             serverContext.getSessionHandlerGroup().autowireParam(sctx, autowireParam);
 
-            //RemoteStatistics.start(sctx, request, msg.length());
+            RemoteStatistics.start(sctx, request, protobuf.getBytes().length);
             Runnable runnable = () -> {
                 if (!ctx.channel().isActive()) {
-                    //RemoteStatistics.discard(sctx, request);
+                    RemoteStatistics.discard(sctx, request);
                     return;
                 }
                 try {
-                    ProcessResult<ProtobufResponse> processResult = RemoteProtobufDispatchMgr.get().process(serverContext, request, protobuf, sctx, autowireParam);
+                    Message reqMessage = RemoteProtobufDispatchMgr.get().parse(protobuf);
+                    log.debug("server request {} from {}", reqMessage, sctx);
+                    ProcessResult<Message> processResult = RemoteProtobufDispatchMgr.get().process(serverContext, request, reqMessage, sctx, autowireParam);
+                    if (processResult == null) {
+                        return;
+                    }
                     if (processResult.isAsync()) {
                         return;
                     }
-                    ProtobufResponse response = processResult.getValue();
+                    Message response = processResult.getValue();
                     log.debug("server response {} to {}", response, sctx);
-                    writeResponse(ctx, sctx, new Protobuf(response.getId(), response.getMessage().toByteArray()));
-                    //RemoteStatistics.finish(sctx, request, response.length());
+                    writeResponse(ctx, sctx, Protobuf.of(messageId, response));
+                    RemoteStatistics.finish(sctx, request, response.getSerializedSize());
                 } catch (CodeException ce) {
-//                    log.warn(ce.getMessage(), ce);
-//                    String response = SessionResponse.buildError(request, ce).toJSONString();
-//                    log.debug("server response error {} to {}", response, sctx);
-//                    writeResponse(ctx, sctx, response);
-                    //RemoteStatistics.finish(sctx, request, response.length());
+                    log.warn(ce.getMessage(), ce);
+                    Message response = ErrorCodeProtobufBuilder.build(messageId, ce);
+                    log.debug("server response error {} to {}", response, sctx);
+                    writeResponse(ctx, sctx, Protobuf.of(ProtocolConst.PROTOBUF_ERROR_CODE_RESP_ID, response));
+                    RemoteStatistics.finish(sctx, request, response.getSerializedSize());
                 } catch (Throwable e) {
-//                    log.error(e.getMessage(), e);
-//                    String response = SessionResponse.buildError(request, SessionException.INVOKE_ERROR).toJSONString();
-//                    log.debug("server response error {} to {}", response, sctx);
-//                    writeResponse(ctx, sctx, response);
-                    //RemoteStatistics.finish(sctx, request, response.length());
+                    log.error(e.getMessage(), e);
+                    Message response = ErrorCodeProtobufBuilder.build(messageId, SessionException.INVOKE_ERROR);
+                    log.debug("server response error {} to {}", response, sctx);
+                    writeResponse(ctx, sctx, Protobuf.of(ProtocolConst.PROTOBUF_ERROR_CODE_RESP_ID, response));
+                    RemoteStatistics.finish(sctx, request, response.getSerializedSize());
                 }
             };
 
@@ -92,8 +96,8 @@ public class ServerProtobufHandler extends AbstractServerHandler<Protobuf> {
         }
     }
 
-    private void writeResponse(ChannelHandlerContext ctx, SessionContext sctx, Protobuf response) {
-        ServerWriteHelper.write(ctx, serverContext, sctx, response);
+    private void writeResponse(ChannelHandlerContext ctx, SessionContext sctx, Protobuf protobuf) {
+        ServerWriteHelper.write(ctx, serverContext, sctx, protobuf);
     }
 
 }
