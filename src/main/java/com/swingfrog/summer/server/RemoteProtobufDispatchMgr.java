@@ -19,10 +19,7 @@ import com.swingfrog.summer.util.ProtobufUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
-import java.lang.reflect.Type;
+import java.lang.reflect.*;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -49,19 +46,20 @@ public class RemoteProtobufDispatchMgr {
         Iterator<Class<?>> ite = ContainerMgr.get().iteratorRemoteList();
         while (ite.hasNext()) {
             Class<?> clazz = ite.next();
-            Remote remote = clazz.getAnnotation(Remote.class);
-            if (!remote.protobuf()) {
-                continue;
-            }
             log.info("server register remote protobuf {}", clazz.getSimpleName());
             RemoteClass remoteClass = new RemoteClass(clazz);
             Method[] methods = clazz.getDeclaredMethods();
             MethodParameterName mpn = new MethodParameterName(clazz);
             for (Method method : methods) {
+                if (method.getModifiers() != Modifier.PUBLIC || !ProtobufUtil.hasProtobufParam(method)) {
+                    continue;
+                }
                 RemoteMethod remoteMethod = new RemoteMethod(remoteClass, method, mpn);
                 int messageId = remoteMethod.getMessageId();
-                if (remoteMethodMap.putIfAbsent(messageId, remoteMethod) != null) {
-                    throw new RuntimeException("protobuf message repeat");
+                if (remoteMethodMap.putIfAbsent(messageId, remoteMethod) == null) {
+                    log.info("remote protobuf register {}.{} {}", clazz.getSimpleName(), method.getName(), ProtobufMgr.get().getProtoName(messageId));
+                } else {
+                    throw new RuntimeException(String.format("protobuf message repeat %s.%s messageId[%s] protoName[%s]",  clazz.getSimpleName(), method.getName(), messageId, ProtobufMgr.get().getProtoName(messageId)));
                 }
             }
         }
@@ -158,7 +156,7 @@ public class RemoteProtobufDispatchMgr {
         private final Method method;
         private final String[] params;
         private final Parameter[] parameters;
-        private int messageIndex;
+        private int messageIndex = -1;
         private int messageId;
         public RemoteMethod(RemoteClass remoteClass, Method method, MethodParameterName mpn) throws Exception {
             this.remoteClass = remoteClass;

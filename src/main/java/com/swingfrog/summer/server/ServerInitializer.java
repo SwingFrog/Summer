@@ -73,6 +73,27 @@ public class ServerInitializer extends ChannelInitializer<SocketChannel> {
                 pipeline.addLast(new ChunkedWriteHandler());
                 pipeline.addLast(new WebRequestHandler(serverContext));
                 break;
+            case ProtocolConst.SERVER_PROTOCOL_WEB_SOCKET_PROTOBUF:
+                pipeline.addLast(new HttpServerCodec());
+                pipeline.addLast(new HttpObjectAggregator(config.getMsgLength()));
+                pipeline.addLast(new ChunkedWriteHandler());
+                pipeline.addLast(new WebSocketUriFilter(serverContext));
+                pipeline.addLast(new WebSocketServerProtocolHandler("/" + config.getServerName()));
+                pipeline.addLast(new WebSocketDecoder());
+                pipeline.addLast(new WebSocketEncoder());
+                pipeline.addLast(new LengthFieldBasedFrameDecoder(config.getMsgLength(), 0, 4, 0, 4));
+                pipeline.addLast(new LengthFieldPrepender(4));
+                pipeline.addLast(new ProtobufPasswordDecoder(config.getPassword()));
+                pipeline.addLast(new ProtobufPasswordEncoder(config.getPassword()));
+                pipeline.addLast(new ServerProtobufHandler(serverContext));
+                break;
+            case ProtocolConst.SERVER_PROTOCOL_LENGTH_FIELD_PROTOBUF:
+                pipeline.addLast(new LengthFieldBasedFrameDecoder(config.getMsgLength(), 0, 4, 0, 4));
+                pipeline.addLast(new LengthFieldPrepender(4));
+                pipeline.addLast(new ProtobufPasswordDecoder(config.getPassword()));
+                pipeline.addLast(new ProtobufPasswordEncoder(config.getPassword()));
+                pipeline.addLast(new ServerProtobufHandler(serverContext));
+                break;
             case ProtocolConst.SERVER_PROTOCOL_WEB_SOCKET_STANDARD:
                 pipeline.addLast(new HttpServerCodec());
                 pipeline.addLast(new HttpObjectAggregator(config.getMsgLength()));
@@ -85,7 +106,7 @@ public class ServerInitializer extends ChannelInitializer<SocketChannel> {
                 pipeline.addLast(new StringPasswordEncoder(config.getCharset(), config.getPassword()));
                 pipeline.addLast(new ServerStringHandler(serverContext));
                 break;
-            case ProtocolConst.SERVER_PROTOCOL_WEB_SOCKET_STANDARD_PROTOBUF:
+            case ProtocolConst.SERVER_PROTOCOL_WEB_SOCKET_PROTOBUF_STANDARD:
                 pipeline.addLast(new HttpServerCodec());
                 pipeline.addLast(new HttpObjectAggregator(config.getMsgLength()));
                 pipeline.addLast(new ChunkedWriteHandler());
@@ -93,13 +114,6 @@ public class ServerInitializer extends ChannelInitializer<SocketChannel> {
                 pipeline.addLast(new WebSocketServerProtocolHandler("/" + config.getServerName()));
                 pipeline.addLast(new WebSocketDecoder());
                 pipeline.addLast(new WebSocketEncoder());
-                pipeline.addLast(new ProtobufPasswordDecoder(config.getPassword()));
-                pipeline.addLast(new ProtobufPasswordEncoder(config.getPassword()));
-                pipeline.addLast(new ServerProtobufHandler(serverContext));
-                break;
-            case ProtocolConst.SERVER_PROTOCOL_LENGTH_FIELD_PROTOBUF:
-                pipeline.addLast(new LengthFieldBasedFrameDecoder(config.getMsgLength(), 0, 4, 0, 4));
-                pipeline.addLast(new LengthFieldPrepender(4));
                 pipeline.addLast(new ProtobufPasswordDecoder(config.getPassword()));
                 pipeline.addLast(new ProtobufPasswordEncoder(config.getPassword()));
                 pipeline.addLast(new ServerProtobufHandler(serverContext));
@@ -116,9 +130,10 @@ public class ServerInitializer extends ChannelInitializer<SocketChannel> {
             case ProtocolConst.SERVER_PROTOCOL_WEB_SOCKET:
             case ProtocolConst.SERVER_PROTOCOL_LENGTH_FIELD:
             case ProtocolConst.SERVER_PROTOCOL_HTTP:
-            case ProtocolConst.SERVER_PROTOCOL_WEB_SOCKET_STANDARD:
-            case ProtocolConst.SERVER_PROTOCOL_WEB_SOCKET_STANDARD_PROTOBUF:
+            case ProtocolConst.SERVER_PROTOCOL_WEB_SOCKET_PROTOBUF:
             case ProtocolConst.SERVER_PROTOCOL_LENGTH_FIELD_PROTOBUF:
+            case ProtocolConst.SERVER_PROTOCOL_WEB_SOCKET_STANDARD:
+            case ProtocolConst.SERVER_PROTOCOL_WEB_SOCKET_PROTOBUF_STANDARD:
                 return true;
         }
         return false;

@@ -2,9 +2,11 @@ package com.swingfrog.summer.util;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Message;
+import com.swingfrog.summer.protocol.protobuf.ProtobufMgr;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 
 public class ProtobufUtil {
 
@@ -37,6 +39,17 @@ public class ProtobufUtil {
 
     public static int getMessageSize(Message message) {
         return message.getSerializedSize();
+    }
+
+    public static boolean hasProtobufParam(Method method) {
+        Parameter[] parameters = method.getParameters();
+        for (Parameter parameter : parameters) {
+            Class<?> typeClazz = parameter.getType();
+            if (Message.class.isAssignableFrom(typeClazz)) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }

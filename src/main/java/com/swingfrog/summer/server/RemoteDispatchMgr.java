@@ -1,9 +1,6 @@
 package com.swingfrog.summer.server;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
-import java.lang.reflect.Type;
+import java.lang.reflect.*;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -14,6 +11,7 @@ import com.swingfrog.summer.server.async.AsyncResponse;
 import com.swingfrog.summer.server.async.ProcessResult;
 import com.swingfrog.summer.struct.AutowireParam;
 import com.swingfrog.summer.util.JSONConvertUtil;
+import com.swingfrog.summer.util.ProtobufUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,10 +51,6 @@ public class RemoteDispatchMgr {
 		Iterator<Class<?>> ite = ContainerMgr.get().iteratorRemoteList();
 		while (ite.hasNext()) {
 			Class<?> clazz = ite.next();
-			Remote remote = clazz.getAnnotation(Remote.class);
-			if (remote.protobuf()) {
-				continue;
-			}
 			log.info("server register remote {}", clazz.getSimpleName());
 			remoteClassMap.put(clazz.getSimpleName(), new RemoteClass(clazz));
 		}
@@ -196,6 +190,9 @@ public class RemoteDispatchMgr {
 			serverName = clazz.getAnnotation(Remote.class).serverName();
 			Method[] methods = clazz.getDeclaredMethods();
 			for (Method method : methods) {
+				if (method.getModifiers() != Modifier.PUBLIC || ProtobufUtil.hasProtobufParam(method)) {
+					continue;
+				}
 				log.info("remote register {}.{}", clazz.getSimpleName(), method.getName());
 				remoteMethodMap.put(method.getName(), new RemoteMethod(method, new MethodParameterName(clazz)));
 			}
