@@ -1,5 +1,6 @@
 package com.swingfrog.summer.server;
 
+import com.google.common.collect.Maps;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Message;
 import com.swingfrog.summer.annotation.Optional;
@@ -22,7 +23,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.Type;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -38,7 +38,7 @@ public class RemoteProtobufDispatchMgr {
     }
 
     private RemoteProtobufDispatchMgr() {
-        remoteMethodMap = new HashMap<>();
+        remoteMethodMap = Maps.newHashMap();
     }
 
     public static RemoteProtobufDispatchMgr get() {

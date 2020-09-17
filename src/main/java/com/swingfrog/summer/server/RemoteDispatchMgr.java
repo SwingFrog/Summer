@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import com.google.common.collect.Maps;
 import com.swingfrog.summer.annotation.Remote;
 import com.swingfrog.summer.server.async.AsyncResponse;
 import com.swingfrog.summer.server.async.ProcessResult;
@@ -41,7 +42,7 @@ public class RemoteDispatchMgr {
 	}
 	
 	private RemoteDispatchMgr() {
-		remoteClassMap = new HashMap<>();
+		remoteClassMap = Maps.newHashMap();
 	}
 	
 	public static RemoteDispatchMgr get() {
