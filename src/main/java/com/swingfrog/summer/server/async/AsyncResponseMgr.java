@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.google.protobuf.Message;
 import com.swingfrog.summer.protocol.SessionRequest;
 import com.swingfrog.summer.protocol.SessionResponse;
-import com.swingfrog.summer.protocol.ProtocolConst;
 import com.swingfrog.summer.protocol.protobuf.ErrorCodeProtobufBuilder;
 import com.swingfrog.summer.protocol.protobuf.Protobuf;
 import com.swingfrog.summer.protocol.protobuf.ProtobufRequest;
@@ -89,9 +88,11 @@ public class AsyncResponseMgr {
             log.error("Async send response failure. cause: can't found server by session context");
             return;
         }
+        if (server.getServerContext().isProtobuf()) {
+            return;
+        }
         ChannelHandlerContext ctx = server.getServerContext().getSessionContextGroup().getChannelBySession(sctx);
-        String protocol = server.getServerContext().getConfig().getProtocol();
-        if (ProtocolConst.isHttp(protocol)) {
+        if (server.getServerContext().isHttp()) {
             WebView webView;
             if (data == null) {
                 webView = WebMgr.get().getInteriorViewFactory().createBlankView();
@@ -126,8 +127,7 @@ public class AsyncResponseMgr {
             log.error("Async send response failure. cause: can't found server by session context");
             return;
         }
-        String protocol = server.getServerContext().getConfig().getProtocol();
-        if (ProtocolConst.isHttp(protocol)) {
+        if (server.getServerContext().isHttp()) {
             log.error("Http protocol can't send error response");
             return;
         }

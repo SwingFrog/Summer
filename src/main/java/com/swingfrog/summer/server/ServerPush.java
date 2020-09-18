@@ -262,6 +262,7 @@ public class ServerPush {
 		if (ctx == null) {
 			return;
 		}
+
 		ServerWriteHelper.write(ctx, serverContext, sctx, protobuf);
 	}
 
