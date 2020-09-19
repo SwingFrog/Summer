@@ -10,11 +10,9 @@ public class ServerWriteHelper {
     private static final Logger log = LoggerFactory.getLogger(ServerWriteHelper.class);
 
     public static void write(ChannelHandlerContext ctx, ServerContext serverContext, SessionContext sctx, Object data) {
-        if (serverContext.isProtobuf()) {
-            if (data instanceof Protobuf) {
-
-            } else {
-                log.error("can't write other data under the Protobuf protocol");
+        if (data instanceof Protobuf) {
+            if (!serverContext.isProtobuf()) {
+                log.error("can't write protobuf data int the non-protobuf protocol");
                 return;
             }
         }

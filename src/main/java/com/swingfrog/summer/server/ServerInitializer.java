@@ -4,8 +4,8 @@ import com.swingfrog.summer.config.ServerConfig;
 import com.swingfrog.summer.protocol.ProtocolConst;
 import com.swingfrog.summer.protocol.lengthfield.StringPasswordDecoder;
 import com.swingfrog.summer.protocol.lengthfield.StringPasswordEncoder;
-import com.swingfrog.summer.protocol.protobuf.ProtobufPasswordDecoder;
-import com.swingfrog.summer.protocol.protobuf.ProtobufPasswordEncoder;
+import com.swingfrog.summer.protocol.protobuf.ProtobufDecoder;
+import com.swingfrog.summer.protocol.protobuf.ProtobufEncoder;
 import com.swingfrog.summer.protocol.stringline.StringPasswordLineDecoder;
 import com.swingfrog.summer.protocol.stringline.StringPasswordLineEncoder;
 import com.swingfrog.summer.protocol.websocket.WebSocketDecoder;
@@ -83,15 +83,15 @@ public class ServerInitializer extends ChannelInitializer<SocketChannel> {
                 pipeline.addLast(new WebSocketEncoder());
                 pipeline.addLast(new LengthFieldBasedFrameDecoder(config.getMsgLength(), 0, 4, 0, 4));
                 pipeline.addLast(new LengthFieldPrepender(4));
-                pipeline.addLast(new ProtobufPasswordDecoder(config.getPassword()));
-                pipeline.addLast(new ProtobufPasswordEncoder(config.getPassword()));
+                pipeline.addLast(new ProtobufDecoder());
+                pipeline.addLast(new ProtobufEncoder());
                 pipeline.addLast(new ServerProtobufHandler(serverContext));
                 break;
             case ProtocolConst.SERVER_PROTOCOL_LENGTH_FIELD_PROTOBUF:
                 pipeline.addLast(new LengthFieldBasedFrameDecoder(config.getMsgLength(), 0, 4, 0, 4));
                 pipeline.addLast(new LengthFieldPrepender(4));
-                pipeline.addLast(new ProtobufPasswordDecoder(config.getPassword()));
-                pipeline.addLast(new ProtobufPasswordEncoder(config.getPassword()));
+                pipeline.addLast(new ProtobufDecoder());
+                pipeline.addLast(new ProtobufEncoder());
                 pipeline.addLast(new ServerProtobufHandler(serverContext));
                 break;
             case ProtocolConst.SERVER_PROTOCOL_WEB_SOCKET_STANDARD:
@@ -114,8 +114,8 @@ public class ServerInitializer extends ChannelInitializer<SocketChannel> {
                 pipeline.addLast(new WebSocketServerProtocolHandler("/" + config.getServerName()));
                 pipeline.addLast(new WebSocketDecoder());
                 pipeline.addLast(new WebSocketEncoder());
-                pipeline.addLast(new ProtobufPasswordDecoder(config.getPassword()));
-                pipeline.addLast(new ProtobufPasswordEncoder(config.getPassword()));
+                pipeline.addLast(new ProtobufDecoder());
+                pipeline.addLast(new ProtobufEncoder());
                 pipeline.addLast(new ServerProtobufHandler(serverContext));
                 break;
             default:

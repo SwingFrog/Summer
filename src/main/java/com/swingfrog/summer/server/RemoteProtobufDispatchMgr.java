@@ -46,7 +46,7 @@ public class RemoteProtobufDispatchMgr {
         Iterator<Class<?>> ite = ContainerMgr.get().iteratorRemoteList();
         while (ite.hasNext()) {
             Class<?> clazz = ite.next();
-            log.info("server register remote protobuf {}", clazz.getSimpleName());
+            log.info("server try register remote protobuf {}", clazz.getSimpleName());
             RemoteClass remoteClass = new RemoteClass(clazz);
             Method[] methods = clazz.getDeclaredMethods();
             MethodParameterName mpn = new MethodParameterName(clazz);

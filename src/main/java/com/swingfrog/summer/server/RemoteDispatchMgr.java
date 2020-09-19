@@ -51,7 +51,7 @@ public class RemoteDispatchMgr {
 		Iterator<Class<?>> ite = ContainerMgr.get().iteratorRemoteList();
 		while (ite.hasNext()) {
 			Class<?> clazz = ite.next();
-			log.info("server register remote {}", clazz.getSimpleName());
+			log.info("server try register remote {}", clazz.getSimpleName());
 			remoteClassMap.put(clazz.getSimpleName(), new RemoteClass(clazz));
 		}
 	}

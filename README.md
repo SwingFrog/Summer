@@ -23,9 +23,10 @@
 
 ## 更新说明
 
-### 预告
-1. 新增协议支持protobuf
-2. remote中的方法限定符如果不是public将不对外开放
+### 2020.09.19
+1. 新增协议，支持protobuf。
+2. 新增标准的WebSocket协议，与原来的区别是去掉了包头的四个字节。
+3. remote中的方法限定符如果不是public将不对远程开放。
 
 ### 2020.09.13
 1. 心跳机制优化。
@@ -397,9 +398,9 @@ javabean、数据表的实体映射
 @Bean
 public class LoginManager {
 
-	private ConcurrentHashMap<Integer, SessionContext> accountIdMap = new ConcurrentHashMap<>();
-	private ConcurrentHashMap<SessionContext, Integer> sessionContextMap = new ConcurrentHashMap<>();
-	//省略...
+    private ConcurrentHashMap<Integer, SessionContext> accountIdMap = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<SessionContext, Integer> sessionContextMap = new ConcurrentHashMap<>();
+    //省略...
 	
 }
 ```
@@ -416,8 +417,8 @@ public class LoginManager {
 public class AccountDao extends BaseDao<Account> {
 
     public Account getById(int id) {
-		return getBean("select * from t_account where id = ?", id);
-	}
+        return getBean("select * from t_account where id = ?", id);
+    }
 	
 }
 ```
@@ -446,11 +447,11 @@ public abstract class BaseDao<T> {
 public class AccountService {
 
     @Autowired
-	private AccountDao accountDao;
+    private AccountDao accountDao;
 	
-	public Account getAccountById(int accountId) {
-		return accountDao.getById(accountId);
-	}
+    public Account getAccountById(int accountId) {
+        return accountDao.getById(accountId);
+    }
 	
 }
 ```
@@ -463,8 +464,8 @@ public class AccountService {
 @EventHandler
 public class FriendEvent {
 
-	@BindEvent("登录事件")
-	public void noticeFriend(int accountId) {}
+    @BindEvent("登录事件")
+    public void noticeFriend(int accountId) {}
 	
 }
 ```
@@ -476,59 +477,65 @@ public class FriendEvent {
 @ServerHandler
 public class LoginHandler implements SessionHandler {
 	
-	//是否允许该会话连接服务器 此处可进行黑名单拦截或白名单放行
-	@Override
-	public boolean accpet(SessionContext sctx) {
-		return true;
-	}
+    //是否允许该会话连接服务器 此处可进行黑名单拦截或白名单放行
+    @Override
+    public boolean accept(SessionContext sctx) {
+        return true;
+    }
 
     //会话连接成功
-	@Override
-	public void added(SessionContext sctx) {
+    @Override
+    public void added(SessionContext sctx) {
 
-	}
+    }
 
     //会话心跳超时
-	@Override
-	public void heartTimeOut(SessionContext sctx) {
+    @Override
+    public void heartTimeOut(SessionContext sctx) {
 
-	}
+    }
 
     //会话发来的消息长度大于配置
-	@Override
+    @Override
 	public void lengthTooLongMsg(SessionContext sctx) {
 
 	}
 
     //是否接收会话发来的消息
-	@Override
-	public boolean receive(SessionContext sctx, SessionRequest request) {
-		return true;
-	}
+    @Override
+    public boolean receive(SessionContext sctx, SessionRequest request) {
+        return true;
+    }
+
+    //是否接收会话发来的消息 用于protobuf
+    @Override
+    public boolean receive(SessionContext ctx, ProtobufRequest request) {
+        return true;
+    }
 
     //会话断开连接
-	@Override
-	public void removed(SessionContext sctx) {
+    @Override
+    public void removed(SessionContext sctx) {
 
-	}
+    }
 
     //会话发送重复消息
-	@Override
-	public void repetitionMsg(SessionContext sctx) {
+    @Override
+    public void repetitionMsg(SessionContext sctx) {
 	
-	}
+    }
 
     //会话发送消息次数间隔小于配置
-	@Override
-	public void sendTooFastMsg(SessionContext sctx) {
+    @Override
+    public void sendTooFastMsg(SessionContext sctx) {
 
-	}
+    }
 
     //会话发来的消息无法解析
-	@Override
-	public void unableParseMsg(SessionContext sctx) {
+    @Override
+    public void unableParseMsg(SessionContext sctx) {
 
-	}
+    }
 
 }
 ```
@@ -540,9 +547,9 @@ public class LoginHandler implements SessionHandler {
 @Push
 public class DataPush {
 	
-	public void pushDataToAll(DataPushMsg msg) {
-		Summer.getServerPush().asyncPushToAll(msg.getRemote(), msg.getMethod(), msg.getData());
-	}
+    public void pushDataToAll(DataPushMsg msg) {
+        Summer.getServerPush().asyncPushToAll(msg.getRemote(), msg.getMethod(), msg.getData());
+    }
 }
 ```
 
@@ -554,12 +561,12 @@ SessionContext为调用此接口的会话，此参数可省略。<br/>
 @Remote
 public class AccountRemote {
 
-	@Autowired
-	private AccountService accountService;
+    @Autowired
+    private AccountService accountService;
 	
-	public Account getAccount(SessionContext sctx, int accountId, @Optional remark) {
-		return accountService.getAccountById(accountId);
-	}
+    public Account getAccount(SessionContext sctx, int accountId, @Optional remark) {
+        return accountService.getAccountById(accountId);
+    }
 	
 }
 ```
@@ -573,20 +580,20 @@ public class AccountRemote {
 @Task
 public class StatTask {
 
-	@CronTask("0 0/5 * * * ? ")
-	public void onlineStatTask() {
+    @CronTask("0 0/5 * * * ? ")
+    public void onlineStatTask() {
 
-	}
+    }
 	
-	@IntervalTask(1000) 
-	public void updateXX() {
+    @IntervalTask(1000) 
+    public void updateXX() {
 	    
-	}
+    }
 	
-	@IntervalTask(value = 1000, delay = 2000)
-	public void waitAndUpdate() {
+    @IntervalTask(value = 1000, delay = 2000)
+    public void waitAndUpdate() {
 	    
-	}
+    }
 	
 }
 ```
@@ -597,29 +604,29 @@ Summer.hot会在后面提到。
 ```java
 public class SupmersGateApp implements SummerApp {
 
-	private static final Logger log = LoggerFactory.getLogger(SupmersGateApp.class);
+    private static final Logger log = LoggerFactory.getLogger(SupmersGateApp.class);
 	
 	//框架初始化后回调
-	@Override
-	public void init() {
-		log.info("gate init");
-	}
+    @Override
+    public void init() {
+        log.info("gate init");
+    }
 
     //框架启动后回调
-	@Override
-	public void start() {
-		log.info("gate start");
-	}
+    @Override
+    public void start() {
+        log.info("gate start");
+    }
 
     //框架停止后回调
-	@Override
-	public void stop() {
-		log.info("gate stop");
-	}
+    @Override
+    public void stop() {
+        log.info("gate stop");
+    }
 	
-	public static void main(String[] args) throws Exception {
-		Summer.hot(new SupmersGateApp());
-	}
+    public static void main(String[] args) throws Exception {
+        Summer.hot(new SupmersGateApp());
+    }
 	
 }
 ```
@@ -678,20 +685,20 @@ task 由任务处理器调用
 @Remote
 public class AccountRemote {
 
-	@Autowired
-	private AccountService accountService;
+    @Autowired
+    private AccountService accountService;
 	
-	@Autowired
-	private StatService statService;
+    @Autowired
+    private StatService statService;
 	
-	@Autowired
-	private ItemService itemService;
+    @Autowired
+    private ItemService itemService;
 	
-	@Autowired
-	private DanService danService;
+    @Autowired
+    private DanService danService;
 	
-	@Autowired
-	private PushManager pushManager;
+    @Autowired
+    private PushManager pushManager;
 	
 }
 ```
@@ -717,17 +724,11 @@ public class StatRemote {
     
     @SingleQueue("队列名称")
     public void peopleOnline(int accountId) {}
-}
-```
 
-#### @SessionQueue
-在使用@Remote注解的类中，其方法如果使用此注解，在多个线程调用此方法是，会排进当前请求者的会话队列中，依次完成调用。
-```java
-@Remote
-public class ItemRemote {
-    
-    @SessionQueue
-    public void listItem(int accountId) {}
+    // 使用 ${arg} arg为方法内参数名称
+    @SingleQueue("队列名称-${accountId}-${a}")
+    public void peopleOffline(int accountId, int a) {}
+
 }
 ```
 
@@ -737,7 +738,7 @@ public class ItemRemote {
 @Remote
 public class AccountRemote {
 
-	public Account getAccount(SessionContext sctx, int accountId, @Optional remark) {}
+    public Account getAccount(SessionContext sctx, int accountId, @Optional remark) {}
 	
 }
 ```
@@ -747,8 +748,8 @@ public class AccountRemote {
 @Remote
 public class FriendRemote {
 
-	@Transaction
-	public void addFriend(int accountId, String name) {}
+    @Transaction
+    public void addFriend(int accountId, String name) {}
 	
 }
 ```
@@ -760,8 +761,8 @@ public class FriendRemote {
 @Task
 public class StatTask {
 
-	@CronTask("0 0/5 * * * ? ")
-	public void onlineStatTask() {}
+    @CronTask("0 0/5 * * * ? ")
+    public void onlineStatTask() {}
 	
 }
 ```
@@ -773,11 +774,11 @@ public class StatTask {
 @Task
 public class StatTask {
 	
-	@IntervalTask(1000) 
-	public void updateXX() {}
+    @IntervalTask(1000) 
+    public void updateXX() {}
 	
-	@IntervalTask(value = 1000, delay = 2000)
-	public void waitAndUpdate() {}
+    @IntervalTask(value = 1000, delay = 2000)
+    public void waitAndUpdate() {}
 	
 }
 ```
@@ -790,11 +791,11 @@ index小到大，顺序先到后。
 @EventHandler
 public class FriendEvent {
 
-	@BindEvent("登录事件")
-	public void noticeFriendOnline(int accountId) {}
+    @BindEvent("登录事件")
+    public void noticeFriendOnline(int accountId) {}
 	
-	@BindEvent(value = "登出事件", index = 1)
-	public void noticeFriendoffline(int accountId) {}
+    @BindEvent(value = "登出事件", index = 1)
+    public void noticeFriendoffline(int accountId) {}
 	
 }
 ```
@@ -807,9 +808,7 @@ Summer框架启动方法
 ```java
 public static void hot(SummerApp app) throws Exception {}
 public static void hot(SummerApp app, String projectPackage) throws Exception {}
-public static void hot(SummerApp app, String projectPackage, String libPath,
-			String serverProperties, String logProperties, 
-			String redisProperties, String dbProperties, String taskProperties) throws Exception {}
+public static void hot(SummerConfig config) {}
 ```
 
 #### Summer.sync
@@ -842,6 +841,12 @@ public static void removeComponent(Object obj) {}
 public static <T> T getComponent(Class<?> clazz) {}
 ```
 
+#### Summer.listDeclaredComponent
+从容器中获取组件
+```java
+public static <T> List<T> listDeclaredComponent(Class<T> clazz) {}
+```
+
 #### Summer.getProxyInstance
 创建代理对象
 ```java
@@ -851,7 +856,7 @@ public static <T> T getProxyInstance(Object target, ProxyMethodInterceptor inter
 ```java
 public interface ProxyMethodInterceptor {
 
-	public Object intercept(Object obj, Method method, Object[] args) throws Throwable;
+    Object intercept(Object obj, Method method, Object[] args) throws Throwable;
 	
 }
 ```
@@ -944,21 +949,21 @@ public static <T> T getRandomRemoteInvokeObjectWithRetry(String cluster, Class<?
 ```java
 @Remote
 public class FriendRemote {
-	@Autowired
-	private FriendService friendService;
+    @Autowired
+    private FriendService friendService;
 
-	@Transaction
-	public void addFriend(int accountId, String name) {
-		this.friendService.addFriend(accountId, name);
-	}
+    @Transaction
+    public void addFriend(int accountId, String name) {
+        this.friendService.addFriend(accountId, name);
+    }
 }
 ```
 
 ```java
 public class AccountServerRemote {
     public static FriendRemote getFriendRemote() {
-		return Summer.getRandomRemoteInvokeObject(ClusterConst.ACCOUNT, FriendRemote.class);
-	}
+        return Summer.getRandomRemoteInvokeObject(ClusterConst.ACCOUNT, FriendRemote.class);
+    }
 }
 ```
 
@@ -968,13 +973,13 @@ public class AccountServerRemote {
 @Remote
 public class FriendRemote {
 
-	@Autowired
-	private LoginManager loginManager;
+    @Autowired
+    private LoginManager loginManager;
 	
-	public void addFriend(SessionContext sctx, String name) {
-		int accountId = loginManager.getAccountId(sctx);
-		AccountServerRemote.getFriendRemote().addFriend(accountId, name);
-	}
+    public void addFriend(SessionContext sctx, String name) {
+        int accountId = loginManager.getAccountId(sctx);
+        AccountServerRemote.getFriendRemote().addFriend(accountId, name);
+    }
 	
 }
 ```
@@ -988,41 +993,41 @@ public static ServerPush getServerPush() {}
 ```java
 public class ServerPush {
 	
-	//异步推送至该集群内所有服务器
-	public void asyncPushToClusterAllServer(String cluster, String remote, String method, Object data) {}
+    //异步推送至该集群内所有服务器
+    public void asyncPushToClusterAllServer(String cluster, String remote, String method, Object data) {}
 	
-	//同步推送至该集群内所有服务器
-	public void syncPushToClusterAllServer(String cluster, String remote, String method, Object data) {}
+    //同步推送至该集群内所有服务器
+    public void syncPushToClusterAllServer(String cluster, String remote, String method, Object data) {}
 
     //异步推送至该集群内随机一台服务器
-	public void asyncPushToClusterRandomServer(String cluster, String remote, String method, Object data) {}
+    public void asyncPushToClusterRandomServer(String cluster, String remote, String method, Object data) {}
 	
-	//同步推送至该集群内随机一台服务器
-	public void syncPushToClusterRandomServer(String cluster, String remote, String method, Object data) {}
+    //同步推送至该集群内随机一台服务器
+    public void syncPushToClusterRandomServer(String cluster, String remote, String method, Object data) {}
 	
-	//异步推送至该集群中指定的服务器
-	public void asyncPushToClusterThisServer(String cluster, String serverName, String remote, String method, Object data) {}
+    //异步推送至该集群中指定的服务器
+    public void asyncPushToClusterThisServer(String cluster, String serverName, String remote, String method, Object data) {}
 	
-	//同步推送至该集群中指定的服务器
-	public void syncPushToClusterThisServer(String cluster, String serverName, String remote, String method, Object data) {}
+    //同步推送至该集群中指定的服务器
+    public void syncPushToClusterThisServer(String cluster, String serverName, String remote, String method, Object data) {}
 	
-	//异步推送至该会话
-	public void asyncPushToSessionContext(SessionContext sessionContext, String remote, String method, Object data) {}
+    //异步推送至该会话
+    public void asyncPushToSessionContext(SessionContext sessionContext, String remote, String method, Object data) {}
 
     //同步推送至该会话
-	public void syncPushToSessionContext(SessionContext sessionContext, String remote, String method, Object data) {}
+    public void syncPushToSessionContext(SessionContext sessionContext, String remote, String method, Object data) {}
 	
-	//异步推送至部分会话
-	public void asyncPushToSessionContexts(List<SessionContext> sessionContexts, String remote, String method, Object data) {}
+    //异步推送至部分会话
+    public void asyncPushToSessionContexts(List<SessionContext> sessionContexts, String remote, String method, Object data) {}
 
     //同步推送至部分会话
-	public void syncPushToSessionContexts(List<SessionContext> sessionContexts, String remote, String method, Object data) {}
+    public void syncPushToSessionContexts(List<SessionContext> sessionContexts, String remote, String method, Object data) {}
 
     //异步推送至所有会话
-	public void asyncPushToAll(String remote, String method, Object data) {}
+    public void asyncPushToAll(String remote, String method, Object data) {}
 
     //同步推送至所有会话
-	public void syncPushToAll(String remote, String method, Object data) {}
+    public void syncPushToAll(String remote, String method, Object data) {}
 
 }
 ```
@@ -1101,13 +1106,19 @@ public static WebMgr getWeb() {}
 #### Error Code 103
 参数错误 parameter error
 
+#### Error Code 104 
+远程接口受保护 remote was protected
+
+#### Error Code 105
+Protobuf不存在 protobuf not exist
+	
 #### 自定义 Error Code
 ##### 异常声明
 ```java
 public class AccountException {
 
     /**金币不足*/
-	public static final CodeMsg GOLD_NOT_ENOUGH = Summer.createCodeMsg(101005, "gold not enough, accountId[%s] own[%s] need[%s]");
+    public static final CodeMsg GOLD_NOT_ENOUGH = Summer.createCodeMsg(101005, "gold not enough, accountId[%s] own[%s] need[%s]");
 	
 }
 ```
@@ -1118,19 +1129,19 @@ public class AccountException {
 public class AccountService {
 
     @Autowired
-	private AccountDao accountDao;
+    private AccountDao accountDao;
 	
-	public int gainGold(int accountId, int gainGold) {
-		int ownGold = accountDao.getGoldByIdForUpdate(accountId);
-		int gold = ownGold + gainGold;
-		if (gold < 0) {
-			throw Summer.createCodeException(AccountException.GOLD_NOT_ENOUGH, accountId, ownGold, gainGold);
-		} else if (gold > AccountConst.GOLD_MAX) {
-			gold = AccountConst.GOLD_MAX;
-		}
-		accountDao.updateGold(accountId, gold);
-		return gold;
-	}
+    public int gainGold(int accountId, int gainGold) {
+        int ownGold = accountDao.getGoldByIdForUpdate(accountId);
+        int gold = ownGold + gainGold;
+        if (gold < 0) {
+            throw Summer.createCodeException(AccountException.GOLD_NOT_ENOUGH, accountId, ownGold, gainGold);
+        } else if (gold > AccountConst.GOLD_MAX) {
+            gold = AccountConst.GOLD_MAX;
+        }
+        accountDao.updateGold(accountId, gold);
+        return gold;
+    }
 	
 }
 ```
@@ -1168,6 +1179,19 @@ method 推送方法<br/>
 data 推送的数据<br/>
 time 时间戳<br/>
 
+#### Protobuf消息定义
+##### 请求消息
+proto名称格式: 类名_Req_协议消息ID<br/>
+例如: HeartBeat_Req_0<br/>
+
+##### 响应消息
+proto名称格式: 类名_Resp_协议消息ID<br/>
+例如: HearBeat_Resp_0<br/>
+
+##### 推送消息
+proto名称格式: 类名_Push_协议消息ID<br/>
+例如: Test_Push_100<br/>
+
 #### StringLine协议
 本协议支持加解密，支持服务器之间使用。消息格式为字符串，在字符串末尾加入\r\n，因此通过判断分隔符\r\n来区分消息。
 ```properties
@@ -1187,6 +1211,34 @@ server.protocol=WebSocket
 ```properties
 #通讯协议
 server.protocol=LengthField
+```
+
+#### WebSocket-Protobuf协议
+本协议不支持加解密，基于WebSocket协议。消息格式为Protobuf，数据包分为包头和包体，包头占四个字节，用来表示包体的长度。包体前四个字节为协议消息ID，后面的字节为协议内容。
+```properties
+#通讯协议
+server.protocol=WebSocket-Protobuf
+```
+
+#### LengthField-Protobuf协议
+本协议不支持加解密，不支持服务器之间使用。消息格式为Protobuf，数据包分为包头和包体，包头占四个字节，用来表示包体的长度。
+```properties
+#通讯协议
+server.protocol=LengthField-Protobuf
+```
+
+#### WebSocket-Standard协议
+本协议支持加解密，基于WebSocket协议。消息格式为二进制，数据包只包含包体。
+```properties
+#通讯协议
+server.protocol=WebSocket-Standard
+```
+
+#### WebSocket-Protobuf-Standard协议
+本协议不支持加解密，基于WebSocket协议。消息格式为Protobuf，数据包只包含包体，包体前四个字节为协议消息ID，后面的字节为协议内容。
+```properties
+#通讯协议
+server.protocol=WebSocket-Protobuf-Standard
 ```
 
 #### Http协议
@@ -1219,11 +1271,11 @@ byte[] bytes = new byte[0];
 String pass = "123456"; //密码由配置文件配置
 int index = bytes.length % 10;
 for (int i = 0; i < bytes.length; i++) {
-	if (index >= pass.length)
-		index = 0;
-	int res = bytes[i] ^ pass[index];
-	bytes[i] = (byte)res;
-	index++;
+    if (index >= pass.length)
+        index = 0;
+    int res = bytes[i] ^ pass[index];
+    bytes[i] = (byte)res;
+    index++;
 }
 ```
 ##### StringLine
@@ -1232,12 +1284,12 @@ byte[] bytes = new byte[0];
 String pass = "123456"; //密码由配置文件配置
 int index = bytes.length % 10;
 for (int i = 0; i < bytes.length; i++) {
-	if (index >= pass.length)
-		index = 0;
-	int res = bytes[i] ^ pass[index];
-	if (res != 10 && res != 13)
-		bytes[i] = (byte)res;
-	index++;
+    if (index >= pass.length)
+        index = 0;
+    int res = bytes[i] ^ pass[index];
+    if (res != 10 && res != 13)
+        bytes[i] = (byte)res;
+    index++;
 }
 ```
 
@@ -1247,41 +1299,41 @@ for (int i = 0; i < bytes.length; i++) {
 ```java
 public class WebMgr {
 	
-	//重新加载模板
-	public void reloadTemplate() {}
+    //重新加载模板
+    public void reloadTemplate() {}
 	
-	//获取模板
-	public Template getTemplate(String templateName) throws TemplateNotFoundException, MalformedTemplateNameException, ParseException, IOException {}
+    //获取模板
+    public Template getTemplate(String templateName) throws TemplateNotFoundException, MalformedTemplateNameException, ParseException, IOException {}
 
     //获取Web内容文件路径
-	public String getWebContentPath() {}
+    public String getWebContentPath() {}
 
     //设置Web内容文件路径
-	public void setWebContentPath(String webContentPath) {}
+    public void setWebContentPath(String webContentPath) {}
 
     //获取模板文件路径
-	public String getTemplatePath() {}
+    public String getTemplatePath() {}
 
     //设置模板文件路径
-	public void setTemplatePath(String templatePath) {}
+    public void setTemplatePath(String templatePath) {}
 
     //获取内部视图渲染工厂
-	public InteriorViewFactory getInteriorViewFactory() {}
+    public InteriorViewFactory getInteriorViewFactory() {}
 
     //设置内部视图渲染工厂
-	public void setInteriorViewFactory(InteriorViewFactory interiorViewFactory) {}
+    public void setInteriorViewFactory(InteriorViewFactory interiorViewFactory) {}
 
     //获取主页路径
-	public String getIndex() {}
+    public String getIndex() {}
 
     //设置主页路径
-	public void setIndex(String index) {}
+    public void setIndex(String index) {}
 
     //获取图标路径
-	public String getFavicon() {}
+    public String getFavicon() {}
 
     //设置图标路径
-	public void setFavicon(String favicon) {}
+    public void setFavicon(String favicon) {}
 	
 }
 ```
@@ -1292,13 +1344,13 @@ public class WebMgr {
 public class InteriorViewFactory {
 
     //空白视图
-	public BlankView createBlankView() {}
+    public BlankView createBlankView() {}
 	
-	//错误视图
-	public ErrorView createErrorView(int status, long code, String msg) {}
+    //错误视图
+    public ErrorView createErrorView(int status, long code, String msg) {}
 	
-	//错误视图
-	public ErrorView createErrorView(int status, String msg) {}
+    //错误视图
+    public ErrorView createErrorView(int status, String msg) {}
 	
 }
 ```
@@ -1372,10 +1424,10 @@ http://127.0.0.1:8080/UserRemote_add?name=toke&age=22 //remark为选填
 ##### post
 ```html
 <form action="http://127.0.0.1:8080/UserRemote_add" method="post">
-	<input type="text" name="name"/>;
-	<input type="text" name="age"/>;
-	<input type="text" name="remark"/>;
-	<input class="button" type="submit"/>
+    <input type="text" name="name"/>;
+    <input type="text" name="age"/>;
+    <input type="text" name="remark"/>;
+    <input class="button" type="submit"/>
 </form>
 ```
 
@@ -1402,13 +1454,13 @@ public class FileRemote {
 public class WebFileUpload {
 
     //获取文件名
-	public String getFileName() {}
+    public String getFileName() {}
 	
-	//获取数据
-	public ByteBuf getByteBuf() {}
+    //获取数据
+    public ByteBuf getByteBuf() {}
 	
-	//保存到指定路径
-	public void saveToFile(String path) throws IOException {}
+    //保存到指定路径
+    public void saveToFile(String path) throws IOException {}
 	
 }
 
@@ -1457,16 +1509,16 @@ public class WebFileUpload {
 随机远程调用和随机推送都是通过轮询实现
 ```java
     public Client getClientWithNext() {
-		int size = clientGroupList.size();
-		if (size > 0) {
-			if (size == 1) {
-				return clientGroupList.get(0).getClientWithNext();
-			}
-			next ++;
-			next = next % size;
-			return clientGroupList.get(next % size).getClientWithNext();
-		}
-		return null;
+        int size = clientGroupList.size();
+        if (size > 0) {
+            if (size == 1) {
+                return clientGroupList.get(0).getClientWithNext();
+            }
+            next ++;
+            next = next % size;
+            return clientGroupList.get(next % size).getClientWithNext();
+        }
+        return null;
 	}
 ```
 
@@ -1475,50 +1527,50 @@ public class WebFileUpload {
 ```java
 public class RedisSource {
 	
-	//通过key获取value
-	public String get(String key) {}
+    //通过key获取value
+    public String get(String key) {}
 	
-	//设置key、value
-	public String put(String key, String value) {}
+    //设置key、value
+    public String put(String key, String value) {}
 	
-	//设置key、value，返回是否成功
-	public boolean putAndSuccess(String key, String value) {}
+    //设置key、value，返回是否成功
+    public boolean putAndSuccess(String key, String value) {}
 	
-	//设置key、value，key过期时间
-	public String putWithTime(String key, int seconds, String value) {}
+    //设置key、value，key过期时间
+    public String putWithTime(String key, int seconds, String value) {}
 	
-	//设置key过期时间
-	public boolean setExpireTime(String key, int seconds) {}
+    //设置key过期时间
+    public boolean setExpireTime(String key, int seconds) {}
 	
-	//取消key过期时间
-	public boolean delExpireTime(String key) {}
+    //取消key过期时间
+    public boolean delExpireTime(String key) {}
 	
-	//获取key剩余时间
-	public long getRemainTime(String key) {}
+    //获取key剩余时间
+    public long getRemainTime(String key) {}
 	
-	//判断key是否存在
-	public boolean exists(String key) {}
+    //判断key是否存在
+    public boolean exists(String key) {}
 	
-	//移除key
-	public boolean remove(String key) {}
+    //移除key
+    public boolean remove(String key) {}
 	
-	//获取key的类型
-	public String getType(String key) {}
+    //获取key的类型
+    public String getType(String key) {}
 	
-	//获取map
-	public RedisMap getMap(String key) {}
+    //获取map
+    public RedisMap getMap(String key) {}
 	
-	//获取list
-	public RedisList getList(String key) {}
+    //获取list
+    public RedisList getList(String key) {}
 	
-	//获取set
-	public RedisSet getSet(String key) {}
+    //获取set
+    public RedisSet getSet(String key) {}
 	
-	//获取deque
-	public RedisDeque getDeque(String key) {}
+    //获取deque
+    public RedisDeque getDeque(String key) {}
 	
-	//清除redis
-	public void clear() {}
+    //清除redis
+    public void clear() {}
 }
 ```
 
