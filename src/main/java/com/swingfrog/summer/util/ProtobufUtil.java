@@ -2,7 +2,6 @@ package com.swingfrog.summer.util;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Message;
-import com.swingfrog.summer.protocol.protobuf.ProtobufMgr;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;

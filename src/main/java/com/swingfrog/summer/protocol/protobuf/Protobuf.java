@@ -4,7 +4,13 @@ import com.google.protobuf.Message;
 
 public class Protobuf {
 
+    /**
+     * message id
+     */
     private final int id;
+    /**
+     * message bytes
+     */
     private final byte[] bytes;
 
     private Protobuf(int id, byte[] bytes) {

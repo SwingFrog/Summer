@@ -5,14 +5,16 @@ import com.google.common.collect.Maps;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ClientCluster {
 
-	private int next = -1;
+	private final AtomicInteger next;
 	private final List<ClientGroup> clientGroupList;
 	private final Map<String, ClientGroup> nameToClientGroup;
 	
 	public ClientCluster() {
+		next = new AtomicInteger();
 		clientGroupList = Lists.newLinkedList();
 		nameToClientGroup = Maps.newHashMap();
 	}
@@ -28,15 +30,16 @@ public class ClientCluster {
 	
 	public Client getClientWithNext() {
 		int size = clientGroupList.size();
-		if (size > 0) {
-			if (size == 1) {
-				return clientGroupList.get(0).getClientWithNext();
-			}
-			next ++;
-			next = next % size;
-			return clientGroupList.get(next % size).getClientWithNext();
+		if (size == 0) {
+			return null;
 		}
-		return null;
+		if (size == 1) {
+			return clientGroupList.get(0).getClientWithNext();
+		}
+		int n = next.getAndIncrement();
+		n = Math.abs(n);
+		n = n % size;
+		return clientGroupList.get(n).getClientWithNext();
 	}
 	
 	public List<Client> listClients() {

@@ -1,7 +1,5 @@
 package com.swingfrog.summer.util;
 
-import javax.annotation.Nullable;
-
 public class PasswordUtil {
 
     public static void convert(byte[] pass, byte[] bytes) {

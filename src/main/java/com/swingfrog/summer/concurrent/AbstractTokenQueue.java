@@ -28,7 +28,7 @@ public abstract class AbstractTokenQueue {
                 .build();
     }
 
-    public void execute(Object key, Runnable runnable) {
+    protected void execute(Object key, Runnable runnable) {
         Objects.requireNonNull(runnable);
         getOrCreateQueue(key).getQueue().add(runnable);
         log.debug("token queue execute runnable key[{}]", key);

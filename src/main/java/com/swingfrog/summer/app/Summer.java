@@ -6,10 +6,15 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
+import com.google.protobuf.Message;
 import com.swingfrog.summer.db.repository.AsyncCacheRepositoryMgr;
 import com.swingfrog.summer.db.repository.RepositoryMgr;
 import com.swingfrog.summer.lifecycle.Lifecycle;
+import com.swingfrog.summer.protocol.SessionRequest;
+import com.swingfrog.summer.protocol.protobuf.ProtobufRequest;
+import com.swingfrog.summer.server.async.AsyncResponseMgr;
 import com.swingfrog.summer.statistics.RemoteStatistics;
 import org.quartz.SchedulerException;
 import org.slf4j.Logger;
@@ -161,6 +166,10 @@ public class Summer {
 	public static void execute(Object key, Runnable runnable) {
 		SingleQueueMgr.get().execute(key, runnable);
 	}
+
+	public static void execute(SessionContext sctx, Runnable runnable) {
+		SessionQueueMgr.get().execute(sctx, runnable);
+	}
 	
 	public static void addComponent(Object obj) {
 		ContainerMgr.get().addComponent(obj);
@@ -305,6 +314,18 @@ public class Summer {
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
+	}
+
+	public static void asyncResponse(SessionContext sctx, SessionRequest request, Supplier<Object> runnable) {
+		AsyncResponseMgr.get().process(sctx, request, runnable);
+	}
+
+	public static void asyncResponse(SessionContext sctx, SessionRequest request, Runnable runnable) {
+		AsyncResponseMgr.get().process(sctx, request, runnable);
+	}
+
+	public static void asyncResponse(SessionContext sctx, ProtobufRequest request, Supplier<? extends Message> runnable) {
+		AsyncResponseMgr.get().process(sctx, request, runnable);
 	}
 	
 	public static void logo() {

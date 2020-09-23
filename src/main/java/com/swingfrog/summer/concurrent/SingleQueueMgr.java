@@ -14,4 +14,8 @@ public class SingleQueueMgr extends AbstractTokenQueue {
 		return SingleCase.INSTANCE;
 	}
 
+	public void execute(Object key, Runnable runnable) {
+		super.execute(key, runnable);
+	}
+
 }

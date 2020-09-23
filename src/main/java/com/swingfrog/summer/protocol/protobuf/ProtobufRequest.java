@@ -7,6 +7,9 @@ import java.util.Objects;
  */
 public class ProtobufRequest {
 
+    /**
+     * request message id
+     */
     private int id;
 
     public static ProtobufRequest of(int id) {
