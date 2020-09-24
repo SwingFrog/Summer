@@ -3,6 +3,7 @@ package com.swingfrog.summer.client;
 import com.swingfrog.summer.protocol.ProtocolConst;
 import com.swingfrog.summer.task.TaskTrigger;
 import com.swingfrog.summer.util.ThreadCountUtil;
+import io.netty.channel.ChannelOption;
 import org.quartz.SchedulerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,7 +81,10 @@ public class Client {
 		try {
 			log.info("client[{}] connect {}:{}", clientContext.getConfig().getServerName(), clientContext.getConfig().getAddress(), clientContext.getConfig().getPort());
 			Bootstrap b = new Bootstrap();
-			b.group(workerGroup).channel(NioSocketChannel.class).handler(new ClientInitializer(clientContext));
+			b.group(workerGroup)
+					.channel(NioSocketChannel.class)
+					.option(ChannelOption.TCP_NODELAY, true)
+					.handler(new ClientInitializer(clientContext));
 			b.remoteAddress(clientContext.getConfig().getAddress(), clientContext.getConfig().getPort());
 			b.connect().addListener(new ConnectionListener());
 		} catch (Exception e) {
