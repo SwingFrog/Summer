@@ -1,5 +1,6 @@
 package com.swingfrog.summer.server;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -95,7 +96,7 @@ public class ServerPush {
 		write(ctx, sessionContext, msg);
 	}
 	
-	public void asyncPushToSessionContexts(List<SessionContext> sessionContexts, String remote, String method, Object data) {
+	public void asyncPushToSessionContexts(Collection<SessionContext> sessionContexts, String remote, String method, Object data) {
 		SessionContextGroup group = serverContext.getSessionContextGroup();
 		String msg = SessionResponse.buildPush(remote, method, data).toJSONString();
 		serverContext.getPushExecutor().execute(()->{
@@ -110,7 +111,7 @@ public class ServerPush {
 		});
 	}
 
-	public void syncPushToSessionContexts(List<SessionContext> sessionContexts, String remote, String method, Object data) {
+	public void syncPushToSessionContexts(Collection<SessionContext> sessionContexts, String remote, String method, Object data) {
 		SessionContextGroup group = serverContext.getSessionContextGroup();
 		String msg = SessionResponse.buildPush(remote, method, data).toJSONString();
 		log.debug("server push to {} {}", sessionContexts, msg);
@@ -177,7 +178,7 @@ public class ServerPush {
 		write(ctx, sessionContext, protobuf);
 	}
 
-	public void asyncPushToSessionContexts(List<SessionContext> sessionContexts, Message response) {
+	public void asyncPushToSessionContexts(Collection<SessionContext> sessionContexts, Message response) {
 		Integer messageId = ProtobufMgr.get().getMessageId(response.getClass());
 		if (messageId == null) {
 			log.error("protobuf[{}] not found", response.getClass().getName());
@@ -197,7 +198,7 @@ public class ServerPush {
 		});
 	}
 
-	public void syncPushToSessionContexts(List<SessionContext> sessionContexts, Message response) {
+	public void syncPushToSessionContexts(Collection<SessionContext> sessionContexts, Message response) {
 		Integer messageId = ProtobufMgr.get().getMessageId(response.getClass());
 		if (messageId == null) {
 			log.error("protobuf[{}] not found", response.getClass().getName());
