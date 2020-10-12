@@ -8,11 +8,8 @@ import org.slf4j.LoggerFactory;
 
 import com.swingfrog.summer.web.view.InteriorViewFactory;
 
-import freemarker.core.ParseException;
 import freemarker.template.Configuration;
-import freemarker.template.MalformedTemplateNameException;
 import freemarker.template.Template;
-import freemarker.template.TemplateNotFoundException;
 
 public class WebMgr {
 	

@@ -91,7 +91,7 @@ public class ServerProtobufHandler extends AbstractServerHandler<Protobuf> {
     public void channelWritabilityChanged(ChannelHandlerContext ctx) throws Exception {
         super.channelWritabilityChanged(ctx);
         SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(ctx);
-        while (ctx.channel().isActive() && ctx.channel().isWritable() && sctx.getWaitWriteQueueSize() > 0) {
+        while (ctx.channel().isActive() && ctx.channel().isWritable() && !sctx.getWaitWriteQueue().isEmpty()) {
             ctx.writeAndFlush(sctx.getWaitWriteQueue().poll());
         }
     }

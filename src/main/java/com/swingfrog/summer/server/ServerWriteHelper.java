@@ -19,7 +19,7 @@ public class ServerWriteHelper {
         if (!ctx.channel().isActive()) {
             return;
         }
-        if (sctx.getWaitWriteQueueSize() == 0 && ctx.channel().isWritable()) {
+        if (sctx.getWaitWriteQueue().isEmpty() && ctx.channel().isWritable()) {
             ctx.writeAndFlush(data);
         } else {
             sctx.getWaitWriteQueue().add(data);

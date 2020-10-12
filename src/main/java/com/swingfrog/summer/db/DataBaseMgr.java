@@ -128,7 +128,7 @@ public class DataBaseMgr {
 		private boolean serviceDiscard;
 		private boolean remoteDiscard;
 		private Connection conn;
-		private ConcurrentMap<String, Connection> otherConnMap = Maps.newConcurrentMap();
+		private final ConcurrentMap<String, Connection> otherConnMap = Maps.newConcurrentMap();
 		private boolean transaction;
 		public ConnInfo() {
 			dispose();

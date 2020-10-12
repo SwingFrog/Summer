@@ -1,7 +1,6 @@
 package com.swingfrog.summer.event;
 
 import java.lang.reflect.Method;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
@@ -109,8 +108,8 @@ public class EventBusMgr {
 	}
 	
 	private static class EventMethod {
-		private Method method;
-		private int index;
+		private final Method method;
+		private final int index;
 		public EventMethod(Method method, int index) {
 			this.method = method;
 			this.index = index;
