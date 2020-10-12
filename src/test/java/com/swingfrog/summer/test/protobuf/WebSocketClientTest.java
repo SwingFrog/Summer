@@ -2,19 +2,21 @@ package com.swingfrog.summer.test.protobuf;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Message;
+import com.swingfrog.summer.protocol.protobuf.Protobuf;
+import com.swingfrog.summer.protocol.protobuf.ProtobufDecoder;
+import com.swingfrog.summer.protocol.protobuf.ProtobufEncoder;
 import com.swingfrog.summer.protocol.protobuf.ProtobufMgr;
 import com.swingfrog.summer.protocol.protobuf.proto.CommonProto;
+import com.swingfrog.summer.protocol.websocket.WebSocketDecoder;
+import com.swingfrog.summer.protocol.websocket.WebSocketEncoder;
 import com.swingfrog.summer.test.protobuf.proto.TestProto;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.websocketx.*;
-import io.netty.util.CharsetUtil;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -27,7 +29,7 @@ public class WebSocketClientTest {
         WebSocketClientHandshaker handShaker = WebSocketClientHandshakerFactory
                 .newHandshaker(websocketURI, WebSocketVersion.V13, null, true, httpHeaders);
 
-        ClientHandler clientHandler = new ClientHandler(handShaker);
+        ClientHandler clientHandler = new ClientHandler();
 
         EventLoopGroup workGroup = new NioEventLoopGroup();
         try {
@@ -35,12 +37,14 @@ public class WebSocketClientTest {
             bootstrap.group(workGroup)
                     .channel(NioSocketChannel.class)
                     .option(ChannelOption.TCP_NODELAY, true)
-                    .handler(new ClientInitializer(clientHandler));
+                    .handler(new ClientInitializer(clientHandler, handShaker));
             Channel channel = bootstrap.connect(websocketURI.getHost(),websocketURI.getPort()).sync().channel();
+
             ChannelPromise handShakerFuture = channel.newPromise();
             clientHandler.setHandShakerFuture(handShakerFuture);
-            handShaker.handshake(channel);
-            handShakerFuture.sync();
+            if (!handShakerFuture.await(10000L)) {
+                System.err.println("error");
+            }
 
             ProtobufMgr.get().registerMessage(0, CommonProto.HearBeat_Resp_0.getDefaultInstance());
             ProtobufMgr.get().registerMessage(103, TestProto.Notice_Push_103.getDefaultInstance());
@@ -60,9 +64,11 @@ public class WebSocketClientTest {
     private static class ClientInitializer extends ChannelInitializer<SocketChannel> {
 
         private final ClientHandler clientHandler;
+        private final WebSocketClientHandshaker clientHandShaker;
 
-        public ClientInitializer(ClientHandler clientHandler) {
+        public ClientInitializer(ClientHandler clientHandler, WebSocketClientHandshaker clientHandShaker) {
             this.clientHandler = clientHandler;
+            this.clientHandShaker = clientHandShaker;
         }
 
         @Override
@@ -70,82 +76,67 @@ public class WebSocketClientTest {
             ChannelPipeline pipeline = ch.pipeline();
             pipeline.addLast(new HttpClientCodec());
             pipeline.addLast(new HttpObjectAggregator(1024 * 1024 * 10));
+            pipeline.addLast(new WebSocketClientProtocolHandler(clientHandShaker));
+            pipeline.addLast(new WebSocketDecoder());
+            pipeline.addLast(new WebSocketEncoder());
+            pipeline.addLast(new ProtobufDecoder());
+            pipeline.addLast(new ProtobufEncoder());
             pipeline.addLast(clientHandler);
         }
 
     }
 
-    private static class ClientHandler extends SimpleChannelInboundHandler<Object> {
+    private static class ClientHandler extends SimpleChannelInboundHandler<Protobuf> {
 
-        private final WebSocketClientHandshaker handShaker;
         private ChannelPromise handShakerFuture;
-
-        public ClientHandler(WebSocketClientHandshaker handShaker) {
-            this.handShaker = handShaker;
-        }
 
         public void setHandShakerFuture(ChannelPromise handShakerFuture) {
             this.handShakerFuture = handShakerFuture;
         }
 
         @Override
-        protected void channelRead0(ChannelHandlerContext ctx, Object msg) {
-            Channel ch = ctx.channel();
-            FullHttpResponse response;
-            if (!handShaker.isHandshakeComplete()) {
-                try {
-                    response = (FullHttpResponse) msg;
-                    //握手协议返回，设置结束握手
-                    handShaker.finishHandshake(ch, response);
-                    //设置成功
-                    handShakerFuture.setSuccess();
-                    System.out.println("WebSocket Client connected! response headers[sec-websocket-extensions]:{}" + response.headers());
-                } catch (WebSocketHandshakeException var7) {
-                    FullHttpResponse res = (FullHttpResponse) msg;
-                    String errorMsg = String.format("WebSocket Client failed to connect,status:%s,reason:%s", res.status(), res.content().toString(CharsetUtil.UTF_8));
-                    handShakerFuture.setFailure(new Exception(errorMsg));
-                }
-            } else if (msg instanceof FullHttpResponse) {
-                response = (FullHttpResponse) msg;
-                throw new IllegalStateException("Unexpected FullHttpResponse (getStatus=" + response.status() + ", content=" + response.content().toString(CharsetUtil.UTF_8) + ')');
-            } else {
-                WebSocketFrame frame = (WebSocketFrame) msg;
-                if (frame instanceof BinaryWebSocketFrame) {
-                    BinaryWebSocketFrame binaryFrame = (BinaryWebSocketFrame) frame;
+        public void channelActive(ChannelHandlerContext ctx) {
+            System.out.println("channelActive");
+        }
 
-                    ByteBuf buf = binaryFrame.content().retain();
-                    int messageId = buf.readInt();
-                    byte[] bytes = new byte[buf.readableBytes()];
-                    buf.readBytes(bytes);
-                    Message messageTemplate = ProtobufMgr.get().getMessageTemplate(messageId);
-                    if (messageTemplate == null) {
-                        System.out.println("messageId:" + messageId + " message template not exist");
-                        return;
-                    }
-                    try {
-                        Message message = messageTemplate.getParserForType().parseFrom(bytes);
-                        recv(messageId, message);
-                    } catch (InvalidProtocolBufferException e) {
-                        e.printStackTrace();
-                    }
-                }
+        @Override
+        protected void channelRead0(ChannelHandlerContext ctx, Protobuf msg) {
+            int messageId = msg.getId();
+            byte[] bytes = msg.getBytes();
+            Message messageTemplate = ProtobufMgr.get().getMessageTemplate(messageId);
+            if (messageTemplate == null) {
+                System.out.println("messageId:" + messageId + " message template not exist");
+                return;
+            }
+            try {
+                Message message = messageTemplate.getParserForType().parseFrom(bytes);
+                recv(messageId, message);
+            } catch (InvalidProtocolBufferException e) {
+                e.printStackTrace();
             }
         }
 
+        @Override
+        public void userEventTriggered(ChannelHandlerContext ctx, Object evt) {
+            if (evt == WebSocketClientProtocolHandler.ClientHandshakeStateEvent.HANDSHAKE_COMPLETE) {
+                handShakerFuture.setSuccess();
+                System.out.println("HANDSHAKE_COMPLETE");
+            }
+        }
+
+        @Override
+        public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+            cause.printStackTrace();
+        }
     }
 
     private static void write(Channel channel, Message message) {
-        byte[] bytes = message.toByteArray();
-        ByteBuf buf = Unpooled.buffer(4 + bytes.length);
         Integer messageId = ProtobufMgr.get().getMessageId(message.getClass());
         if (messageId == null) {
             System.out.println(message.getClass().getSimpleName() + " message id not exist");
             return;
         }
-        buf.writeInt(messageId);
-        buf.writeBytes(bytes);
-        BinaryWebSocketFrame binaryFrame = new BinaryWebSocketFrame(buf.retain());
-        channel.writeAndFlush(binaryFrame);
+        channel.writeAndFlush(Protobuf.of(messageId, message));
     }
 
     private static void recv(int messageId, Message message) {
