@@ -18,6 +18,31 @@ public class Promise {
 
     }
 
+    void throwError(Throwable throwable) {
+        stop();
+        if (throwableConsumer != null)
+            throwableConsumer.accept(throwable);
+    }
+
+    void next() {
+        if (queue.isEmpty()) {
+            stop();
+            return;
+        }
+        if (context.hasWaitFuture())
+            return;
+        Runnable runnable = queue.poll();
+        if (runnable == null) {
+            stop();
+            return;
+        }
+        if (executor != null) {
+            executor.execute(runnable);
+        } else {
+            runnable.run();
+        }
+    }
+
     public static Promise create() {
         return new Promise();
     }
@@ -46,56 +71,32 @@ public class Promise {
         return this;
     }
 
-    void throwError(Throwable throwable) {
-        queue.clear();
-        context.clear();
-        running = false;
-        if (throwableConsumer != null)
-            throwableConsumer.accept(throwable);
-    }
-
     public Promise setCatch(Consumer<Throwable> consumer) {
         this.throwableConsumer = consumer;
         return this;
     }
 
-    void next() {
-        if (queue.isEmpty()) {
-            context.clear();
-            running = false;
-            return;
-        }
-        if (context.hasWaitFuture())
-            return;
-        Runnable runnable = queue.poll();
-        if (runnable == null) {
-            context.clear();
-            running = false;
-            return;
-        }
-        if (executor != null) {
-            executor.execute(runnable);
-        } else {
-            runnable.run();
-        }
+    public Promise setExecutor(Executor executor) {
+        this.executor = executor;
+        return this;
     }
 
-    public void start(Executor executor) {
+    public void start() {
         if (running)
             throw new UnsupportedOperationException();
         running = true;
-        this.executor = executor;
-        queue.clear();
         context.clear();
         next();
     }
 
-    public void start() {
-        start(null);
+    public void stop() {
+        queue.clear();
+        context.clear();
+        running = false;
     }
 
-    public boolean isStop() {
-        return queue.isEmpty();
+    public boolean isRunning() {
+        return running;
     }
 
 }

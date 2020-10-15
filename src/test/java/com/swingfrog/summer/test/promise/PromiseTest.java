@@ -46,7 +46,8 @@ public class PromiseTest {
                 })
                 .then(executor::shutdown)
                 .setCatch(Throwable::printStackTrace)
-                .start(executor);
+                .setExecutor(executor)
+                .start();
     }
 
 }
