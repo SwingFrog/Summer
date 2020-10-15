@@ -48,6 +48,7 @@ public class Promise {
 
     void throwError(Throwable throwable) {
         queue.clear();
+        context.clear();
         running = false;
         if (throwableConsumer != null)
             throwableConsumer.accept(throwable);
