@@ -85,6 +85,7 @@ public class Promise {
             throw new UnsupportedOperationException();
         running = true;
         this.executor = executor;
+        queue.clear();
         context.clear();
         next();
     }
