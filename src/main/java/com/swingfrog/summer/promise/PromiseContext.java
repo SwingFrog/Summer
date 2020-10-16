@@ -37,6 +37,20 @@ public class PromiseContext {
         }
     }
 
+    public void successFuture() {
+        if (!waitFutures.isEmpty()) {
+            waitFutures.clear();
+            promise.next();
+        }
+    }
+
+    public void failureFuture(Throwable throwable) {
+        if (!waitFutures.isEmpty()) {
+            waitFutures.clear();
+            promise.throwError(throwable);
+        }
+    }
+
     public PromiseFuture waitFuture() {
         int newToken = token.getAndIncrement();
         waitFutures.add(newToken);
