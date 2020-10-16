@@ -3,6 +3,7 @@ package com.swingfrog.summer.concurrent;
 import com.swingfrog.summer.server.SessionContext;
 
 import java.util.Objects;
+import java.util.concurrent.Executor;
 
 public class SessionQueueMgr extends AbstractTokenQueue {
 
@@ -46,5 +47,20 @@ public class SessionQueueMgr extends AbstractTokenQueue {
 			return super.getQueueSize(sctx.getSessionId());
 		}
 	}
-	
+
+	public Executor getExecutor(SessionContext sctx) {
+		Objects.requireNonNull(sctx);
+		Object token = sctx.getToken();
+		if (token != null) {
+			return super.getExecutor(token);
+		} else {
+			return super.getExecutor(sctx.getSessionId());
+		}
+	}
+
+	public Executor getExecutorByToken(Object token) {
+		Objects.requireNonNull(token);
+		return super.getExecutor(token);
+	}
+
 }

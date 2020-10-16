@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -35,7 +36,7 @@ public abstract class AbstractTokenQueue {
         next(key);
     }
 
-    public void shutdown(Object key) {
+    protected void shutdown(Object key) {
         Objects.requireNonNull(key);
         RunnableQueue rq = queueCache.getIfPresent(key);
         if (rq == null)
@@ -44,8 +45,12 @@ public abstract class AbstractTokenQueue {
         rq.getQueue().clear();
     }
 
-    public int getQueueSize(Object key) {
+    protected int getQueueSize(Object key) {
         return getOrCreateQueue(key).getQueue().size();
+    }
+
+    protected Executor getExecutor(Object key) {
+        return runnable -> execute(key, runnable);
     }
 
     private RunnableQueue getOrCreateQueue(Object key) {

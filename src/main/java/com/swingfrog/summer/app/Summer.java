@@ -4,6 +4,7 @@ import java.io.File;
 import java.lang.reflect.Method;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
@@ -169,6 +170,18 @@ public class Summer {
 
 	public static void execute(SessionContext sctx, Runnable runnable) {
 		SessionQueueMgr.get().execute(sctx, runnable);
+	}
+
+	public static Executor getExecutor(Object key) {
+		return SingleQueueMgr.get().getExecutor(key);
+	}
+
+	public static Executor getExecutor(SessionContext sctx) {
+		return SessionQueueMgr.get().getExecutor(sctx);
+	}
+
+	public static Executor getSessionExecutor(Object token) {
+		return SessionQueueMgr.get().getExecutorByToken(token);
 	}
 	
 	public static void addComponent(Object obj) {

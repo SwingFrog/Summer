@@ -58,6 +58,7 @@ public class Promise {
     }
 
     public Promise then(Consumer<PromiseContext> consumer) {
+        checkNotRunning();
         runnableList.add(() -> {
             try {
                 consumer.accept(context);
@@ -70,6 +71,7 @@ public class Promise {
     }
 
     public Promise then(Runnable runnable) {
+        checkNotRunning();
         runnableList.add(() -> {
             try {
                 runnable.run();
@@ -82,21 +84,25 @@ public class Promise {
     }
 
     public Promise setCatch(Consumer<Throwable> consumer) {
+        checkNotRunning();
         this.throwableConsumer = consumer;
         return this;
     }
 
     public Promise setExecutor(Executor executor) {
+        checkNotRunning();
         this.executor = executor;
         return this;
     }
 
     public Promise mark(String name) {
+        checkNotRunning();
         markIndexMap.put(name, runnableList.size());
         return this;
     }
 
     public Promise gotoMark(String name) {
+        checkNotRunning();
         runnableList.add(() -> {
             Integer index = markIndexMap.get(name);
             if (index != null) {
@@ -108,6 +114,7 @@ public class Promise {
     }
 
     public Promise gotoMark(String name, int count) {
+        checkNotRunning();
         int currentIndex = runnableList.size();
         runnableList.add(() -> {
             Integer index = markIndexMap.get(name);
@@ -124,6 +131,7 @@ public class Promise {
     }
 
     public Promise gotoMark(String name, Predicate<PromiseContext> predicate) {
+        checkNotRunning();
         runnableList.add(() -> {
             Integer index = markIndexMap.get(name);
             if (index != null && predicate.test(context)) {
@@ -135,8 +143,7 @@ public class Promise {
     }
 
     public void start() {
-        if (running)
-            throw new UnsupportedOperationException();
+        checkNotRunning();
         stop();
         running = true;
         next();
@@ -150,6 +157,15 @@ public class Promise {
 
     public boolean isRunning() {
         return running;
+    }
+
+    public void clearRunnable() {
+        runnableList.clear();
+    }
+
+    private void checkNotRunning() {
+        if (running)
+            throw new UnsupportedOperationException();
     }
 
 }
