@@ -1,8 +1,8 @@
 package com.swingfrog.summer.test.promise;
 
-import com.swingfrog.summer.promise.Promise;
 import com.swingfrog.summer.promise.PromiseContext;
 import com.swingfrog.summer.promise.PromiseFuture;
+import com.swingfrog.summer.promise.PromisePool;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -11,26 +11,32 @@ import java.util.function.Consumer;
 public class PromiseTest {
 
     private static final ExecutorService EXECUTOR = Executors.newSingleThreadExecutor();
+    private static final PromisePool PROMISE_POOL = new PromisePool();
 
     public static void main(String[] args) {
-        Promise.create()
+
+        int VALUE_TEST = 0;
+        int MARK_FOR_COUNT = 1;
+        int MARK_FOR_CONDITION = 2;
+
+        PROMISE_POOL.createPromise()
                 .then(task1())
                 .then(() -> System.out.println(1))
                 .then(() -> System.out.println(2))
-                .then(context -> context.put("TEST", "hello world!"))
+                .then(context -> context.put(VALUE_TEST, "hello world!"))
                 .then(task2())
                 .then(() -> System.out.println(3))
                 .then(context -> {
-                    String test = context.get("TEST");
+                    String test = context.get(VALUE_TEST);
                     System.out.println(test);
                 })
-                .mark("FOR_COUNT")
+                .mark(MARK_FOR_COUNT)
                 .then(() -> System.out.println(4))
-                .gotoMark("FOR_COUNT", 4)
+                .gotoMark(MARK_FOR_COUNT, 4)
                 .then(() -> System.out.println(5))
-                .mark("FOR_CONDITION")
+                .mark(MARK_FOR_CONDITION)
                 .then(() -> System.out.println(6))
-                .gotoMark("FOR_CONDITION", context -> context.remove("TEST") != null)
+                .gotoMark(MARK_FOR_CONDITION, context -> context.remove(VALUE_TEST) != null)
                 .then(EXECUTOR::shutdown)
                 .setCatch(Throwable::printStackTrace)
                 .setExecutor(EXECUTOR)
@@ -40,7 +46,7 @@ public class PromiseTest {
     private static Consumer<PromiseContext> task1() {
         return context -> {
             context.waitFuture();
-            Promise.create()
+            PROMISE_POOL.createPromise()
                     .then(() -> System.out.println("A"))
                     .then(child -> {
                         //int a = 1 / 0;

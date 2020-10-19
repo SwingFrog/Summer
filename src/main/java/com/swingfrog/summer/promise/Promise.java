@@ -14,17 +14,16 @@ public class Promise {
     private volatile boolean running;
     private Executor executor;
     private Consumer<Throwable> throwableConsumer;
+    private Runnable stopHook;
     private final AtomicInteger executeIndex = new AtomicInteger();
     private final List<Runnable> runnableList = new ArrayList<>();
-    // name, index
-    private final Map<String, Integer> markIndexMap = new HashMap<>();
+    // key, index
+    private final Map<Object, Integer> markIndexMap = new HashMap<>();
     private final PromiseContext context = new PromiseContext(this);
     // index, gotoCount
     private final Map<Integer, Integer> gotoCountMap = new HashMap<>();
-
-    private Promise() {
-
-    }
+    // index, executor
+    private final Map<Integer, Executor> executorMap = new HashMap<>();
 
     void throwError(Throwable throwable) {
         stop();
@@ -46,11 +45,17 @@ public class Promise {
             return;
         }
         Runnable runnable = runnableList.get(nextIndex);
-        if (executor != null) {
-            executor.execute(runnable);
-        } else {
-            runnable.run();
+        Executor availableExecutor = executorMap.getOrDefault(nextIndex, executor);
+        if (availableExecutor != null) {
+            availableExecutor.execute(runnable);
+            return;
         }
+        runnable.run();
+    }
+
+    void setStopHook(Runnable runnable) {
+        checkNotRunning();
+        stopHook = runnable;
     }
 
     public static Promise create() {
@@ -83,9 +88,31 @@ public class Promise {
         return this;
     }
 
+    public Promise then(Consumer<PromiseContext> consumer, Executor executor) {
+        int index = runnableList.size();
+        then(consumer);
+        executorMap.put(index, executor);
+        return this;
+    }
+
+    public Promise then(Runnable runnable, Executor executor) {
+        int index = runnableList.size();
+        then(runnable);
+        executorMap.put(index, executor);
+        return this;
+    }
+
+    public Promise then(ConsumerTask<PromiseContext> contextConsumerTask) {
+        return then(contextConsumerTask.consumer, contextConsumerTask.executor);
+    }
+
+    public Promise then(RunnableTask runnableTask) {
+        return then(runnableTask.runnable, runnableTask.executor);
+    }
+
     public Promise setCatch(Consumer<Throwable> consumer) {
         checkNotRunning();
-        this.throwableConsumer = consumer;
+        throwableConsumer = consumer;
         return this;
     }
 
@@ -95,16 +122,16 @@ public class Promise {
         return this;
     }
 
-    public Promise mark(String name) {
+    public Promise mark(Object key) {
         checkNotRunning();
-        markIndexMap.put(name, runnableList.size());
+        markIndexMap.put(key, runnableList.size());
         return this;
     }
 
-    public Promise gotoMark(String name) {
+    public Promise gotoMark(Object key) {
         checkNotRunning();
         runnableList.add(() -> {
-            Integer index = markIndexMap.get(name);
+            Integer index = markIndexMap.get(key);
             if (index != null) {
                 executeIndex.set(index);
             }
@@ -113,11 +140,11 @@ public class Promise {
         return this;
     }
 
-    public Promise gotoMark(String name, int count) {
+    public Promise gotoMark(Object key, int count) {
         checkNotRunning();
         int currentIndex = runnableList.size();
         runnableList.add(() -> {
-            Integer index = markIndexMap.get(name);
+            Integer index = markIndexMap.get(key);
             if (index != null) {
                 int currentCount = gotoCountMap.getOrDefault(currentIndex, 0);
                 if (currentCount < count) {
@@ -130,10 +157,10 @@ public class Promise {
         return this;
     }
 
-    public Promise gotoMark(String name, Predicate<PromiseContext> predicate) {
+    public Promise gotoMark(Object key, Predicate<PromiseContext> predicate) {
         checkNotRunning();
         runnableList.add(() -> {
-            Integer index = markIndexMap.get(name);
+            Integer index = markIndexMap.get(key);
             if (index != null && predicate.test(context)) {
                 executeIndex.set(index);
             }
@@ -144,7 +171,8 @@ public class Promise {
 
     public void start() {
         checkNotRunning();
-        stop();
+        executeIndex.set(0);
+        context.clear();
         running = true;
         next();
     }
@@ -153,6 +181,8 @@ public class Promise {
         executeIndex.set(0);
         context.clear();
         running = false;
+        if (stopHook != null)
+            stopHook.run();
     }
 
     public boolean isRunning() {
@@ -166,6 +196,32 @@ public class Promise {
     private void checkNotRunning() {
         if (running)
             throw new UnsupportedOperationException();
+    }
+
+    public static class ConsumerTask<T> {
+        private final Consumer<T> consumer;
+        private final Executor executor;
+        public ConsumerTask(Consumer<T> consumer, Executor executor) {
+            this.consumer = consumer;
+            this.executor = executor;
+        }
+    }
+
+    public static class RunnableTask {
+        private final Runnable runnable;
+        private final Executor executor;
+        public RunnableTask(Runnable runnable, Executor executor) {
+            this.runnable = runnable;
+            this.executor = executor;
+        }
+    }
+
+    public static <T> ConsumerTask<T> newConsumerTask(Consumer<T> consumer, Executor executor) {
+        return new ConsumerTask<>(consumer, executor);
+    }
+
+    public static RunnableTask newRunnableTask(Runnable runnable, Executor executor) {
+        return new RunnableTask(runnable, executor);
     }
 
 }

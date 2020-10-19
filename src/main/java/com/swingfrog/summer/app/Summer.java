@@ -337,8 +337,24 @@ public class Summer {
 		AsyncResponseMgr.get().process(sctx, request, runnable);
 	}
 
+	public static void asyncResponse(SessionContext sctx, SessionRequest request, Object data) {
+		AsyncResponseMgr.get().sendResponse(sctx, request, data);
+	}
+
+	public static void asyncResponse(SessionContext sctx, SessionRequest request, long code, String msg) {
+		AsyncResponseMgr.get().sendErrorResponse(sctx, request, code, msg);
+	}
+
 	public static void asyncResponse(SessionContext sctx, ProtobufRequest request, Supplier<? extends Message> runnable) {
 		AsyncResponseMgr.get().process(sctx, request, runnable);
+	}
+
+	public static void asyncResponse(SessionContext sctx, ProtobufRequest request, Message response) {
+		AsyncResponseMgr.get().sendResponse(sctx, request, response);
+	}
+
+	public static void asyncResponse(SessionContext sctx, ProtobufRequest request, long code, String msg) {
+		AsyncResponseMgr.get().sendErrorResponse(sctx, request, code, msg);
 	}
 	
 	public static void logo() {

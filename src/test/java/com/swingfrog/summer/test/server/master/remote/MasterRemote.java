@@ -6,7 +6,6 @@ import com.swingfrog.summer.app.Summer;
 import com.swingfrog.summer.protocol.SessionRequest;
 import com.swingfrog.summer.server.SessionContext;
 import com.swingfrog.summer.server.async.AsyncResponse;
-import com.swingfrog.summer.server.async.AsyncResponseMgr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +27,7 @@ public class MasterRemote {
 
     public AsyncResponse asyncMul(SessionContext sctx, SessionRequest request, int a, int b) {
         log.info("recv from slave a[{}] b[{}]", a, b);
-        executor.execute(() -> AsyncResponseMgr.get().process(sctx, request, () -> a * b));
+        executor.execute(() -> Summer.asyncResponse(sctx, request, () -> a * b));
         return AsyncResponse.of();
     }
 

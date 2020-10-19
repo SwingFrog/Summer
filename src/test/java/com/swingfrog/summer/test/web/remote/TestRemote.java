@@ -3,10 +3,10 @@ package com.swingfrog.summer.test.web.remote;
 import com.swingfrog.summer.annotation.Autowired;
 import com.swingfrog.summer.annotation.Optional;
 import com.swingfrog.summer.annotation.Remote;
+import com.swingfrog.summer.app.Summer;
 import com.swingfrog.summer.protocol.SessionRequest;
 import com.swingfrog.summer.server.SessionContext;
 import com.swingfrog.summer.server.async.AsyncResponse;
-import com.swingfrog.summer.server.async.AsyncResponseMgr;
 import com.swingfrog.summer.test.web.service.TestService;
 import com.swingfrog.summer.web.WebFileUpload;
 import com.swingfrog.summer.web.view.ModelView;
@@ -48,7 +48,7 @@ public class TestRemote {
     }
 
     public AsyncResponse asyncHello(SessionContext sctx, SessionRequest request) {
-        executor.execute(() -> AsyncResponseMgr.get().process(sctx, request, () -> "hello async world!"));
+        executor.execute(() -> Summer.asyncResponse(sctx, request, () -> "hello async world!"));
         return AsyncResponse.of();
     }
 
