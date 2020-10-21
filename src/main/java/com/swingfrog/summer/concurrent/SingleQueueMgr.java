@@ -20,8 +20,8 @@ public class SingleQueueMgr extends AbstractTokenQueue {
 		super.execute(key, runnable);
 	}
 
-	public void shutdown(Object key) {
-		super.shutdown(key);
+	public void clear(Object key) {
+		super.clear(key);
 	}
 
 	public int getQueueSize(Object key) {

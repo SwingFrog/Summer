@@ -149,6 +149,10 @@ public class Summer {
 							log.info("lifecycle [{}] stop", l.getInfo().getName());
 							l.stop();
 						});
+				SessionQueueMgr.get().shutdown();
+				SingleQueueMgr.get().shutdown();
+				ClientMgr.get().shutdownEvent();
+				ServerMgr.get().shutdownEvent();
 				EventBusMgr.get().shutdown();
 				AsyncCacheRepositoryMgr.get().shutdown();
 				RemoteStatistics.print();

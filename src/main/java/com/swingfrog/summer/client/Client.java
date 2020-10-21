@@ -105,6 +105,9 @@ public class Client {
 		} catch (InterruptedException e) {
 			log.error(e.getMessage(), e);
 		}
+	}
+
+	public void shutdownEvent() {
 		clientContext.getEventExecutor().shutdown();
 		try {
 			while (!clientContext.getEventExecutor().isTerminated()) {

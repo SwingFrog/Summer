@@ -66,7 +66,6 @@ public abstract class AbstractServerHandler<T> extends SimpleChannelInboundHandl
             serverContext.getSessionHandlerGroup().removed(sctx);
             serverContext.getSessionContextGroup().destroySession(ctx);
             RpcClientMgr.get().remove(sctx);
-            SessionQueueMgr.get().shutdown(sctx);
         }
     }
 

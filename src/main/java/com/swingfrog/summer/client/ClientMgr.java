@@ -84,6 +84,18 @@ public class ClientMgr {
 			}
 		}
 	}
+
+	public void shutdownEvent() {
+		if (nameToCluster.size() > 0) {
+			log.info("clients shutdown event...");
+			for (ClientCluster clientCluster : nameToCluster.values()) {
+				List<Client> clients = clientCluster.listClients();
+				for (Client client : clients) {
+					client.shutdownEvent();
+				}
+			}
+		}
+	}
 	
 	public ClientRemote getClientRemote(String cluster, String name) {
 		ClientCluster clientCluster = nameToCluster.get(cluster);

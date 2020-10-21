@@ -83,6 +83,14 @@ public class ServerMgr {
 		}
 		server.shutdown();
 	}
+
+	public void shutdownEvent() {
+		log.info("server shutdown event...");
+		for(Entry<String, Server> entry : serverMap.entrySet()) {
+			entry.getValue().shutdownEvent();
+		}
+		server.shutdownEvent();
+	}
 	
 	public ServerPush getServerPush() {
 		return server.getServerPush();

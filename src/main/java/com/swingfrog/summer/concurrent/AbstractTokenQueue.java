@@ -16,6 +16,7 @@ public abstract class AbstractTokenQueue {
 
     private static final Logger log = LoggerFactory.getLogger(AbstractTokenQueue.class);
 
+    private volatile boolean active = true;
     private ExecutorService eventExecutor;
     private Cache<Object, RunnableQueue> queueCache;
 
@@ -30,13 +31,16 @@ public abstract class AbstractTokenQueue {
     }
 
     protected void execute(Object key, Runnable runnable) {
+        if (!active) {
+            throw new UnsupportedOperationException("token queue is shutdown.");
+        }
         Objects.requireNonNull(runnable);
         getOrCreateQueue(key).getQueue().add(runnable);
         log.debug("token queue execute runnable key[{}]", key);
         next(key);
     }
 
-    protected void shutdown(Object key) {
+    protected void clear(Object key) {
         Objects.requireNonNull(key);
         RunnableQueue rq = queueCache.getIfPresent(key);
         if (rq == null)
@@ -51,6 +55,26 @@ public abstract class AbstractTokenQueue {
 
     protected Executor getExecutor(Object key) {
         return runnable -> execute(key, runnable);
+    }
+
+    public boolean isEmpty() {
+        for (RunnableQueue runnableQueue : queueCache.asMap().values()) {
+            if (!runnableQueue.getQueue().isEmpty()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public void shutdown() {
+        active = false;
+        try {
+            while (!isEmpty()) {
+                Thread.sleep(1000);
+            }
+        } catch (InterruptedException e) {
+            log.error(e.getMessage(), e);
+        }
     }
 
     private RunnableQueue getOrCreateQueue(Object key) {

@@ -30,12 +30,12 @@ public class SessionQueueMgr extends AbstractTokenQueue {
 		}
 	}
 
-	public void shutdown(SessionContext sctx) {
+	public void clear(SessionContext sctx) {
 		Objects.requireNonNull(sctx);
-		super.shutdown(sctx.getSessionId());
+		super.clear(sctx.getSessionId());
 		Object token = sctx.getToken();
 		if (token != null)
-			super.shutdown(token);
+			super.clear(token);
 	}
 
 	public int getQueueSize(SessionContext sctx) {

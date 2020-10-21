@@ -138,6 +138,14 @@ public class Server {
 			log.error(e.getMessage(), e);
 		}
 		if (!serverContext.getConfig().isUseMainServerThreadPool()) {
+			serverContext.getPushExecutor().shutdown();
+			try {
+				while (!serverContext.getPushExecutor().isTerminated()) {
+					serverContext.getPushExecutor().awaitTermination(1, TimeUnit.SECONDS);
+				}
+			} catch (InterruptedException e){
+				log.error(e.getMessage(), e);
+			}
 			try {
 				bossGroup.shutdownGracefully().sync();
 			} catch (InterruptedException e) {
@@ -148,22 +156,17 @@ public class Server {
 			} catch (InterruptedException e) {
 				log.error(e.getMessage(), e);
 			}
-			serverContext.getEventExecutor().shutdown();
-			try {
-				while (!serverContext.getEventExecutor().isTerminated()) {
-					serverContext.getEventExecutor().awaitTermination(1, TimeUnit.SECONDS);
-				}
-			} catch (InterruptedException e){
-				log.error(e.getMessage(), e);
+		}
+	}
+
+	public void shutdownEvent() {
+		serverContext.getEventExecutor().shutdown();
+		try {
+			while (!serverContext.getEventExecutor().isTerminated()) {
+				serverContext.getEventExecutor().awaitTermination(1, TimeUnit.SECONDS);
 			}
-			serverContext.getPushExecutor().shutdown();
-			try {
-				while (!serverContext.getPushExecutor().isTerminated()) {
-					serverContext.getPushExecutor().awaitTermination(1, TimeUnit.SECONDS);
-				}
-			} catch (InterruptedException e){
-				log.error(e.getMessage(), e);
-			}
+		} catch (InterruptedException e){
+			log.error(e.getMessage(), e);
 		}
 	}
 
