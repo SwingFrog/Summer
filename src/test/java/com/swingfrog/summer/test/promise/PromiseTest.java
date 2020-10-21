@@ -1,5 +1,6 @@
 package com.swingfrog.summer.test.promise;
 
+import com.swingfrog.summer.promise.Promise;
 import com.swingfrog.summer.promise.PromiseContext;
 import com.swingfrog.summer.promise.PromiseFuture;
 import com.swingfrog.summer.promise.PromisePool;
@@ -70,8 +71,8 @@ public class PromiseTest {
         };
     }
 
-    private static Consumer<PromiseContext> task2() {
-        return context -> {
+    private static Promise.ConsumerTask task2() {
+        return Promise.newTask(context -> {
             PromiseFuture future1 = context.waitFuture();
             new Thread(() -> {
                 System.out.println("wait1...");
@@ -95,7 +96,7 @@ public class PromiseTest {
                 System.out.println("over2...");
                 future2.success();
             }).start();
-        };
+        }, EXECUTOR);
     }
 
 }

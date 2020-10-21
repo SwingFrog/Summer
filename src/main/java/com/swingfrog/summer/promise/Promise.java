@@ -102,7 +102,7 @@ public class Promise {
         return this;
     }
 
-    public Promise then(ConsumerTask<PromiseContext> contextConsumerTask) {
+    public Promise then(ConsumerTask contextConsumerTask) {
         return then(contextConsumerTask.consumer, contextConsumerTask.executor);
     }
 
@@ -198,10 +198,10 @@ public class Promise {
             throw new UnsupportedOperationException();
     }
 
-    public static class ConsumerTask<T> {
-        private final Consumer<T> consumer;
+    public static class ConsumerTask {
+        private final Consumer<PromiseContext> consumer;
         private final Executor executor;
-        public ConsumerTask(Consumer<T> consumer, Executor executor) {
+        public ConsumerTask(Consumer<PromiseContext> consumer, Executor executor) {
             this.consumer = consumer;
             this.executor = executor;
         }
@@ -216,11 +216,11 @@ public class Promise {
         }
     }
 
-    public static <T> ConsumerTask<T> newConsumerTask(Consumer<T> consumer, Executor executor) {
-        return new ConsumerTask<>(consumer, executor);
+    public static ConsumerTask newTask(Consumer<PromiseContext> consumer, Executor executor) {
+        return new ConsumerTask(consumer, executor);
     }
 
-    public static RunnableTask newRunnableTask(Runnable runnable, Executor executor) {
+    public static RunnableTask newTask(Runnable runnable, Executor executor) {
         return new RunnableTask(runnable, executor);
     }
 
