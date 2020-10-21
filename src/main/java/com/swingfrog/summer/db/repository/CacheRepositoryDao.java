@@ -135,7 +135,7 @@ public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
     }
 
     @Override
-    public void save(List<T> objs) {
+    public void save(Collection<T> objs) {
         super.save(objs);
     }
 

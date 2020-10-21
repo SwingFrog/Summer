@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-public abstract class RepositoryDao<T, K> extends BaseDao<T> {
+public abstract class RepositoryDao<T, K> extends BaseDao<T> implements Repository<T, K> {
 
     private static final String PREFIX = "RepositoryDao";
 
@@ -103,37 +103,44 @@ public abstract class RepositoryDao<T, K> extends BaseDao<T> {
         }
     }
 
+    @Override
     public boolean add(T obj) {
         Objects.requireNonNull(obj, "repository add param not null");
         autoIncrementPrimaryKey(obj);
         return addNotAutoIncrement(obj);
     }
 
+    @Override
     public boolean remove(T obj) {
         Objects.requireNonNull(obj, "repository remove param not null");
         return update(deleteSql, TableValueBuilder.getPrimaryKeyValue(tableMeta, obj)) > 0;
     }
 
+    @Override
     public boolean removeByPrimaryKey(K primaryKey) {
         Objects.requireNonNull(primaryKey, "repository remove param not null");
         return update(deleteSql, primaryKey) > 0;
     }
 
+    @Override
     public boolean save(T obj) {
         Objects.requireNonNull(obj, "repository save param not null");
         return update(updateSql, TableValueBuilder.listUpdateValue(tableMeta, obj)) > 0;
     }
 
-    public void save(List<T> objs) {
+    @Override
+    public void save(Collection<T> objs) {
         Objects.requireNonNull(objs, "repository save param not null");
         objs.forEach(obj -> update(updateSql, TableValueBuilder.listUpdateValue(tableMeta, obj)));
     }
 
+    @Override
     public T get(K primaryKey) {
         Objects.requireNonNull(primaryKey, "repository get primary key not null");
         return get(selectSql, primaryKey);
     }
 
+    @Override
     public T getOrCreate(K primaryKey, Supplier<T> supplier) {
         T entity = get(primaryKey);
         if (entity == null) {
@@ -148,6 +155,7 @@ public abstract class RepositoryDao<T, K> extends BaseDao<T> {
         return entity;
     }
 
+    @Override
     public List<T> list(String field, Object value) {
         Objects.requireNonNull(field, "repository list field not null");
         Objects.requireNonNull(value, "repository list value not null");
@@ -157,6 +165,7 @@ public abstract class RepositoryDao<T, K> extends BaseDao<T> {
         return list(sql, TableValueBuilder.listValidValueByOptional(tableMeta, optional, fields));
     }
 
+    @Override
     public List<T> list(Map<String, Object> optional) {
         Objects.requireNonNull(optional, "repository list optional not null");
         List<String> fields = TableValueBuilder.listValidFieldByOptional(tableMeta, optional);
@@ -164,6 +173,7 @@ public abstract class RepositoryDao<T, K> extends BaseDao<T> {
         return list(sql, TableValueBuilder.listValidValueByOptional(tableMeta, optional, fields));
     }
 
+    @Override
     public List<T> list() {
         return list(selectAllSql);
     }

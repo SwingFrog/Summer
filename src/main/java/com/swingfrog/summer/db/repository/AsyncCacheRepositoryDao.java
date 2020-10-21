@@ -8,6 +8,7 @@ import com.swingfrog.summer.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -127,7 +128,7 @@ public abstract class AsyncCacheRepositoryDao<T, K> extends CacheRepositoryDao<T
     }
 
     @Override
-    public void save(List<T> objs) {
+    public void save(Collection<T> objs) {
         objs.forEach(this::save);
     }
 
@@ -188,7 +189,7 @@ public abstract class AsyncCacheRepositoryDao<T, K> extends CacheRepositoryDao<T
         return super.save(obj);
     }
 
-    public void syncSave(List<T> objs) {
+    public void syncSave(Collection<T> objs) {
         super.save(objs);
     }
 
