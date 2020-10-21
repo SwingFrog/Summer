@@ -7,7 +7,7 @@ option java_outer_classname = "CommonProto";
 
 message HeartBeat_Req_0 {
 }
-message HearBeat_Resp_0 {
+message HeartBeat_Resp_0 {
     int64 time = 1;
 }
 

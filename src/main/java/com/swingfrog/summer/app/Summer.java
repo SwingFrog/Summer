@@ -134,6 +134,7 @@ public class Summer {
 			TaskMgr.get().startAll();
 			app.start();
 			Runtime.getRuntime().addShutdownHook(new Thread(()-> {
+				log.info("summer shutdown...");
 				ClientMgr.get().shutdown();
 				ServerMgr.get().shutdown();
 				try {
@@ -156,6 +157,7 @@ public class Summer {
 				EventBusMgr.get().shutdown();
 				AsyncCacheRepositoryMgr.get().shutdown();
 				RemoteStatistics.print();
+				log.info("bye.");
 			}, "shutdown"));
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);

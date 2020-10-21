@@ -7,22 +7,14 @@ import com.swingfrog.summer.util.ProtobufUtil;
 import javax.annotation.Nullable;
 import java.util.concurrent.ConcurrentMap;
 
-public class ProtobufMgr {
+public abstract class AbstractProtobufMgr {
 
     private final ConcurrentMap<Integer, Message> messageTemplateMap;
     private final ConcurrentMap<Class<? extends Message>, Integer> messageIdMap;
 
-    private static class SingleCase {
-        public static final ProtobufMgr INSTANCE = new ProtobufMgr();
-    }
-
-    private ProtobufMgr() {
+    protected AbstractProtobufMgr() {
         messageTemplateMap = Maps.newConcurrentMap();
         messageIdMap = Maps.newConcurrentMap();
-    }
-
-    public static ProtobufMgr get() {
-        return ProtobufMgr.SingleCase.INSTANCE;
     }
 
     public void registerMessage(int messageId, Message messageTemplate) {

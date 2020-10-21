@@ -28,7 +28,7 @@ public class ServerProtobufHandler extends AbstractServerHandler<Protobuf> {
     protected void recv(ChannelHandlerContext ctx, SessionContext sctx, Protobuf protobuf) {
         int messageId = protobuf.getId();
         if (messageId == ProtocolConst.PROTOBUF_HEART_BEAT_REQ_ID) {
-            CommonProto.HearBeat_Resp_0 resp = CommonProto.HearBeat_Resp_0
+            CommonProto.HeartBeat_Resp_0 resp = CommonProto.HeartBeat_Resp_0
                     .newBuilder()
                     .setTime(System.currentTimeMillis())
                     .build();

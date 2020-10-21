@@ -2,10 +2,7 @@ package com.swingfrog.summer.test.protobuf;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Message;
-import com.swingfrog.summer.protocol.protobuf.Protobuf;
-import com.swingfrog.summer.protocol.protobuf.ProtobufDecoder;
-import com.swingfrog.summer.protocol.protobuf.ProtobufEncoder;
-import com.swingfrog.summer.protocol.protobuf.ProtobufMgr;
+import com.swingfrog.summer.protocol.protobuf.*;
 import com.swingfrog.summer.protocol.protobuf.proto.CommonProto;
 import com.swingfrog.summer.protocol.websocket.WebSocketDecoder;
 import com.swingfrog.summer.protocol.websocket.WebSocketEncoder;
@@ -46,8 +43,8 @@ public class WebSocketClientTest {
                 System.err.println("error");
             }
 
-            ProtobufMgr.get().registerMessage(0, CommonProto.HearBeat_Resp_0.getDefaultInstance());
-            ProtobufMgr.get().registerMessage(103, TestProto.Notice_Push_103.getDefaultInstance());
+            RespProtobufMgr.get().registerMessage(0, CommonProto.HeartBeat_Resp_0.getDefaultInstance());
+            RespProtobufMgr.get().registerMessage(103, TestProto.Notice_Push_103.getDefaultInstance());
 
             CommonProto.HeartBeat_Req_0 req = CommonProto.HeartBeat_Req_0.getDefaultInstance();
             for (;;) {
@@ -103,7 +100,7 @@ public class WebSocketClientTest {
         protected void channelRead0(ChannelHandlerContext ctx, Protobuf msg) {
             int messageId = msg.getId();
             byte[] bytes = msg.getBytes();
-            Message messageTemplate = ProtobufMgr.get().getMessageTemplate(messageId);
+            Message messageTemplate = RespProtobufMgr.get().getMessageTemplate(messageId);
             if (messageTemplate == null) {
                 System.out.println("messageId:" + messageId + " message template not exist");
                 return;
@@ -131,7 +128,7 @@ public class WebSocketClientTest {
     }
 
     private static void write(Channel channel, Message message) {
-        Integer messageId = ProtobufMgr.get().getMessageId(message.getClass());
+        Integer messageId = ReqProtobufMgr.get().getMessageId(message.getClass());
         if (messageId == null) {
             System.out.println(message.getClass().getSimpleName() + " message id not exist");
             return;
@@ -140,8 +137,8 @@ public class WebSocketClientTest {
     }
 
     private static void recv(int messageId, Message message) {
-        if (message instanceof CommonProto.HearBeat_Resp_0) {
-            CommonProto.HearBeat_Resp_0 resp = (CommonProto.HearBeat_Resp_0) message;
+        if (message instanceof CommonProto.HeartBeat_Resp_0) {
+            CommonProto.HeartBeat_Resp_0 resp = (CommonProto.HeartBeat_Resp_0) message;
             System.out.println("hearBeat: " + resp.getTime());
         } else if (message instanceof TestProto.Notice_Push_103) {
             TestProto.Notice_Push_103 resp = (TestProto.Notice_Push_103) message;

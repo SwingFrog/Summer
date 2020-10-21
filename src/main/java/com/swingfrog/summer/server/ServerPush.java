@@ -6,7 +6,7 @@ import java.util.List;
 
 import com.google.protobuf.Message;
 import com.swingfrog.summer.protocol.protobuf.Protobuf;
-import com.swingfrog.summer.protocol.protobuf.ProtobufMgr;
+import com.swingfrog.summer.protocol.protobuf.RespProtobufMgr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -153,7 +153,7 @@ public class ServerPush {
 	// protobuf
 
 	public void asyncPushToSessionContext(SessionContext sessionContext, Message response) {
-		Integer messageId = ProtobufMgr.get().getMessageId(response.getClass());
+		Integer messageId = RespProtobufMgr.get().getMessageId(response.getClass());
 		if (messageId == null) {
 			log.error("protobuf[{}] not found", response.getClass().getName());
 			return;
@@ -167,7 +167,7 @@ public class ServerPush {
 	}
 
 	public void syncPushToSessionContext(SessionContext sessionContext, Message response) {
-		Integer messageId = ProtobufMgr.get().getMessageId(response.getClass());
+		Integer messageId = RespProtobufMgr.get().getMessageId(response.getClass());
 		if (messageId == null) {
 			log.error("protobuf[{}] not found", response.getClass().getName());
 			return;
@@ -179,7 +179,7 @@ public class ServerPush {
 	}
 
 	public void asyncPushToSessionContexts(Collection<SessionContext> sessionContexts, Message response) {
-		Integer messageId = ProtobufMgr.get().getMessageId(response.getClass());
+		Integer messageId = RespProtobufMgr.get().getMessageId(response.getClass());
 		if (messageId == null) {
 			log.error("protobuf[{}] not found", response.getClass().getName());
 			return;
@@ -199,7 +199,7 @@ public class ServerPush {
 	}
 
 	public void syncPushToSessionContexts(Collection<SessionContext> sessionContexts, Message response) {
-		Integer messageId = ProtobufMgr.get().getMessageId(response.getClass());
+		Integer messageId = RespProtobufMgr.get().getMessageId(response.getClass());
 		if (messageId == null) {
 			log.error("protobuf[{}] not found", response.getClass().getName());
 			return;
@@ -217,7 +217,7 @@ public class ServerPush {
 	}
 
 	public void asyncPushToAll(Message response) {
-		Integer messageId = ProtobufMgr.get().getMessageId(response.getClass());
+		Integer messageId = RespProtobufMgr.get().getMessageId(response.getClass());
 		if (messageId == null) {
 			log.error("protobuf[{}] not found", response.getClass().getName());
 			return;
@@ -236,7 +236,7 @@ public class ServerPush {
 	}
 
 	public void syncPushToAll(Message response) {
-		Integer messageId = ProtobufMgr.get().getMessageId(response.getClass());
+		Integer messageId = RespProtobufMgr.get().getMessageId(response.getClass());
 		if (messageId == null) {
 			log.error("protobuf[{}] not found", response.getClass().getName());
 			return;
