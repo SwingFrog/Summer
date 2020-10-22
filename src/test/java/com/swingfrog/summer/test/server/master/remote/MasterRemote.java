@@ -9,8 +9,11 @@ import com.swingfrog.summer.server.async.AsyncResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Remote
 public class MasterRemote {
@@ -29,6 +32,10 @@ public class MasterRemote {
         log.info("recv from slave a[{}] b[{}]", a, b);
         executor.execute(() -> Summer.asyncResponse(sctx, request, () -> a * b));
         return AsyncResponse.of();
+    }
+
+    public List<String> listNames() {
+        return IntStream.rangeClosed(1, 10).mapToObj(i -> "name_" + i).collect(Collectors.toList());
     }
 
 }

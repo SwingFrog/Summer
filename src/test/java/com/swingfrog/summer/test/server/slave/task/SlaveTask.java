@@ -6,9 +6,12 @@ import com.swingfrog.summer.annotation.Task;
 import com.swingfrog.summer.app.Summer;
 import com.swingfrog.summer.client.ClientRemote;
 import com.swingfrog.summer.client.RemoteCallback;
+import com.swingfrog.summer.client.RemoteCallbackQuick;
 import com.swingfrog.summer.test.server.master.remote.MasterRemote;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 @Task
 public class SlaveTask {
@@ -32,6 +35,23 @@ public class SlaveTask {
             @Override
             public void failure(long code, String msg) {
                 log.error(msg);
+            }
+        });
+    }
+
+    @IntervalTask(10000)
+    public void asyncReqQuickMaster() {
+        ClientRemote clientRemote = Summer.getRandomClientRemote("Master");
+        clientRemote.asyncRemote("MasterRemote", "listNames", null, new RemoteCallbackQuick<List<String>>() {
+
+            @Override
+            public void failure(long code, String msg) {
+                log.error(msg);
+            }
+
+            @Override
+            protected void successQuick(List<String> data) {
+                log.info("result from async master -> {}", data);
             }
         });
     }

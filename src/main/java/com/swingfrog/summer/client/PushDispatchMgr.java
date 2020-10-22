@@ -1,9 +1,6 @@
 package com.swingfrog.summer.client;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
-import java.lang.reflect.Type;
+import java.lang.reflect.*;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -125,7 +122,13 @@ public class PushDispatchMgr {
 			if (sessionResponse.getCode() != 0) {
 				asyncRemote.remove(sessionResponse.getId()).failure(sessionResponse.getCode(), sessionResponse.getData().toString());
 			} else {
-				asyncRemote.remove(sessionResponse.getId()).success(sessionResponse.getData());
+				RemoteCallback remoteCallback = asyncRemote.remove(sessionResponse.getId());
+				if (remoteCallback instanceof RemoteCallbackQuick) {
+					RemoteCallbackQuick<?> remoteCallbackQuick = (RemoteCallbackQuick<?>) remoteCallback;
+					remoteCallbackQuick.success(parseData(sessionResponse.getData(), parseClass(remoteCallbackQuick)));
+				} else {
+					remoteCallback.success(sessionResponse.getData());
+				}
 			}
 		} else {
 			if (syncRemoteDiscard.get(sessionResponse.getId()) == null) {	
@@ -134,6 +137,41 @@ public class PushDispatchMgr {
 				log.warn("client discard response id[{}]", sessionResponse.getId());
 			}
 		}
+	}
+
+	private Object parseData(Object resp, Type type) {
+		if (resp != null) {
+			String res = resp.toString();
+			if (type == boolean.class || type == Boolean.class) {
+				return Boolean.valueOf(res);
+			} else if (type == byte.class || type == Byte.class) {
+				return Byte.parseByte(res);
+			} else if (type == short.class || type == Short.class) {
+				return Short.parseShort(res);
+			} else if (type == int.class || type == Integer.class) {
+				return Integer.parseInt(res);
+			} else if (type == long.class || type == Long.class) {
+				return Long.parseLong(res);
+			} else if (type == String.class) {
+				return res;
+			} else {
+				return JSON.parseObject(res, type);
+			}
+		}
+		return null;
+	}
+
+	private Type parseClass(Object object) {
+		Class<?> clazz = object.getClass();
+		Type superClass = clazz.getGenericSuperclass();
+		if (superClass instanceof ParameterizedType) {
+			ParameterizedType parameterizedType = (ParameterizedType) superClass;
+			Type[] typeArgs = parameterizedType.getActualTypeArguments();
+			if (typeArgs != null && typeArgs.length > 0) {
+				return typeArgs[0];
+			}
+		}
+		return null;
 	}
 	
 	private static class PushClass {

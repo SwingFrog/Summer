@@ -1,4 +1,4 @@
-package com.swingfrog.summer.meter;
+package com.swingfrog.summer.meter.protobuf;
 
 import com.swingfrog.summer.protocol.ProtocolConst;
 import com.swingfrog.summer.protocol.protobuf.Protobuf;
@@ -28,15 +28,15 @@ import java.net.URI;
 /**
  * {@link ProtocolConst#SERVER_PROTOCOL_WEB_SOCKET_PROTOBUF}
  */
-public abstract class AbstractMeterWPClient extends AbstractMeterProtobufClient {
+public abstract class MeterWSPClient extends AbstractMeterProtobufClient {
 
     private final boolean standard;
 
-    public AbstractMeterWPClient(int id) {
+    public MeterWSPClient(int id) {
         this(id, false);
     }
 
-    AbstractMeterWPClient(int id, boolean standard) {
+    MeterWSPClient(int id, boolean standard) {
         super(id);
         this.standard = standard;
     }
@@ -81,12 +81,12 @@ public abstract class AbstractMeterWPClient extends AbstractMeterProtobufClient 
         protected void initChannel(SocketChannel ch) {
             ChannelPipeline pipeline = ch.pipeline();
             pipeline.addLast(new HttpClientCodec());
-            pipeline.addLast(new HttpObjectAggregator(1024 * 1024 * 10));
+            pipeline.addLast(new HttpObjectAggregator(msgLength()));
             pipeline.addLast(new WebSocketClientProtocolHandler(clientHandShaker));
             pipeline.addLast(new WebSocketDecoder());
             pipeline.addLast(new WebSocketEncoder());
             if (!standard) {
-                pipeline.addLast(new LengthFieldBasedFrameDecoder(1024 * 1024 * 10, 0, 4, 0, 4));
+                pipeline.addLast(new LengthFieldBasedFrameDecoder(msgLength(), 0, 4, 0, 4));
                 pipeline.addLast(new LengthFieldPrepender(4));
             }
             pipeline.addLast(new ProtobufDecoder());

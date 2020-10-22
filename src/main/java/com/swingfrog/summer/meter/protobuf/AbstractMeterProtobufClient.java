@@ -1,7 +1,8 @@
-package com.swingfrog.summer.meter;
+package com.swingfrog.summer.meter.protobuf;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Message;
+import com.swingfrog.summer.meter.MeterClient;
 import com.swingfrog.summer.protocol.ProtocolConst;
 import com.swingfrog.summer.protocol.protobuf.Protobuf;
 import com.swingfrog.summer.protocol.protobuf.ReqProtobufMgr;
@@ -195,5 +196,9 @@ public abstract class AbstractMeterProtobufClient implements MeterClient {
     protected abstract void online();
     protected abstract void offline();
     protected void heartBeat(long serverTime) {}
+
+    protected int msgLength() {
+        return 1024 * 1024 * 10;
+    }
 
 }

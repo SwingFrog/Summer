@@ -1,4 +1,4 @@
-package com.swingfrog.summer.meter;
+package com.swingfrog.summer.meter.protobuf;
 
 import com.swingfrog.summer.protocol.ProtocolConst;
 import com.swingfrog.summer.protocol.protobuf.Protobuf;
@@ -18,9 +18,9 @@ import java.net.URI;
 /**
  * {@link ProtocolConst#SERVER_PROTOCOL_LENGTH_FIELD_PROTOBUF}
  */
-public abstract class AbstractMeterLPClient extends AbstractMeterProtobufClient {
+public abstract class MeterLFPClient extends AbstractMeterProtobufClient {
 
-    public AbstractMeterLPClient(int id) {
+    public MeterLFPClient(int id) {
         super(id);
     }
 
@@ -51,7 +51,7 @@ public abstract class AbstractMeterLPClient extends AbstractMeterProtobufClient 
         @Override
         protected void initChannel(SocketChannel ch) {
             ChannelPipeline pipeline = ch.pipeline();
-            pipeline.addLast(new LengthFieldBasedFrameDecoder(1024 * 1024 * 10, 0, 4, 0, 4));
+            pipeline.addLast(new LengthFieldBasedFrameDecoder(msgLength(), 0, 4, 0, 4));
             pipeline.addLast(new LengthFieldPrepender(4));
             pipeline.addLast(new ProtobufDecoder());
             pipeline.addLast(new ProtobufEncoder());

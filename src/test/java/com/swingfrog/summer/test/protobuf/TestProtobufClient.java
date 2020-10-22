@@ -1,6 +1,6 @@
 package com.swingfrog.summer.test.protobuf;
 
-import com.swingfrog.summer.meter.AbstractMeterWPSClient;
+import com.swingfrog.summer.meter.protobuf.MeterWSPSClient;
 import com.swingfrog.summer.meter.MeterClientGroup;
 import com.swingfrog.summer.promise.Promise;
 import com.swingfrog.summer.promise.PromisePool;
@@ -12,7 +12,7 @@ import java.net.URISyntaxException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class TestProtobufClient extends AbstractMeterWPSClient {
+public class TestProtobufClient extends MeterWSPSClient {
 
     private static final ExecutorService EXECUTOR = Executors.newFixedThreadPool(ThreadCountUtil.cpuDenseness(0));
     private static final PromisePool PROMISE_POOL = new PromisePool();
@@ -106,15 +106,14 @@ public class TestProtobufClient extends AbstractMeterWPSClient {
         print("serverTime:" + serverTime);
     }
 
-    private void print(String content) {
+    private void print(Object content) {
         System.out.println(id + " " + content);
     }
 
     public static void main(String[] args) throws URISyntaxException {
         MeterClientGroup.create()
                 .uri(new URI("ws://127.0.0.1:8828/protobuf"))
-                .startId(1)
-                .endId(1)
+                .rangeClosed(1, 1)
                 .syncLaunch(TestProtobufClient::new);
     }
 

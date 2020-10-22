@@ -1,13 +1,13 @@
-package com.swingfrog.summer.meter;
+package com.swingfrog.summer.meter.protobuf;
 
 import com.swingfrog.summer.protocol.ProtocolConst;
 
 /**
  * {@link ProtocolConst#SERVER_PROTOCOL_WEB_SOCKET_PROTOBUF_STANDARD}
  */
-public abstract class AbstractMeterWPSClient extends AbstractMeterWPClient {
+public abstract class MeterWSPSClient extends MeterWSPClient {
 
-    public AbstractMeterWPSClient(int id) {
+    public MeterWSPSClient(int id) {
         super(id, true);
     }
 
