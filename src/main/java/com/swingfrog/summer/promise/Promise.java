@@ -89,6 +89,8 @@ public class Promise {
     }
 
     public Promise then(Consumer<PromiseContext> consumer, Executor executor) {
+        if (executor == null)
+            return then(consumer);
         int index = runnableList.size();
         then(consumer);
         executorMap.put(index, executor);
@@ -96,6 +98,8 @@ public class Promise {
     }
 
     public Promise then(Runnable runnable, Executor executor) {
+        if (executor == null)
+            return then(runnable);
         int index = runnableList.size();
         then(runnable);
         executorMap.put(index, executor);
@@ -205,6 +209,10 @@ public class Promise {
             this.consumer = consumer;
             this.executor = executor;
         }
+        public ConsumerTask(Consumer<PromiseContext> consumer) {
+            this.consumer = consumer;
+            this.executor = null;
+        }
     }
 
     public static class RunnableTask {
@@ -214,6 +222,10 @@ public class Promise {
             this.runnable = runnable;
             this.executor = executor;
         }
+        public RunnableTask(Runnable runnable) {
+            this.runnable = runnable;
+            this.executor = null;
+        }
     }
 
     public static ConsumerTask newTask(Consumer<PromiseContext> consumer, Executor executor) {
@@ -222,6 +234,14 @@ public class Promise {
 
     public static RunnableTask newTask(Runnable runnable, Executor executor) {
         return new RunnableTask(runnable, executor);
+    }
+
+    public static ConsumerTask newTask(Consumer<PromiseContext> consumer) {
+        return new ConsumerTask(consumer);
+    }
+
+    public static RunnableTask newTask(Runnable runnable) {
+        return new RunnableTask(runnable);
     }
 
 }

@@ -18,6 +18,8 @@ public abstract class AbstractProtobufMgr {
     }
 
     public void registerMessage(int messageId, Message messageTemplate) {
+        if (messageTemplateMap.containsKey(messageId))
+            return;
         messageTemplateMap.putIfAbsent(messageId, messageTemplate);
         messageIdMap.putIfAbsent(messageTemplate.getClass(), messageId);
     }
