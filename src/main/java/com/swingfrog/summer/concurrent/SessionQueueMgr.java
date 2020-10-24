@@ -52,15 +52,15 @@ public class SessionQueueMgr extends AbstractTokenQueue {
 		Objects.requireNonNull(sctx);
 		Object token = sctx.getToken();
 		if (token != null) {
-			return super.getExecutor(token);
+			return super.getOrCreateQueue(token);
 		} else {
-			return super.getExecutor(sctx.getSessionId());
+			return super.getOrCreateQueue(sctx.getSessionId());
 		}
 	}
 
 	public Executor getExecutorByToken(Object token) {
 		Objects.requireNonNull(token);
-		return super.getExecutor(token);
+		return super.getOrCreateQueue(token);
 	}
 
 }

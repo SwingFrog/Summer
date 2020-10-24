@@ -29,7 +29,7 @@ public class SingleQueueMgr extends AbstractTokenQueue {
 	}
 
 	public Executor getExecutor(Object key) {
-		return super.getExecutor(key);
+		return super.getOrCreateQueue(key);
 	}
 
 }

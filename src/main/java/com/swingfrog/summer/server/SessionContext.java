@@ -10,6 +10,7 @@ import java.util.concurrent.ConcurrentMap;
 
 public class SessionContext {
 
+	private final Channel channel;
 	private final String sessionId;
 	private String directAddress;
 	private String realAddress;
@@ -19,13 +20,13 @@ public class SessionContext {
 	private volatile long lastRecvTime;
 	private final ConcurrentLinkedQueue<Object> waitWriteQueue = Queues.newConcurrentLinkedQueue();
 
-	private Object token;
+	private volatile Object token;
 
-	private Channel channel;
 	private final ConcurrentMap<Object, Object> data = new ConcurrentHashMap<>();
 
-	public SessionContext(String sessionId) {
-		this.sessionId = sessionId;
+	public SessionContext(Channel channel) {
+		this.channel = channel;
+		this.sessionId = channel.id().asLongText();
 	}
 
 	public String getSessionId() {
@@ -70,21 +71,6 @@ public class SessionContext {
 	public int getWaitWriteQueueSize() {
 		return waitWriteQueue.size();
 	}
-	public Object getToken() {
-		return token;
-	}
-	public void setToken(Object token) {
-		this.token = token;
-	}
-	public void clearToken() {
-		token = null;
-	}
-	void setChannel(Channel channel) {
-		this.channel = channel;
-	}
-	Channel getChannel() {
-		return channel;
-	}
 
 	@Override
 	public String toString() {
@@ -102,6 +88,23 @@ public class SessionContext {
 	@Override
 	public int hashCode() {
 		return Objects.hash(sessionId);
+	}
+
+	@SuppressWarnings("unchecked")
+	public <T> T getToken() {
+		return (T) token;
+	}
+
+	public void setToken(Object token) {
+		this.token = token;
+	}
+
+	public void clearToken() {
+		token = null;
+	}
+
+	Channel getChannel() {
+		return channel;
 	}
 
 	public ConcurrentMap<Object, Object> getData() {

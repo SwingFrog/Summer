@@ -10,24 +10,12 @@ import java.util.stream.Collectors;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import com.swingfrog.summer.annotation.*;
 import org.quartz.SchedulerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.swingfrog.summer.annotation.Autowired;
-import com.swingfrog.summer.annotation.Bean;
-import com.swingfrog.summer.annotation.CronTask;
-import com.swingfrog.summer.annotation.Dao;
-import com.swingfrog.summer.annotation.EventHandler;
-import com.swingfrog.summer.annotation.ServerHandler;
-import com.swingfrog.summer.annotation.IntervalTask;
-import com.swingfrog.summer.annotation.Push;
-import com.swingfrog.summer.annotation.Remote;
-import com.swingfrog.summer.annotation.Service;
-import com.swingfrog.summer.annotation.SingleQueue;
-import com.swingfrog.summer.annotation.Synchronized;
-import com.swingfrog.summer.annotation.Task;
-import com.swingfrog.summer.annotation.Transaction;
 import com.swingfrog.summer.annotation.base.AutowiredManager;
 import com.swingfrog.summer.annotation.base.Component;
 import com.swingfrog.summer.annotation.base.MethodParameter;
@@ -47,9 +35,9 @@ public class ContainerMgr {
 	
 	private final Map<Class<?>, Object> map = Maps.newHashMap();
 	private final List<Class<?>> autowiredList = Lists.newLinkedList();
-	private final List<Class<?>> componentList = Lists.newLinkedList();
-	private final List<Method> transactionList = Lists.newLinkedList();
-	private final List<Class<?>> parameterList = Lists.newLinkedList();
+	private final Set<Class<?>> componentSet = Sets.newHashSet();
+	private final Set<Method> transactionSet = Sets.newHashSet();
+	private final Set<Class<?>> parameterSet = Sets.newHashSet();
 	private final List<Class<?>> remoteList = Lists.newLinkedList();
 	private final List<Class<?>> pushList = Lists.newLinkedList();
 	private final List<Class<?>> handlerList = Lists.newLinkedList();
@@ -152,17 +140,17 @@ public class ContainerMgr {
 			autowiredList.add(clazz);
 		} 
 		if (anno.isAnnotationPresent(Component.class)) {
-			componentList.add(clazz);
+			componentSet.add(clazz);
 		} 
 		if (anno.isAnnotationPresent(MethodParameter.class)) {
-			parameterList.add(clazz);
+			parameterSet.add(clazz);
 		} 
 		if (anno.isAnnotationPresent(TransactionManager.class)) {
 			Method[] methods = clazz.getDeclaredMethods();
 			for (Method method : methods) {
 				if (method.isAnnotationPresent(Transaction.class)) {
 					log.info("open transaction {}.{}", clazz.getSimpleName(), method.getName());
-					transactionList.add(method);
+					transactionSet.add(method);
 				}
 			}
 		}
@@ -213,7 +201,7 @@ public class ContainerMgr {
 		for (Field field : fields) {
 			if (field.isAnnotationPresent(Autowired.class)) {
 				Class<?> type = field.getType();
-				if (componentList.contains(type)) {
+				if (componentSet.contains(type)) {
 					log.info("autowired {}.{} success", clazz.getSimpleName(), field.getName());
 					field.setAccessible(true);
 					field.set(obj, map.get(type));
@@ -247,17 +235,17 @@ public class ContainerMgr {
 
 	public void addComponent(Object obj) {
 		map.put(obj.getClass(), obj);
-		componentList.add(obj.getClass());
+		componentSet.add(obj.getClass());
 	}
 	
 	public void removeComponent(Object obj) {
 		map.remove(obj.getClass());
-		componentList.remove(obj.getClass());
+		componentSet.remove(obj.getClass());
 	}
 	
 	@SuppressWarnings("unchecked")
 	public <T> T getComponent(Class<?> clazz) {
-		if (componentList.contains(clazz)) {
+		if (componentSet.contains(clazz)) {
 			return (T)map.get(clazz);
 		}
 		return null;
@@ -274,15 +262,15 @@ public class ContainerMgr {
 	}
 	
 	public boolean containsComponent(Object obj) {
-		return componentList.contains(obj.getClass());
+		return componentSet.contains(obj.getClass());
 	}
 	
 	public boolean isTransaction(Method method) {
-		return transactionList.contains(method);
+		return transactionSet.contains(method);
 	}
 	
 	public boolean isAutowiredParameter(Class<?> clazz) {
-		return parameterList.contains(clazz);
+		return parameterSet.contains(clazz);
 	}
 	
 	public Iterator<Class<?>> iteratorRemoteList() {
@@ -311,7 +299,7 @@ public class ContainerMgr {
 	public String getSynchronizedName(Method method) {
 		return synchronizedMap.get(method);
 	}
-	
+
 	public Iterator<Class<?>> iteratorEventList() {
 		return eventList.iterator();
 	}

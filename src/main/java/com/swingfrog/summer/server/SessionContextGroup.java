@@ -15,14 +15,12 @@ public class SessionContextGroup {
 	private final Set<SessionContext> sessionContexts = Sets.newConcurrentHashSet();
 	
 	public void createSession(Channel channel) {
-		String id = channel.id().asLongText();
 		InetSocketAddress address = (InetSocketAddress) channel.remoteAddress();
-		SessionContext sctx = new SessionContext(id);
+		SessionContext sctx = new SessionContext(channel);
 		sctx.setDirectAddress(address.getHostString());
 		sctx.setPort(address.getPort());
 		sctx.setCurrentMsgId(0);
 		sctx.setLastRecvTime(System.currentTimeMillis());
-		sctx.setChannel(channel);
 		channel.attr(KEY_SESSION_CONTEXT).set(sctx);
 		sessionContexts.add(sctx);
 	}
