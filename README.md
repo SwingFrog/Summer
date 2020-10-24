@@ -27,6 +27,8 @@
 1. 异步请求远程接口增加RemoteCallbackQuick接口，可用于接收响应的数据。
 2. 新增meter包，可用于编写压测程序。
 3. 新增promise包，可用于异步有序执行。
+4. 优化SessionContextGroup，让SessionContext与Channel直接绑定。
+5. 优化SessionQueueMgr
 
 ### 2020.09.19
 1. 新增协议，支持protobuf。

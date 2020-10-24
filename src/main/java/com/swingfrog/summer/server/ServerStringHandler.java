@@ -4,6 +4,7 @@ import com.swingfrog.summer.protocol.ProtocolConst;
 import com.swingfrog.summer.server.async.ProcessResult;
 import com.swingfrog.summer.statistics.RemoteStatistics;
 import com.swingfrog.summer.struct.AutowireParam;
+import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,9 +26,9 @@ public class ServerStringHandler extends AbstractServerHandler<String> {
 	}
 	
 	@Override
-	protected void recv(ChannelHandlerContext ctx, SessionContext sctx, String msg) {
+	protected void recv(Channel channel, SessionContext sctx, String msg) {
 		if (ProtocolConst.PING.equals(msg)) {
-			ctx.writeAndFlush(ProtocolConst.PONG);
+			channel.writeAndFlush(ProtocolConst.PONG);
 			return;
 		} else if (msg.startsWith(ProtocolConst.RPC)) {
 			String[] msgs = msg.split(ProtocolConst.RPC_SPLIT);
@@ -51,7 +52,7 @@ public class ServerStringHandler extends AbstractServerHandler<String> {
 
 			RemoteStatistics.start(sctx, request, msg.length());
 			Runnable runnable = () -> {
-				if (!ctx.channel().isActive()) {
+				if (!channel.isActive()) {
 					RemoteStatistics.discard(sctx, request);
 					return;
 				}
@@ -62,19 +63,19 @@ public class ServerStringHandler extends AbstractServerHandler<String> {
 					}
 					String response = processResult.getValue().toJSONString();
 					log.debug("server response {} to {}", response, sctx);
-					writeResponse(ctx, sctx, response);
+					writeResponse(channel, sctx, response);
 					RemoteStatistics.finish(sctx, request, response.length());
 				} catch (CodeException ce) {
 					log.warn(ce.getMessage(), ce);
 					String response = SessionResponse.buildError(request, ce).toJSONString();
 					log.debug("server response error {} to {}", response, sctx);
-					writeResponse(ctx, sctx, response);
+					writeResponse(channel, sctx, response);
 					RemoteStatistics.finish(sctx, request, response.length());
 				} catch (Throwable e) {
 					log.error(e.getMessage(), e);
 					String response = SessionResponse.buildError(request, SessionException.INVOKE_ERROR).toJSONString();
 					log.debug("server response error {} to {}", response, sctx);
-					writeResponse(ctx, sctx, response);
+					writeResponse(channel, sctx, response);
 					RemoteStatistics.finish(sctx, request, response.length());
 				}
 			};
@@ -88,14 +89,15 @@ public class ServerStringHandler extends AbstractServerHandler<String> {
 	@Override
 	public void channelWritabilityChanged(ChannelHandlerContext ctx) throws Exception {
 		super.channelWritabilityChanged(ctx);
-		SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(ctx);
+		Channel channel = ctx.channel();
+		SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(channel);
 		while (ctx.channel().isActive() && ctx.channel().isWritable() && !sctx.getWaitWriteQueue().isEmpty()) {
 			ctx.writeAndFlush(sctx.getWaitWriteQueue().poll());
 		}
 	}
 
-	private void writeResponse(ChannelHandlerContext ctx, SessionContext sctx, String response) {
-		ServerWriteHelper.write(ctx, serverContext, sctx, response);
+	private void writeResponse(Channel channel, SessionContext sctx, String response) {
+		ServerWriteHelper.write(channel, serverContext, sctx, response);
 	}
 
 }

@@ -7,14 +7,13 @@ import java.util.List;
 import com.google.protobuf.Message;
 import com.swingfrog.summer.protocol.protobuf.Protobuf;
 import com.swingfrog.summer.protocol.protobuf.RespProtobufMgr;
+import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.swingfrog.summer.protocol.SessionResponse;
 import com.swingfrog.summer.server.exception.NotFoundSessionContextException;
 import com.swingfrog.summer.server.rpc.RpcClientMgr;
-
-import io.netty.channel.ChannelHandlerContext;
 
 public class ServerPush {
 	
@@ -84,42 +83,40 @@ public class ServerPush {
 		String msg = SessionResponse.buildPush(remote, method, data).toJSONString();
 		serverContext.getPushExecutor().execute(()->{
 			log.debug("server push to {} {}", sessionContext, msg);
-			ChannelHandlerContext ctx = serverContext.getSessionContextGroup().getChannelBySession(sessionContext);
-			write(ctx, sessionContext, msg);
+			Channel channel = sessionContext.getChannel();
+			write(channel, sessionContext, msg);
 		});
 	}
 
 	public void syncPushToSessionContext(SessionContext sessionContext, String remote, String method, Object data) {
 		String msg = SessionResponse.buildPush(remote, method, data).toJSONString();
 		log.debug("server push to {} {}", sessionContext, msg);
-		ChannelHandlerContext ctx = serverContext.getSessionContextGroup().getChannelBySession(sessionContext);
-		write(ctx, sessionContext, msg);
+		Channel channel = sessionContext.getChannel();
+		write(channel, sessionContext, msg);
 	}
 	
 	public void asyncPushToSessionContexts(Collection<SessionContext> sessionContexts, String remote, String method, Object data) {
-		SessionContextGroup group = serverContext.getSessionContextGroup();
 		String msg = SessionResponse.buildPush(remote, method, data).toJSONString();
 		serverContext.getPushExecutor().execute(()->{
 			log.debug("server push to {} {}", sessionContexts, msg);
 			for (SessionContext sessionContext : sessionContexts) {
-				ChannelHandlerContext ctx = group.getChannelBySession(sessionContext);
-				if (ctx != null) {
-					SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(ctx);
-					write(ctx, sctx, msg);
+				Channel channel = sessionContext.getChannel();
+				if (channel != null) {
+					SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(channel);
+					write(channel, sctx, msg);
 				}
 			}
 		});
 	}
 
 	public void syncPushToSessionContexts(Collection<SessionContext> sessionContexts, String remote, String method, Object data) {
-		SessionContextGroup group = serverContext.getSessionContextGroup();
 		String msg = SessionResponse.buildPush(remote, method, data).toJSONString();
 		log.debug("server push to {} {}", sessionContexts, msg);
 		for (SessionContext sessionContext : sessionContexts) {
-			ChannelHandlerContext ctx = group.getChannelBySession(sessionContext);
-			if (ctx != null) {
-				SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(ctx);
-				write(ctx, sctx, msg);
+			Channel channel = sessionContext.getChannel();
+			if (channel != null) {
+				SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(channel);
+				write(channel, sctx, msg);
 			}
 		}
 	}
@@ -129,11 +126,11 @@ public class ServerPush {
 		String msg = SessionResponse.buildPush(remote, method, data).toJSONString();
 		serverContext.getPushExecutor().execute(()->{
 			log.debug("server push to all {}", msg);
-			Iterator<ChannelHandlerContext> ite = group.iteratorChannel();
+			Iterator<Channel> ite = group.iteratorChannel();
 			while (ite.hasNext()) {
-				ChannelHandlerContext ctx = ite.next();
-				SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(ctx);
-				write(ctx, sctx, msg);
+				Channel channel = ite.next();
+				SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(channel);
+				write(channel, sctx, msg);
 			}
 		});
 	}
@@ -142,11 +139,11 @@ public class ServerPush {
 		SessionContextGroup group = serverContext.getSessionContextGroup();
 		String msg = SessionResponse.buildPush(remote, method, data).toJSONString();
 		log.debug("server push to all {}", msg);
-		Iterator<ChannelHandlerContext> ite = group.iteratorChannel();
+		Iterator<Channel> ite = group.iteratorChannel();
 		while (ite.hasNext()) {
-			ChannelHandlerContext ctx = ite.next();
-			SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(ctx);
-			write(ctx, sctx, msg);
+			Channel channel = ite.next();
+			SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(channel);
+			write(channel, sctx, msg);
 		}
 	}
 
@@ -161,8 +158,8 @@ public class ServerPush {
 		Protobuf protobuf = Protobuf.of(messageId, response);
 		serverContext.getPushExecutor().execute(()->{
 			log.debug("server push to {} {}", sessionContext, response);
-			ChannelHandlerContext ctx = serverContext.getSessionContextGroup().getChannelBySession(sessionContext);
-			write(ctx, sessionContext, protobuf);
+			Channel channel = sessionContext.getChannel();
+			write(channel, sessionContext, protobuf);
 		});
 	}
 
@@ -174,8 +171,8 @@ public class ServerPush {
 		}
 		Protobuf protobuf = Protobuf.of(messageId, response);
 		log.debug("server push to {} {}", sessionContext, response);
-		ChannelHandlerContext ctx = serverContext.getSessionContextGroup().getChannelBySession(sessionContext);
-		write(ctx, sessionContext, protobuf);
+		Channel channel = sessionContext.getChannel();
+		write(channel, sessionContext, protobuf);
 	}
 
 	public void asyncPushToSessionContexts(Collection<SessionContext> sessionContexts, Message response) {
@@ -189,10 +186,10 @@ public class ServerPush {
 		serverContext.getPushExecutor().execute(()->{
 			log.debug("server push to {} {}", sessionContexts, response);
 			for (SessionContext sessionContext : sessionContexts) {
-				ChannelHandlerContext ctx = group.getChannelBySession(sessionContext);
-				if (ctx != null) {
-					SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(ctx);
-					write(ctx, sctx, protobuf);
+				Channel channel = sessionContext.getChannel();
+				if (channel != null) {
+					SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(channel);
+					write(channel, sctx, protobuf);
 				}
 			}
 		});
@@ -208,10 +205,10 @@ public class ServerPush {
 		SessionContextGroup group = serverContext.getSessionContextGroup();
 		log.debug("server push to {} {}", sessionContexts, response);
 		for (SessionContext sessionContext : sessionContexts) {
-			ChannelHandlerContext ctx = group.getChannelBySession(sessionContext);
-			if (ctx != null) {
-				SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(ctx);
-				write(ctx, sctx, protobuf);
+			Channel channel = sessionContext.getChannel();
+			if (channel != null) {
+				SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(channel);
+				write(channel, sctx, protobuf);
 			}
 		}
 	}
@@ -226,9 +223,9 @@ public class ServerPush {
 		SessionContextGroup group = serverContext.getSessionContextGroup();
 		serverContext.getPushExecutor().execute(()->{
 			log.debug("server push to all {}", response);
-			Iterator<ChannelHandlerContext> ite = group.iteratorChannel();
+			Iterator<Channel> ite = group.iteratorChannel();
 			while (ite.hasNext()) {
-				ChannelHandlerContext ctx = ite.next();
+				Channel ctx = ite.next();
 				SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(ctx);
 				write(ctx, sctx, protobuf);
 			}
@@ -244,26 +241,26 @@ public class ServerPush {
 		Protobuf protobuf = Protobuf.of(messageId, response);
 		SessionContextGroup group = serverContext.getSessionContextGroup();
 		log.debug("server push to all {}", response);
-		Iterator<ChannelHandlerContext> ite = group.iteratorChannel();
+		Iterator<Channel> ite = group.iteratorChannel();
 		while (ite.hasNext()) {
-			ChannelHandlerContext ctx = ite.next();
+			Channel ctx = ite.next();
 			SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(ctx);
 			write(ctx, sctx, protobuf);
 		}
 	}
 
-	private void write(ChannelHandlerContext ctx, SessionContext sctx, String response) {
-		if (ctx == null) {
+	private void write(Channel channel, SessionContext sctx, String response) {
+		if (channel == null) {
 			return;
 		}
-		ServerWriteHelper.write(ctx, serverContext, sctx, response);
+		ServerWriteHelper.write(channel, serverContext, sctx, response);
 	}
 
-	private void write(ChannelHandlerContext ctx, SessionContext sctx, Protobuf protobuf) {
-		if (ctx == null) {
+	private void write(Channel channel, SessionContext sctx, Protobuf protobuf) {
+		if (channel == null) {
 			return;
 		}
-		ServerWriteHelper.write(ctx, serverContext, sctx, protobuf);
+		ServerWriteHelper.write(channel, serverContext, sctx, protobuf);
 	}
 
 }

@@ -2,6 +2,7 @@ package com.swingfrog.summer.promise;
 
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class PromiseContext {
@@ -9,7 +10,7 @@ public class PromiseContext {
     private final Promise promise;
     private final AtomicInteger token = new AtomicInteger();
     private final Set<Integer> waitFutures = ConcurrentHashMap.newKeySet();
-    private final ConcurrentHashMap<Object, Object> data = new ConcurrentHashMap<>();
+    private final ConcurrentMap<Object, Object> data = new ConcurrentHashMap<>();
 
     PromiseContext(Promise promise) {
         this.promise = promise;
@@ -57,7 +58,7 @@ public class PromiseContext {
         return new PromiseFuture(newToken, this);
     }
 
-    public ConcurrentHashMap<Object, Object> getData() {
+    public ConcurrentMap<Object, Object> getData() {
         return data;
     }
 

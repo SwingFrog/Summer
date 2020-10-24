@@ -2,51 +2,49 @@ package com.swingfrog.summer.server;
 
 import java.net.InetSocketAddress;
 import java.util.Iterator;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Set;
 
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelId;
+import com.google.common.collect.Sets;
+import io.netty.channel.Channel;
+import io.netty.util.AttributeKey;
 
 public class SessionContextGroup {
 
-	private final ConcurrentHashMap<ChannelId, SessionContext> channelToSessionMap;
-	private final ConcurrentHashMap<SessionContext, ChannelHandlerContext> sessionToChannelMap;
+	private static final AttributeKey<SessionContext> KEY_SESSION_CONTEXT = AttributeKey.valueOf(SessionContext.class.getSimpleName());
+
+	private final Set<SessionContext> sessionContexts = Sets.newConcurrentHashSet();
 	
-	public SessionContextGroup() {
-		channelToSessionMap = new ConcurrentHashMap<>();
-		sessionToChannelMap = new ConcurrentHashMap<>();
-	}
-	
-	public void createSession(ChannelHandlerContext ctx) {
-		String id = ctx.channel().id().asLongText();
-		InetSocketAddress address = (InetSocketAddress)ctx.channel().remoteAddress();
+	public void createSession(Channel channel) {
+		String id = channel.id().asLongText();
+		InetSocketAddress address = (InetSocketAddress) channel.remoteAddress();
 		SessionContext sctx = new SessionContext(id);
 		sctx.setDirectAddress(address.getHostString());
 		sctx.setPort(address.getPort());
 		sctx.setCurrentMsgId(0);
 		sctx.setLastRecvTime(System.currentTimeMillis());
-		channelToSessionMap.put(ctx.channel().id(), sctx);
-		sessionToChannelMap.put(sctx, ctx);
+		sctx.setChannel(channel);
+		channel.attr(KEY_SESSION_CONTEXT).set(sctx);
+		sessionContexts.add(sctx);
 	}
 	
-	public void destroySession(ChannelHandlerContext ctx) {
-		sessionToChannelMap.remove(channelToSessionMap.remove(ctx.channel().id()));
+	public void destroySession(Channel channel) {
+		sessionContexts.remove(getSessionByChannel(channel));
 	}
 	
-	public SessionContext getSessionByChannel(ChannelHandlerContext ctx) {
-		return channelToSessionMap.get(ctx.channel().id());
-	}
-	
-	public ChannelHandlerContext getChannelBySession(SessionContext sctx) {
-		return sessionToChannelMap.get(sctx);
+	public SessionContext getSessionByChannel(Channel channel) {
+		return channel.attr(KEY_SESSION_CONTEXT).get();
 	}
 	
 	public Iterator<SessionContext> iteratorSession() {
-		return sessionToChannelMap.keySet().iterator();
+		return sessionContexts.iterator();
 	}
 	
-	public Iterator<ChannelHandlerContext> iteratorChannel() {
-		return sessionToChannelMap.values().iterator();
+	public Iterator<Channel> iteratorChannel() {
+		return sessionContexts.stream().map(SessionContext::getChannel).iterator();
 	}
-	
+
+	public boolean contains(SessionContext sessionContext) {
+		return sessionContexts.contains(sessionContext);
+	}
+
 }

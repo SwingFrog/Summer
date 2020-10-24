@@ -6,6 +6,7 @@ import com.swingfrog.summer.concurrent.SingleQueueMgr;
 import com.swingfrog.summer.ioc.ContainerMgr;
 import com.swingfrog.summer.protocol.SessionRequest;
 import com.swingfrog.summer.server.rpc.RpcClientMgr;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.TooLongFrameException;
@@ -26,6 +27,7 @@ public abstract class AbstractServerHandler<T> extends SimpleChannelInboundHandl
 
     @Override
     public void channelRegistered(ChannelHandlerContext ctx) {
+        Channel channel = ctx.channel();
         if (serverContext.getConfig().isAllowAddressEnable()) {
             String address = ((InetSocketAddress)ctx.channel().remoteAddress()).getHostString();
             String[] addressList = serverContext.getConfig().getAllowAddressList();
@@ -43,8 +45,8 @@ public abstract class AbstractServerHandler<T> extends SimpleChannelInboundHandl
             }
             log.info("allow {} connect", address);
         }
-        serverContext.getSessionContextGroup().createSession(ctx);
-        SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(ctx);
+        serverContext.getSessionContextGroup().createSession(channel);
+        SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(channel);
         if (!serverContext.getSessionHandlerGroup().accept(sctx)) {
             log.warn("not accept client {}", sctx);
             ctx.close();
@@ -53,25 +55,28 @@ public abstract class AbstractServerHandler<T> extends SimpleChannelInboundHandl
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
-        SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(ctx);
+        Channel channel = ctx.channel();
+        SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(channel);
         log.info("added client {}", sctx);
         serverContext.getSessionHandlerGroup().added(sctx);
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
-        SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(ctx);
+        Channel channel = ctx.channel();
+        SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(channel);
         if (sctx != null) {
             log.info("removed client {}", sctx);
             serverContext.getSessionHandlerGroup().removed(sctx);
-            serverContext.getSessionContextGroup().destroySession(ctx);
+            serverContext.getSessionContextGroup().destroySession(channel);
             RpcClientMgr.get().remove(sctx);
         }
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(ctx);
+        Channel channel = ctx.channel();
+        SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(channel);
         if (cause instanceof TooLongFrameException) {
             serverContext.getSessionHandlerGroup().lengthTooLongMsg(sctx);
         } else {
@@ -105,16 +110,17 @@ public abstract class AbstractServerHandler<T> extends SimpleChannelInboundHandl
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, T t) throws Exception {
-        SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(ctx);
+        Channel channel = ctx.channel();
+        SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(channel);
         long now = System.currentTimeMillis();
         long last = sctx.getLastRecvTime();
         sctx.setLastRecvTime(now);
         if ((now - last) < serverContext.getConfig().getColdDownMs()) {
             serverContext.getSessionHandlerGroup().sendTooFastMsg(sctx);
         }
-        recv(ctx, sctx, t);
+        recv(ctx.channel(), sctx, t);
     }
 
-    protected abstract void recv(ChannelHandlerContext ctx, SessionContext sctx, T request) throws Exception;
+    protected abstract void recv(Channel channel, SessionContext sctx, T request) throws Exception;
 
 }

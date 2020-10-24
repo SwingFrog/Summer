@@ -9,6 +9,7 @@ import java.util.concurrent.TimeUnit;
 import com.swingfrog.summer.task.TaskTrigger;
 import com.swingfrog.summer.util.ThreadCountUtil;
 import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -179,7 +180,7 @@ public class Server {
 	}
 	
 	public void closeSession(SessionContext sctx) {
-		serverContext.getSessionContextGroup().getChannelBySession(sctx).close();
+		sctx.getChannel().close();
 	}
 
 	public ExecutorService getEventExecutor() {
@@ -200,6 +201,10 @@ public class Server {
 
 	public ServerContext getServerContext() {
 		return serverContext;
+	}
+
+	public Channel getChannel(SessionContext sessionContext) {
+		return sessionContext.getChannel();
 	}
 	
 }

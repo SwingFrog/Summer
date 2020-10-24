@@ -117,11 +117,11 @@ public class ServerMgr {
 	}
 
 	public Server findServer(SessionContext sctx) {
-		if (server.getServerContext().getSessionContextGroup().getChannelBySession(sctx) != null) {
+		if (server.getServerContext().getSessionContextGroup().contains(sctx)) {
 			return server;
 		}
 		return serverMap.values().stream()
-				.filter(ser -> ser.getServerContext().getSessionContextGroup().getChannelBySession(sctx) != null)
+				.filter(ser -> ser.getServerContext().getSessionContextGroup().contains(sctx))
 				.findAny()
 				.orElse(null);
 	}

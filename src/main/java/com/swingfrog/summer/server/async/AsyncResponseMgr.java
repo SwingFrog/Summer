@@ -20,7 +20,7 @@ import com.swingfrog.summer.web.WebRequest;
 import com.swingfrog.summer.web.WebRequestHandler;
 import com.swingfrog.summer.web.view.TextView;
 import com.swingfrog.summer.web.view.WebView;
-import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -91,13 +91,13 @@ public class AsyncResponseMgr {
         if (server.getServerContext().isProtobuf()) {
             return;
         }
-        ChannelHandlerContext ctx = server.getServerContext().getSessionContextGroup().getChannelBySession(sctx);
+        Channel channel = server.getChannel(sctx);
         if (server.getServerContext().isHttp()) {
             WebView webView;
             if (data == null) {
                 webView = WebMgr.get().getInteriorViewFactory().createBlankView();
                 log.debug("server async response {} status[{}] from {}", webView, webView.getStatus(), sctx);
-                WebRequestHandler.write(ctx, sctx, (WebRequest) request, webView);
+                WebRequestHandler.write(channel, sctx, (WebRequest) request, webView);
                 return;
             }
             if (data instanceof WebView) {
@@ -108,7 +108,7 @@ public class AsyncResponseMgr {
             log.debug("server async response {} status[{}] from {}", webView, webView.getStatus(), sctx);
             try {
                 webView.ready();
-                WebRequestHandler.write(ctx, sctx, (WebRequest) request, webView);
+                WebRequestHandler.write(channel, sctx, (WebRequest) request, webView);
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
             }
@@ -116,7 +116,7 @@ public class AsyncResponseMgr {
         } else {
             String response = SessionResponse.buildMsg(request, data).toJSONString();
             log.debug("server async response {} to {}", response, sctx);
-            ServerWriteHelper.write(ctx, server.getServerContext(), sctx, response);
+            ServerWriteHelper.write(channel, server.getServerContext(), sctx, response);
             RemoteStatistics.finish(sctx, request, response.length());
         }
     }
@@ -131,10 +131,10 @@ public class AsyncResponseMgr {
             log.error("Http protocol can't send error response");
             return;
         }
-        ChannelHandlerContext ctx = server.getServerContext().getSessionContextGroup().getChannelBySession(sctx);
+        Channel channel = server.getChannel(sctx);
         String response = SessionResponse.buildError(request, code, msg).toJSONString();
         log.debug("server async response error {} to {}", response, sctx);
-        ServerWriteHelper.write(ctx, server.getServerContext(), sctx, response);
+        ServerWriteHelper.write(channel, server.getServerContext(), sctx, response);
         RemoteStatistics.finish(sctx, request, response.length());
     }
 
@@ -144,9 +144,9 @@ public class AsyncResponseMgr {
             log.error("Async send response failure. cause: can't found server by session context");
             return;
         }
-        ChannelHandlerContext ctx = server.getServerContext().getSessionContextGroup().getChannelBySession(sctx);
+        Channel channel = server.getChannel(sctx);
         log.debug("server async response {} to {}", response, sctx);
-        ServerWriteHelper.write(ctx, server.getServerContext(), sctx, Protobuf.of(request.getId(), response));
+        ServerWriteHelper.write(channel, server.getServerContext(), sctx, Protobuf.of(request.getId(), response));
         RemoteStatistics.finish(sctx, request, response.getSerializedSize());
     }
 
@@ -156,10 +156,10 @@ public class AsyncResponseMgr {
             log.error("Async send response failure. cause: can't found server by session context");
             return;
         }
-        ChannelHandlerContext ctx = server.getServerContext().getSessionContextGroup().getChannelBySession(sctx);
+        Channel channel = server.getChannel(sctx);
         Message response = ErrorCodeProtobufBuilder.build(request.getId(), code, msg);
         log.debug("server async response error {} to {}", response, sctx);
-        ServerWriteHelper.write(ctx, server.getServerContext(), sctx, response);
+        ServerWriteHelper.write(channel, server.getServerContext(), sctx, response);
         RemoteStatistics.finish(sctx, request, response.getSerializedSize());
     }
 

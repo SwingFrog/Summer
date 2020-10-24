@@ -5,6 +5,7 @@ import com.swingfrog.summer.server.SessionContext;
 import com.swingfrog.summer.server.exception.WebSocketUriNoFoundException;
 
 import com.swingfrog.summer.util.ForwardedAddressUtil;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.FullHttpRequest;
@@ -21,8 +22,9 @@ public class WebSocketUriFilter extends SimpleChannelInboundHandler<FullHttpRequ
 	
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest request) {
+		Channel channel = ctx.channel();
 		if (wsUri.equalsIgnoreCase(request.uri())) {
-			SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(ctx);
+			SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(channel);
 			if (sctx != null)
 				sctx.setRealAddress(ForwardedAddressUtil.parse(request.headers().get(ForwardedAddressUtil.KEY)));
             ctx.fireChannelRead(request.retain());

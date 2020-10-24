@@ -11,6 +11,7 @@ import com.swingfrog.summer.server.async.ProcessResult;
 import com.swingfrog.summer.statistics.RemoteStatistics;
 import com.swingfrog.summer.struct.AutowireParam;
 import com.swingfrog.summer.util.ForwardedAddressUtil;
+import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,7 +26,6 @@ import com.swingfrog.summer.server.exception.SessionException;
 import com.swingfrog.summer.web.view.FileView;
 import com.swingfrog.summer.web.view.WebView;
 
-import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.DefaultHttpResponse;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpHeaderNames;
@@ -59,7 +59,7 @@ public class WebRequestHandler extends AbstractServerHandler<HttpObject> {
 	}
 	
 	@Override
-	protected void recv(ChannelHandlerContext ctx, SessionContext sctx, HttpObject httpObject) {
+	protected void recv(Channel channel, SessionContext sctx, HttpObject httpObject) {
 		try {
 			if (httpObject instanceof HttpRequest) {
 				httpRequest = (HttpRequest) httpObject;
@@ -74,15 +74,15 @@ public class WebRequestHandler extends AbstractServerHandler<HttpObject> {
 				sctx.setRealAddress(ForwardedAddressUtil.parse(httpRequest.headers().get(ForwardedAddressUtil.KEY)));
 				HttpMethod method = httpRequest.method();
 				if (HttpMethod.GET.equals(method)) {
-					doGet(ctx, sctx);
+					doGet(channel, sctx);
 				} else if (HttpMethod.POST.equals(method)) {
 					postRequestDecoder = new HttpPostRequestDecoder(factory, httpRequest);
-					processHttpContent(ctx, sctx, (HttpContent) httpObject);
+					processHttpContent(channel, sctx, (HttpContent) httpObject);
 				} else {
 					log.warn("not found request method[{}]", method.name());
 				}
 			} else if (httpObject instanceof HttpContent) {
-				processHttpContent(ctx, sctx, (HttpContent) httpObject);
+				processHttpContent(channel, sctx, (HttpContent) httpObject);
 			}
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
@@ -90,7 +90,7 @@ public class WebRequestHandler extends AbstractServerHandler<HttpObject> {
 		}
 	}
 	
-	private void processHttpContent(ChannelHandlerContext ctx, SessionContext sctx, HttpContent httpContent) {
+	private void processHttpContent(Channel channel, SessionContext sctx, HttpContent httpContent) {
 		if (postRequestDecoder != null) {
 			try {
 				postRequestDecoder.offer(httpContent);
@@ -99,7 +99,7 @@ public class WebRequestHandler extends AbstractServerHandler<HttpObject> {
 				return;
 			}
 			if (httpContent instanceof LastHttpContent) {
-				doPost(ctx, sctx);
+				doPost(channel, sctx);
 				postRequestDecoder.destroy();
 				postRequestDecoder = null;
 				httpRequest = null;
@@ -123,16 +123,16 @@ public class WebRequestHandler extends AbstractServerHandler<HttpObject> {
 		return WebRequest.build(httpRequest, uri);
 	}
 	
-	private void doGet(ChannelHandlerContext ctx, SessionContext sctx) {
+	private void doGet(Channel channel, SessionContext sctx) {
 		WebRequest webRequest = getWebRequest();
 		if (webRequest.isDynamic()) {
-			doWork(ctx, sctx, webRequest);
+			doWork(channel, sctx, webRequest);
 		} else {
-			doFile(ctx, sctx, webRequest);
+			doFile(channel, sctx, webRequest);
 		}
 	}
 	
-	private void doPost(ChannelHandlerContext ctx, SessionContext sctx) {
+	private void doPost(Channel channel, SessionContext sctx) {
 		WebRequest webRequest = getWebRequest();
 		JSONObject data = webRequest.getData();
 		try {
@@ -162,25 +162,25 @@ public class WebRequestHandler extends AbstractServerHandler<HttpObject> {
 			
 		}
 		if (webRequest.isDynamic()) {
-			doWork(ctx, sctx, webRequest);
+			doWork(channel, sctx, webRequest);
 		} else {
-			doFile(ctx, sctx, webRequest);
+			doFile(channel, sctx, webRequest);
 		}
 	}
 	
-	private void doFile(ChannelHandlerContext ctx, SessionContext sctx, WebRequest request) {
+	private void doFile(Channel channel, SessionContext sctx, WebRequest request) {
 		log.debug("server request {} from {}", request.getPath(), sctx);
 		ExecutorService eventExecutor = serverContext.getEventExecutor();
 		eventExecutor.execute(()->{
 			try {
-				writeResponse(ctx, sctx, request, new FileView(WebMgr.get().getWebContentPath() + request.getPath()));
+				writeResponse(channel, sctx, request, new FileView(WebMgr.get().getWebContentPath() + request.getPath()));
 			} catch (IOException e) {
-				writeResponse(ctx, sctx, request, WebMgr.get().getInteriorViewFactory().createErrorView(404, "Not Found"));
+				writeResponse(channel, sctx, request, WebMgr.get().getInteriorViewFactory().createErrorView(404, "Not Found"));
 			}
 		});
 	}
 	
-	private void doWork(ChannelHandlerContext ctx, SessionContext sctx, WebRequest request) {
+	private void doWork(Channel channel, SessionContext sctx, WebRequest request) {
 		log.debug("server request {} from {}", request, sctx);
 		if (!serverContext.getSessionHandlerGroup().receive(sctx, request)) {
 			return;
@@ -198,32 +198,32 @@ public class WebRequestHandler extends AbstractServerHandler<HttpObject> {
 				}
 				WebView webView = processResult.getValue();
 				if (webView == null) {
-					writeResponse(ctx, sctx, request, WebMgr.get().getInteriorViewFactory().createBlankView());
+					writeResponse(channel, sctx, request, WebMgr.get().getInteriorViewFactory().createBlankView());
 				} else {
 					webView.ready();
-					writeResponse(ctx, sctx, request, webView);
+					writeResponse(channel, sctx, request, webView);
 				}
 			} catch (CodeException ce) {
 				log.warn(ce.getMessage(), ce);
 				WebView webView = WebMgr.get().getInteriorViewFactory().createErrorView(500, ce.getCode(), ce.getMsg());
-				writeResponse(ctx, sctx, request, webView);
+				writeResponse(channel, sctx, request, webView);
 			} catch (Throwable e) {
 				log.error(e.getMessage(), e);
 				CodeMsg ce = SessionException.INVOKE_ERROR;
 				WebView webView = WebMgr.get().getInteriorViewFactory().createErrorView(500, ce.getCode(), ce.getMsg());
-				writeResponse(ctx, sctx, request, webView);
+				writeResponse(channel, sctx, request, webView);
 			}
 			RemoteStatistics.finish(sctx, request, 0);
 		};
 		submitRunnable(sctx, request, runnable);
 	}
 
-	private void writeResponse(ChannelHandlerContext ctx, SessionContext sctx, WebRequest request, WebView webView) {
+	private void writeResponse(Channel channel, SessionContext sctx, WebRequest request, WebView webView) {
 		log.debug("server response {} status[{}] from {}", webView, webView.getStatus(), sctx);
-		write(ctx, sctx, request, webView);
+		write(channel, sctx, request, webView);
 	}
 
-	public static void write(ChannelHandlerContext ctx, SessionContext sctx, WebRequest request, WebView webView) {
+	public static void write(Channel channel, SessionContext sctx, WebRequest request, WebView webView) {
 		try {
 			DefaultHttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, 
 					HttpResponseStatus.valueOf(webView.getStatus()));
@@ -240,9 +240,9 @@ public class WebRequestHandler extends AbstractServerHandler<HttpObject> {
 			if (webView.getHeaders() != null) {
 				webView.getHeaders().forEach((key, value) -> response.headers().set(key, value));
 			}
-			ctx.write(response);
-			ctx.write(webView.getChunkedInput());
-			ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+			channel.write(response);
+			channel.write(webView.getChunkedInput());
+			channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}

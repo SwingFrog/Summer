@@ -1,9 +1,12 @@
 package com.swingfrog.summer.server;
 
 import com.google.common.collect.Queues;
+import io.netty.channel.Channel;
 
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentMap;
 
 public class SessionContext {
 
@@ -17,6 +20,9 @@ public class SessionContext {
 	private final ConcurrentLinkedQueue<Object> waitWriteQueue = Queues.newConcurrentLinkedQueue();
 
 	private Object token;
+
+	private Channel channel;
+	private final ConcurrentMap<Object, Object> data = new ConcurrentHashMap<>();
 
 	public SessionContext(String sessionId) {
 		this.sessionId = sessionId;
@@ -73,6 +79,12 @@ public class SessionContext {
 	public void clearToken() {
 		token = null;
 	}
+	void setChannel(Channel channel) {
+		this.channel = channel;
+	}
+	Channel getChannel() {
+		return channel;
+	}
 
 	@Override
 	public String toString() {
@@ -90,6 +102,28 @@ public class SessionContext {
 	@Override
 	public int hashCode() {
 		return Objects.hash(sessionId);
+	}
+
+	public ConcurrentMap<Object, Object> getData() {
+		return data;
+	}
+
+	public void put(Object key, Object value) {
+		data.put(key, value);
+	}
+
+	@SuppressWarnings("unchecked")
+	public <T> T get(Object key) {
+		return (T) data.get(key);
+	}
+
+	@SuppressWarnings("unchecked")
+	public <T> T remove(Object key) {
+		return (T) data.remove(key);
+	}
+
+	public void removeAll() {
+		data.clear();
 	}
 
 }
