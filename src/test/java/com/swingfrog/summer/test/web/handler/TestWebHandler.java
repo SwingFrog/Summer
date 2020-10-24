@@ -10,7 +10,7 @@ public class TestWebHandler implements SessionHandler {
 
     @Override
     public boolean accept(SessionContext ctx) {
-        return false;
+        return true;
     }
 
     @Override

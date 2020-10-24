@@ -13,7 +13,6 @@ import com.swingfrog.summer.server.exception.SessionException;
 import com.swingfrog.summer.statistics.RemoteStatistics;
 import com.swingfrog.summer.struct.AutowireParam;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandlerContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,16 +84,6 @@ public class ServerProtobufHandler extends AbstractServerHandler<Protobuf> {
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             serverContext.getSessionHandlerGroup().unableParseMsg(sctx);
-        }
-    }
-
-    @Override
-    public void channelWritabilityChanged(ChannelHandlerContext ctx) throws Exception {
-        super.channelWritabilityChanged(ctx);
-        Channel channel = ctx.channel();
-        SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(channel);
-        while (ctx.channel().isActive() && ctx.channel().isWritable() && !sctx.getWaitWriteQueue().isEmpty()) {
-            ctx.writeAndFlush(sctx.getWaitWriteQueue().poll());
         }
     }
 

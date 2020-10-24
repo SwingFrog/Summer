@@ -20,7 +20,7 @@ public class AsyncCacheRepositoryMgr {
 
     private static final Logger log = LoggerFactory.getLogger(AsyncCacheRepositoryMgr.class);
 
-    private static ScheduledExecutorService scheduledExecutor;
+    private volatile ScheduledExecutorService scheduledExecutor;
     private final AsyncCacheConfig config = new AsyncCacheConfig();
     private final List<Runnable> hooks = Lists.newLinkedList();
 

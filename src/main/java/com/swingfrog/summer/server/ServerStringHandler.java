@@ -15,8 +15,6 @@ import com.swingfrog.summer.server.exception.CodeException;
 import com.swingfrog.summer.server.exception.SessionException;
 import com.swingfrog.summer.server.rpc.RpcClientMgr;
 
-import io.netty.channel.ChannelHandlerContext;
-
 public class ServerStringHandler extends AbstractServerHandler<String> {
 	
 	private static final Logger log = LoggerFactory.getLogger(ServerStringHandler.class);
@@ -83,16 +81,6 @@ public class ServerStringHandler extends AbstractServerHandler<String> {
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 			serverContext.getSessionHandlerGroup().unableParseMsg(sctx);
-		}
-	}
-
-	@Override
-	public void channelWritabilityChanged(ChannelHandlerContext ctx) throws Exception {
-		super.channelWritabilityChanged(ctx);
-		Channel channel = ctx.channel();
-		SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(channel);
-		while (ctx.channel().isActive() && ctx.channel().isWritable() && !sctx.getWaitWriteQueue().isEmpty()) {
-			ctx.writeAndFlush(sctx.getWaitWriteQueue().poll());
 		}
 	}
 

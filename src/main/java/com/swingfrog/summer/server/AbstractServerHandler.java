@@ -123,4 +123,13 @@ public abstract class AbstractServerHandler<T> extends SimpleChannelInboundHandl
 
     protected abstract void recv(Channel channel, SessionContext sctx, T request) throws Exception;
 
+    @Override
+    public void channelWritabilityChanged(ChannelHandlerContext ctx) {
+        Channel channel = ctx.channel();
+        SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(channel);
+        while (ctx.channel().isActive() && ctx.channel().isWritable() && !sctx.getWaitWriteQueue().isEmpty()) {
+            ctx.writeAndFlush(sctx.getWaitWriteQueue().poll());
+        }
+    }
+
 }

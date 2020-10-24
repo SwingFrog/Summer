@@ -84,6 +84,17 @@ public class SqlBuilder {
         return builder.toString();
     }
 
+    public static String getReplace(TableMeta tableMeta) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("REPLACE INTO `").append(tableMeta.getName()).append("` (");
+        builder.append("`").append(tableMeta.getPrimaryColumn().getName()).append("`");
+        tableMeta.getColumns().forEach(columnMeta -> builder.append(",`").append(columnMeta.getName()).append("`"));
+        builder.append(") VALUES(?");
+        tableMeta.getColumns().forEach(columnMeta -> builder.append(",?"));
+        builder.append(");");
+        return builder.toString();
+    }
+
     public static String getDelete(TableMeta tableMeta) {
         StringBuilder builder = new StringBuilder();
         builder.append("DELETE FROM `").append(tableMeta.getName()).append("` WHERE `")
