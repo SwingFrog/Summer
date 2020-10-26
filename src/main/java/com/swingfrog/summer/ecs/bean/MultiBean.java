@@ -1,7 +1,7 @@
 package com.swingfrog.summer.ecs.bean;
 
-public interface MultiBean<K> extends SingleBean<K> {
+public interface MultiBean<K> extends Bean<K> {
 
-    String getEntityField();
-
+    K getEntityId();
+    void setEntityId(K k);
 }

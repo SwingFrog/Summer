@@ -9,6 +9,7 @@ import org.apache.commons.dbutils.BasicRowProcessor;
 import org.apache.commons.dbutils.handlers.BeanHandler;
 import org.apache.commons.dbutils.handlers.BeanListHandler;
 
+import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +32,7 @@ public abstract class RepositoryDao<T, K> extends BaseDao<T> implements Reposito
     private String selectAllSql;
     private AtomicLong primaryKey;
     protected TableMeta tableMeta;
+    private String singeCacheField;
 
     protected RepositoryDao() {
         super();
@@ -68,6 +70,11 @@ public abstract class RepositoryDao<T, K> extends BaseDao<T> implements Reposito
         selectSql = SqlBuilder.getSelect(tableMeta);
         selectAllSql = SqlBuilder.getSelectAll(tableMeta);
         this.tableMeta = tableMeta;
+        singeCacheField = tableMeta.getCacheKeys().stream()
+                .map(TableMeta.ColumnMeta::getField)
+                .map(Field::getName)
+                .findAny()
+                .orElse(null);
     }
 
     protected boolean isAutoIncrement() {
@@ -135,6 +142,12 @@ public abstract class RepositoryDao<T, K> extends BaseDao<T> implements Reposito
     }
 
     @Override
+    public boolean forceSave(T obj) {
+        Objects.requireNonNull(obj, "repository force save param not null");
+        return update(updateSql, TableValueBuilder.listUpdateValue(tableMeta, obj)) > 0;
+    }
+
+    @Override
     public T get(K primaryKey) {
         Objects.requireNonNull(primaryKey, "repository get primary key not null");
         return get(selectSql, primaryKey);
@@ -176,6 +189,16 @@ public abstract class RepositoryDao<T, K> extends BaseDao<T> implements Reposito
     @Override
     public List<T> list() {
         return list(selectAllSql);
+    }
+
+    @Override
+    public List<T> listSingleCache(Object value) {
+        Objects.requireNonNull(singeCacheField, "repository list single cache field not null");
+        Objects.requireNonNull(value, "repository list single cache value not null");
+        Map<String, Object> optional = ImmutableMap.of(singeCacheField, value);
+        List<String> fields = TableValueBuilder.listValidFieldByOptional(tableMeta, optional);
+        String sql = SqlBuilder.getSelectField(tableMeta, fields);
+        return list(sql, TableValueBuilder.listValidValueByOptional(tableMeta, optional, fields));
     }
 
     private T get(String sql, Object... args) {
@@ -222,6 +245,10 @@ public abstract class RepositoryDao<T, K> extends BaseDao<T> implements Reposito
         return list(SqlBuilder.getPrimaryColumnSelectField(tableMeta, ImmutableList.of())).stream()
                 .map(obj -> (K) TableValueBuilder.getPrimaryKeyValue(tableMeta, obj))
                 .collect(Collectors.toList());
+    }
+
+    protected String getSingeCacheField() {
+        return singeCacheField;
     }
 
 }

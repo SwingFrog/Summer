@@ -139,7 +139,9 @@ public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
         super.save(objs);
     }
 
+    @Override
     public boolean forceSave(T obj) {
+        Objects.requireNonNull(obj, "cache repository force save param not null");
         forceAddCache(obj);
         return super.save(obj);
     }
