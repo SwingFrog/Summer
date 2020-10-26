@@ -139,6 +139,11 @@ public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
         super.save(objs);
     }
 
+    public boolean forceSave(T obj) {
+        forceAddCache(obj);
+        return super.save(obj);
+    }
+
     @Override
     public T get(K primaryKey) {
         T obj = cache.getIfPresent(primaryKey);
@@ -270,9 +275,22 @@ public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
     }
 
     protected void addCache(K primaryKey, T obj) {
+        addCache(primaryKey, obj, false);
+    }
+
+    @SuppressWarnings("unchecked")
+    protected void forceAddCache(T obj) {
+        forceAddCache((K) TableValueBuilder.getPrimaryKeyValue(tableMeta, obj), obj);
+    }
+
+    protected void forceAddCache(K primaryKey, T obj) {
+        addCache(primaryKey, obj, true);
+    }
+
+    protected void addCache(K primaryKey, T obj, boolean force) {
         synchronized (StringUtil.getString(PREFIX, tableMeta.getName(), "addCache", primaryKey)) {
             T old = cache.getIfPresent(primaryKey);
-            if (old == null || old == EMPTY) {
+            if (force || old == null || old == EMPTY) {
                 cache.put(primaryKey, obj);
             }
             if (obj == EMPTY) {

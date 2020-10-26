@@ -11,10 +11,7 @@ import com.swingfrog.summer.db.repository.annotation.Table;
 
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.Date;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 public class TableMetaBuilder {
 
@@ -37,11 +34,12 @@ public class TableMetaBuilder {
         tableMeta.setColumns(Lists.newLinkedList());
         tableMeta.setIndexKeys(Sets.newHashSet());
         tableMeta.setCacheKeys(Sets.newHashSet());
-        Field[] fields = clazz.getDeclaredFields();
+        List<Field> fields = Lists.newLinkedList();
+        collectField(fields, clazz);
         for (Field field : fields) {
-            field.setAccessible(true);
             Column column = field.getAnnotation(Column.class);
             if (column != null) {
+                field.setAccessible(true);
                 PrimaryKey primaryKey = field.getAnnotation(PrimaryKey.class);
                 if (primaryKey != null) {
                     if (tableMeta.getPrimaryColumn() != null) {
@@ -70,6 +68,17 @@ public class TableMetaBuilder {
         tableMeta.getColumns().forEach(columnMeta -> columnMetaMap.put(columnMeta.getName(), columnMeta));
         tableMeta.setColumnMetaMap(columnMetaMap);
         return tableMeta;
+    }
+
+    private static void collectField(List<Field> list, Class<?> entityClass) {
+        if (entityClass == null)
+            return;
+        for (Field field : entityClass.getDeclaredFields()) {
+            if (field.isAnnotationPresent(Column.class)) {
+                list.add(field);
+            }
+        }
+        collectField(list, entityClass.getSuperclass());
     }
 
     private static TableMeta.ColumnMeta getColumnMate(Field field) {

@@ -7,7 +7,7 @@ import com.swingfrog.summer.db.repository.annotation.PrimaryKey;
 import com.swingfrog.summer.db.repository.annotation.Table;
 
 @Table(name = "t_test", comment = "测试")
-public class Test {
+public class Test extends TestContent {
 
     @PrimaryKey(auto = false)
     @Column(comment = "ID")
@@ -17,9 +17,6 @@ public class Test {
     @IndexKey
     @Column(comment = "类型", readOnly = true)
     private int type;
-
-    @Column(comment = "内容")
-    private String content;
 
     public Test() {
 

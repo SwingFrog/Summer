@@ -132,6 +132,16 @@ public abstract class AsyncCacheRepositoryDao<T, K> extends CacheRepositoryDao<T
         objs.forEach(this::save);
     }
 
+    @SuppressWarnings("unchecked")
+    @Override
+    public boolean forceSave(T obj) {
+        Objects.requireNonNull(obj, "async cache repository force save param not null");
+        K pk = (K) TableValueBuilder.getPrimaryKeyValue(tableMeta, obj);
+        forceAddCache(pk, obj);
+        waitSave.computeIfAbsent(pk, k -> new Save<>(obj, pk, System.currentTimeMillis()));
+        return true;
+    }
+
     @Override
     public T getOrCreate(K primaryKey, Supplier<T> supplier) {
         T entity = get(primaryKey);
