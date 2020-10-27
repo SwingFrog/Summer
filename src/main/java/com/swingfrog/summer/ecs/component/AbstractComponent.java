@@ -2,7 +2,7 @@ package com.swingfrog.summer.ecs.component;
 
 import com.swingfrog.summer.ecs.entity.Entity;
 
-public abstract class AbstractComponent<K, E extends Entity<K>> implements Component {
+public abstract class AbstractComponent<K, E extends Entity<K>> implements Component<K, E> {
 
     private final E entity;
 
@@ -10,7 +10,9 @@ public abstract class AbstractComponent<K, E extends Entity<K>> implements Compo
         this.entity = entity;
     }
 
-    protected E getEntity() {
+
+    @Override
+    public E getEntity() {
         return entity;
     }
 

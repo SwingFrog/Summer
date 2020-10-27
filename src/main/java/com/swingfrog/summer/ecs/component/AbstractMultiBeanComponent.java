@@ -6,11 +6,11 @@ import com.swingfrog.summer.ecs.entity.Entity;
 import java.util.List;
 
 public abstract class AbstractMultiBeanComponent<K, B extends EntityBean<K>, E extends Entity<K>>
-        extends AbstractBeanComponent<K, B, E> implements MultiBeanComponent<K, B> {
+        extends AbstractBeanComponent<K, B, E> implements MultiBeanComponent<K, B, E> {
 
     private final K entityId;
 
-    protected AbstractMultiBeanComponent(E entity) {
+    public AbstractMultiBeanComponent(E entity) {
         super(entity);
         entityId = entity.getId();
     }
@@ -44,6 +44,11 @@ public abstract class AbstractMultiBeanComponent<K, B extends EntityBean<K>, E e
     }
 
     @Override
+    public void removeAllBean() {
+        listBean().forEach(this::removeBean);
+    }
+
+    @Override
     public void saveBean(B bean) {
         if (notEqualEntityId(bean.getEntityId()))
             return;
@@ -52,10 +57,6 @@ public abstract class AbstractMultiBeanComponent<K, B extends EntityBean<K>, E e
 
     private boolean notEqualEntityId(K entityId) {
         return this.entityId != entityId;
-    }
-
-    protected K getEntityId() {
-        return entityId;
     }
 
 }

@@ -5,9 +5,9 @@ import com.swingfrog.summer.ecs.entity.Entity;
 import java.util.List;
 
 public abstract class AbstractAllBeanComponent<K, B, E extends Entity<K>>
-        extends AbstractBeanComponent<K, B, E> implements AllBeanComponent<K, B> {
+        extends AbstractBeanComponent<K, B, E> implements AllBeanComponent<K, B, E> {
 
-    protected AbstractAllBeanComponent(E entity) {
+    public AbstractAllBeanComponent(E entity) {
         super(entity);
     }
 
@@ -29,6 +29,11 @@ public abstract class AbstractAllBeanComponent<K, B, E extends Entity<K>>
     @Override
     public void removeBeanId(K beanId) {
         repository.removeByPrimaryKey(beanId);
+    }
+
+    @Override
+    public void removeAllBean() {
+        listAllBean().forEach(repository::remove);
     }
 
     @Override

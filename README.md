@@ -29,6 +29,7 @@
 3. 新增promise包，可用于异步有序执行。
 4. 优化SessionContextGroup，让SessionContext与Channel直接绑定。
 5. 优化SessionQueueMgr
+6. 新增ecs包，实现了简单的ECS(Entity-Component-System)架构
 
 ### 2020.09.19
 1. 新增协议，支持protobuf。

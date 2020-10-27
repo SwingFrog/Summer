@@ -10,9 +10,9 @@ import java.util.concurrent.ConcurrentMap;
 public abstract class AbstractEntity<K> implements Entity<K> {
 
     private final K id;
-    private final ConcurrentMap<Class<? extends Component>, Component> componentMap = new ConcurrentHashMap<>();
+    private final ConcurrentMap<Class<? extends Component<K, ? extends Entity<K>>>, Component<K, ? extends Entity<K>>> componentMap = new ConcurrentHashMap<>();
 
-    protected AbstractEntity(K id) {
+    public AbstractEntity(K id) {
         this.id = id;
     }
 
@@ -22,12 +22,11 @@ public abstract class AbstractEntity<K> implements Entity<K> {
     }
 
     @SuppressWarnings("unchecked")
-    @Override
-    public <C extends Component> C getComponent(Class<C> componentClass) {
-        Component component = componentMap.get(componentClass);
+    protected <C extends Component<K, ? extends Entity<K>>> C getOrCreateComponent(Class<C> componentClass) {
+        Component<K, ? extends Entity<K>> component = componentMap.get(componentClass);
         if (component == null) {
             try {
-                if (componentClass.isAssignableFrom(AbstractComponent.class)) {
+                if (AbstractComponent.class.isAssignableFrom(componentClass)) {
                     component = componentClass.getConstructor(this.getClass()).newInstance(this);
                 } else {
                     component = componentClass.newInstance();
@@ -35,11 +34,9 @@ public abstract class AbstractEntity<K> implements Entity<K> {
             } catch (Exception e) {
                 throw new EcsRuntimeException("get component failure -> %s", componentClass.getName());
             }
-            Component old = componentMap.putIfAbsent(componentClass, component);
+            Component<K, ? extends Entity<K>> old = componentMap.putIfAbsent(componentClass, component);
             if (old != null) {
                 component = old;
-            } else {
-                component.init();
             }
         }
         return (C) component;

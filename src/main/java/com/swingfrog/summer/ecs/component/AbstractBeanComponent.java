@@ -10,7 +10,7 @@ public abstract class AbstractBeanComponent<K, B, E extends Entity<K>> extends A
 
     final Repository<B, K> repository;
 
-    protected AbstractBeanComponent(E entity) {
+    public AbstractBeanComponent(E entity) {
         super(entity);
         BindRepository bindRepository = this.getClass().getAnnotation(BindRepository.class);
         if (bindRepository == null)

@@ -4,12 +4,12 @@ import com.swingfrog.summer.ecs.bean.EntityBean;
 import com.swingfrog.summer.ecs.entity.Entity;
 
 public abstract class AbstractSingleBeanComponent<K, B extends EntityBean<K>, E extends Entity<K>>
-        extends AbstractBeanComponent<K, B, E> implements SingleBeanComponent<K, B> {
+        extends AbstractBeanComponent<K, B, E> implements SingleBeanComponent<K, B, E> {
 
     private B bean;
     private final K entityId;
 
-    protected AbstractSingleBeanComponent(E entity) {
+    public AbstractSingleBeanComponent(E entity) {
         super(entity);
         entityId = entity.getId();
     }
@@ -54,6 +54,7 @@ public abstract class AbstractSingleBeanComponent<K, B extends EntityBean<K>, E 
         if (getBean() == null)
             return;
         repository.removeByPrimaryKey(entityId);
+        bean = null;
     }
 
     @Override
@@ -63,18 +64,13 @@ public abstract class AbstractSingleBeanComponent<K, B extends EntityBean<K>, E 
         repository.forceSave(bean);
     }
 
-    @Override
-    public B createBean() {
+    protected B createBean() {
         try {
             return repository.getEntityClass().newInstance();
         } catch (Exception ignored) {
 
         }
         return null;
-    }
-
-    protected K getEntityId() {
-        return entityId;
     }
 
 }

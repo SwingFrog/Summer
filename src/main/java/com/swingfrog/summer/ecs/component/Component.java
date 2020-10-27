@@ -1,7 +1,13 @@
 package com.swingfrog.summer.ecs.component;
 
-public interface Component {
+import com.swingfrog.summer.ecs.entity.Entity;
 
-    void init();
+public interface Component<K, E extends Entity<K>> {
+
+    E getEntity();
+
+    default K getEntityId() {
+        return getEntity().getId();
+    }
 
 }

@@ -5,7 +5,7 @@ import com.swingfrog.summer.db.repository.annotation.Column;
 import com.swingfrog.summer.db.repository.annotation.IndexKey;
 import com.swingfrog.summer.ecs.bean.EntityBean;
 
-public abstract class QuickBean implements EntityBean<Long> {
+public abstract class QuickMultiBean implements EntityBean<Long> {
 
     @CacheKey
     @IndexKey

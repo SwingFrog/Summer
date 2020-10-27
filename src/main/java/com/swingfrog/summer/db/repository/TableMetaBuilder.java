@@ -73,12 +73,12 @@ public class TableMetaBuilder {
     private static void collectField(List<Field> list, Class<?> entityClass) {
         if (entityClass == null)
             return;
+        collectField(list, entityClass.getSuperclass());
         for (Field field : entityClass.getDeclaredFields()) {
             if (field.isAnnotationPresent(Column.class)) {
                 list.add(field);
             }
         }
-        collectField(list, entityClass.getSuperclass());
     }
 
     private static TableMeta.ColumnMeta getColumnMate(Field field) {
