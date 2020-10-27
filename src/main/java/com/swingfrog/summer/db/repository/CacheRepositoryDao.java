@@ -43,7 +43,7 @@ public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
         }
         if (isNeverExpire()) {
             cache = CacheBuilder.newBuilder().build();
-            tableMeta.getCacheKeys().forEach(columnMeta -> {
+            getTableMeta().getCacheKeys().forEach(columnMeta -> {
                 cachePkMap.put(columnMeta.getName(), CacheBuilder.newBuilder().build());
                 cachePkFinishMap.put(columnMeta.getName(), CacheBuilder.newBuilder().build());
             });
@@ -51,7 +51,7 @@ public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
             cache = CacheBuilder.newBuilder()
                     .expireAfterAccess(expireTime, TimeUnit.MILLISECONDS)
                     .build();
-            tableMeta.getCacheKeys().forEach(columnMeta -> {
+            getTableMeta().getCacheKeys().forEach(columnMeta -> {
                 cachePkMap.put(columnMeta.getName(),
                         CacheBuilder.newBuilder()
                                 .expireAfterAccess(expireTime, TimeUnit.MILLISECONDS)
@@ -140,17 +140,17 @@ public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
     }
 
     @Override
-    public boolean forceSave(T obj) {
+    public void forceSave(T obj) {
         Objects.requireNonNull(obj, "cache repository force save param not null");
         forceAddCache(obj);
-        return super.save(obj);
+        super.save(obj);
     }
 
     @Override
     public T get(K primaryKey) {
         T obj = cache.getIfPresent(primaryKey);
         if (obj == null) {
-            synchronized (StringUtil.getString(PREFIX, tableMeta.getName(), "get", primaryKey)) {
+            synchronized (StringUtil.getString(PREFIX, getTableMeta().getName(), "get", primaryKey)) {
                 obj = cache.getIfPresent(primaryKey);
                 if (obj == null) {
                     obj = super.get(primaryKey);
@@ -172,7 +172,7 @@ public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
     public T getOrCreate(K primaryKey, Supplier<T> supplier) {
         T entity = get(primaryKey);
         if (entity == null) {
-            synchronized (StringUtil.getString(PREFIX, tableMeta.getName(), "getOrCreate", primaryKey)) {
+            synchronized (StringUtil.getString(PREFIX, getTableMeta().getName(), "getOrCreate", primaryKey)) {
                 entity = get(primaryKey);
                 if (entity == null) {
                     entity = supplier.get();
@@ -185,7 +185,7 @@ public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
 
     @Override
     public List<T> list(String field, Object value) {
-        if (tableMeta.getCacheKeys().contains(tableMeta.getColumnMetaMap().get(field))) {
+        if (getTableMeta().getCacheKeys().contains(getTableMeta().getColumnMetaMap().get(field))) {
             return listPrimaryValueByCacheKey(field, value).stream().map(this::get).filter(Objects::nonNull).collect(Collectors.toList());
         }
         return list(ImmutableMap.of(field, value));
@@ -196,7 +196,7 @@ public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
         LinkedList<Set<K>> pkList = Lists.newLinkedList();
         Map<String, Object> normal = Maps.newHashMap();
         optional.forEach((key, value) -> {
-            if (tableMeta.getCacheKeys().contains(tableMeta.getColumnMetaMap().get(key))) {
+            if (getTableMeta().getCacheKeys().contains(getTableMeta().getColumnMetaMap().get(key))) {
                 pkList.add(listPrimaryValueByCacheKey(key, value));
             } else {
                 normal.put(key, value);
@@ -227,7 +227,7 @@ public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
         if (normal.size() > 0) {
             list = list.stream().filter(obj -> {
                 for (Map.Entry<String, Object> entry : normal.entrySet()) {
-                    if (!TableValueBuilder.isEqualsColumnValue(tableMeta.getColumnMetaMap().get(entry.getKey()), obj, entry.getValue())) {
+                    if (!TableValueBuilder.isEqualsColumnValue(getTableMeta().getColumnMetaMap().get(entry.getKey()), obj, entry.getValue())) {
                         return false;
                     }
                 }
@@ -241,7 +241,7 @@ public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
     public List<T> list() {
         long time = System.currentTimeMillis();
         if (time - expireTime >= findAllTime.get()) {
-            synchronized (StringUtil.getString(PREFIX, tableMeta.getName(), "list")) {
+            synchronized (StringUtil.getString(PREFIX, getTableMeta().getName(), "list")) {
                 if (time - expireTime >= findAllTime.get()) {
                     listPrimaryKey().forEach(this::get);
                 }
@@ -254,11 +254,16 @@ public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public List<T> listSingleCache(Object value) {
+        return list(getSingeCacheField(), value);
+    }
+
     protected Set<K> listPrimaryValueByCacheKey(String column, Object cacheValue) {
         Cache<Object, Set<K>> cachePk = cachePkMap.get(column);
         Set<K> pkSet = cachePk.getIfPresent(cacheValue);
         if (cachePkFinishMap.get(column).getIfPresent(cacheValue) == null || pkSet == null) {
-            synchronized (StringUtil.getString(PREFIX, tableMeta.getName(), "CacheKey", column, cacheValue)) {
+            synchronized (StringUtil.getString(PREFIX, getTableMeta().getName(), "CacheKey", column, cacheValue)) {
                 pkSet = cachePk.getIfPresent(cacheValue);
                 if (pkSet == null) {
                     pkSet = Sets.newConcurrentHashSet();
@@ -273,7 +278,7 @@ public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
 
     @SuppressWarnings("unchecked")
     protected void addCache(T obj) {
-        addCache((K) TableValueBuilder.getPrimaryKeyValue(tableMeta, obj), obj);
+        addCache((K) TableValueBuilder.getPrimaryKeyValue(getTableMeta(), obj), obj);
     }
 
     protected void addCache(K primaryKey, T obj) {
@@ -282,7 +287,7 @@ public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
 
     @SuppressWarnings("unchecked")
     protected void forceAddCache(T obj) {
-        forceAddCache((K) TableValueBuilder.getPrimaryKeyValue(tableMeta, obj), obj);
+        forceAddCache((K) TableValueBuilder.getPrimaryKeyValue(getTableMeta(), obj), obj);
     }
 
     protected void forceAddCache(K primaryKey, T obj) {
@@ -290,7 +295,7 @@ public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
     }
 
     protected void addCache(K primaryKey, T obj, boolean force) {
-        synchronized (StringUtil.getString(PREFIX, tableMeta.getName(), "addCache", primaryKey)) {
+        synchronized (StringUtil.getString(PREFIX, getTableMeta().getName(), "addCache", primaryKey)) {
             T old = cache.getIfPresent(primaryKey);
             if (force || old == null || old == EMPTY) {
                 cache.put(primaryKey, obj);
@@ -298,13 +303,13 @@ public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
             if (obj == EMPTY) {
                 return;
             }
-            tableMeta.getCacheKeys().forEach(columnMeta -> {
+            getTableMeta().getCacheKeys().forEach(columnMeta -> {
                 Object cacheValue = TableValueBuilder.getColumnValue(columnMeta, obj);
                 Cache<Object, Set<K>> cachePk = cachePkMap.get(columnMeta.getName());
                 Set<K> pkSet = cachePk.getIfPresent(cacheValue);
                 cachePkFinishMap.get(columnMeta.getName()).getIfPresent(cacheValue);
                 if (pkSet == null) {
-                    synchronized (StringUtil.getString(PREFIX, tableMeta.getName(), "CacheKey", columnMeta.getName(), cacheValue)) {
+                    synchronized (StringUtil.getString(PREFIX, getTableMeta().getName(), "CacheKey", columnMeta.getName(), cacheValue)) {
                         pkSet = cachePk.getIfPresent(cacheValue);
                         if (pkSet == null) {
                             pkSet = Sets.newConcurrentHashSet();
@@ -319,13 +324,13 @@ public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
 
     @SuppressWarnings("unchecked")
     protected void removeCache(T obj) {
-        removeCacheByPrimaryKey((K) TableValueBuilder.getPrimaryKeyValue(tableMeta, obj));
+        removeCacheByPrimaryKey((K) TableValueBuilder.getPrimaryKeyValue(getTableMeta(), obj));
     }
 
     protected void removeCacheByPrimaryKey(K primaryKey) {
-        synchronized (StringUtil.getString(PREFIX, tableMeta.getName(), "addCache", primaryKey)) {
+        synchronized (StringUtil.getString(PREFIX, getTableMeta().getName(), "addCache", primaryKey)) {
             cache.put(primaryKey, EMPTY);
-            tableMeta.getCacheKeys().forEach(columnMeta ->
+            getTableMeta().getCacheKeys().forEach(columnMeta ->
                 cachePkMap.get(columnMeta.getName()).asMap().values().stream()
                         .filter(Objects::nonNull)
                         .forEach(pkSet -> pkSet.remove(primaryKey)));

@@ -1,19 +1,14 @@
 package com.swingfrog.summer.ecs.component;
 
-import com.swingfrog.summer.app.Summer;
-import com.swingfrog.summer.db.repository.Repository;
-import com.swingfrog.summer.ecs.annotation.BindRepository;
-import com.swingfrog.summer.ecs.bean.Bean;
+import com.swingfrog.summer.ecs.entity.Entity;
 
 import java.util.List;
 
-public abstract class AbstractAllBeanComponent<K, B extends Bean<K>> implements AllBeanComponent<K, B> {
+public abstract class AbstractAllBeanComponent<K, B, E extends Entity<K>>
+        extends AbstractBeanComponent<K, B, E> implements AllBeanComponent<K, B> {
 
-    private final Repository<B, K> repository;
-
-    protected AbstractAllBeanComponent() {
-        BindRepository bindRepository = this.getClass().getAnnotation(BindRepository.class);
-        repository = Summer.getComponent(bindRepository.value());
+    protected AbstractAllBeanComponent(E entity) {
+        super(entity);
     }
 
     @Override

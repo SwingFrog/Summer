@@ -1,12 +1,17 @@
 package com.swingfrog.summer.ecs.component;
 
-import com.swingfrog.summer.ecs.bean.SingleBean;
+import com.swingfrog.summer.ecs.bean.EntityBean;
 
-public interface SingleBeanComponent <K, B extends SingleBean<K>> extends Component {
+import javax.annotation.Nullable;
 
+public interface SingleBeanComponent <K, B extends EntityBean<K>> extends Component {
+
+    @Nullable
     B getBean();
+    B getOrCreate();
     void setBean(B bean);
     void removeBean();
-    void saveBean(B bean);
+    void saveBean();
+    B createBean();
 
 }

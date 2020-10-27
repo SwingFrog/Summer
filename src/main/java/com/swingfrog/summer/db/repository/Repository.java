@@ -12,12 +12,13 @@ public interface Repository<T, K> {
     boolean removeByPrimaryKey(K primaryKey);
     boolean save(T obj);
     void save(Collection<T> objs);
-    boolean forceSave(T obj);
+    void forceSave(T obj);
     T get(K primaryKey);
     T getOrCreate(K primaryKey, Supplier<T> supplier);
     List<T> list(String field, Object value);
     List<T> list(Map<String, Object> optional);
     List<T> list();
     List<T> listSingleCache(Object value);
+    Class<T> getEntityClass();
 
 }

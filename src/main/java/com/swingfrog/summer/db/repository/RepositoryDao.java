@@ -31,7 +31,7 @@ public abstract class RepositoryDao<T, K> extends BaseDao<T> implements Reposito
     private String selectSql;
     private String selectAllSql;
     private AtomicLong primaryKey;
-    protected TableMeta tableMeta;
+    private TableMeta tableMeta;
     private String singeCacheField;
 
     protected RepositoryDao() {
@@ -142,9 +142,9 @@ public abstract class RepositoryDao<T, K> extends BaseDao<T> implements Reposito
     }
 
     @Override
-    public boolean forceSave(T obj) {
+    public void forceSave(T obj) {
         Objects.requireNonNull(obj, "repository force save param not null");
-        return update(updateSql, TableValueBuilder.listUpdateValue(tableMeta, obj)) > 0;
+        update(updateSql, TableValueBuilder.listUpdateValue(tableMeta, obj));
     }
 
     @Override
@@ -247,8 +247,17 @@ public abstract class RepositoryDao<T, K> extends BaseDao<T> implements Reposito
                 .collect(Collectors.toList());
     }
 
+    protected TableMeta getTableMeta() {
+        return tableMeta;
+    }
+
     protected String getSingeCacheField() {
         return singeCacheField;
+    }
+
+    @Override
+    public Class<T> getEntityClass() {
+        return super.getEntityClass();
     }
 
 }

@@ -1,21 +1,18 @@
 package com.swingfrog.summer.ecs.component;
 
-import com.swingfrog.summer.app.Summer;
-import com.swingfrog.summer.db.repository.Repository;
-import com.swingfrog.summer.ecs.annotation.BindRepository;
-import com.swingfrog.summer.ecs.bean.MultiBean;
+import com.swingfrog.summer.ecs.bean.EntityBean;
+import com.swingfrog.summer.ecs.entity.Entity;
 
 import java.util.List;
 
-public abstract class AbstractMultiBeanComponent<K, B extends MultiBean<K>> implements MultiBeanComponent<K, B> {
+public abstract class AbstractMultiBeanComponent<K, B extends EntityBean<K>, E extends Entity<K>>
+        extends AbstractBeanComponent<K, B, E> implements MultiBeanComponent<K, B> {
 
     private final K entityId;
-    private final Repository<B, K> repository;
 
-    protected AbstractMultiBeanComponent(K entityId) {
-        this.entityId = entityId;
-        BindRepository bindRepository = this.getClass().getAnnotation(BindRepository.class);
-        repository = Summer.getComponent(bindRepository.value());
+    protected AbstractMultiBeanComponent(E entity) {
+        super(entity);
+        entityId = entity.getId();
     }
 
     @Override
@@ -31,26 +28,34 @@ public abstract class AbstractMultiBeanComponent<K, B extends MultiBean<K>> impl
 
     @Override
     public void removeBean(B bean) {
-        checkEntityId(bean.getEntityId());
+        if (notEqualEntityId(bean.getEntityId()))
+            return;
         repository.remove(bean);
     }
 
     @Override
-    public void removeBeanId(K k) {
-        checkEntityId(k);
-        repository.removeByPrimaryKey(k);
+    public void removeBeanId(K beanId) {
+        B bean = repository.get(beanId);
+        if (bean == null)
+            return;
+        if (notEqualEntityId(bean.getEntityId()))
+            return;
+        repository.removeByPrimaryKey(beanId);
     }
 
     @Override
     public void saveBean(B bean) {
-        checkEntityId(bean.getEntityId());
+        if (notEqualEntityId(bean.getEntityId()))
+            return;
         repository.save(bean);
     }
 
-    private void checkEntityId(K entityId) {
-        if (this.entityId != entityId) {
-            throw new UnsupportedOperationException("entity id error");
-        }
+    private boolean notEqualEntityId(K entityId) {
+        return this.entityId != entityId;
+    }
+
+    protected K getEntityId() {
+        return entityId;
     }
 
 }

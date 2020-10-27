@@ -83,14 +83,14 @@ public abstract class AsyncCacheRepositoryDao<T, K> extends CacheRepositoryDao<T
         }
 
         saves.stream().filter(value -> force || time - value.saveTime >= delayTime).forEach(value -> waitSave.remove(value.pk));
-        log.info("async cache repository table[{}] delay save nowSaveCount[{}] waitSaveCount[{}]", tableMeta.getName(), saves.size(), waitSave.size());
+        log.info("async cache repository table[{}] delay save nowSaveCount[{}] waitSaveCount[{}]", getTableMeta().getName(), saves.size(), waitSave.size());
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public boolean add(T obj) {
         super.autoIncrementPrimaryKey(obj);
-        K primaryKey = (K) TableValueBuilder.getPrimaryKeyValue(tableMeta, obj);
+        K primaryKey = (K) TableValueBuilder.getPrimaryKeyValue(getTableMeta(), obj);
         super.addCache(primaryKey, obj);
         waitAdd.add(primaryKey);
         waitChange.add(new Change<>(obj, primaryKey));
@@ -100,7 +100,7 @@ public abstract class AsyncCacheRepositoryDao<T, K> extends CacheRepositoryDao<T
     @SuppressWarnings("unchecked")
     @Override
     public boolean remove(T obj) {
-        return removeByPrimaryKey((K) TableValueBuilder.getPrimaryKeyValue(tableMeta, obj));
+        return removeByPrimaryKey((K) TableValueBuilder.getPrimaryKeyValue(getTableMeta(), obj));
     }
 
     @Override
@@ -117,10 +117,10 @@ public abstract class AsyncCacheRepositoryDao<T, K> extends CacheRepositoryDao<T
     @Override
     public boolean save(T obj) {
         Objects.requireNonNull(obj, "async cache repository save param not null");
-        K pk = (K) TableValueBuilder.getPrimaryKeyValue(tableMeta, obj);
+        K pk = (K) TableValueBuilder.getPrimaryKeyValue(getTableMeta(), obj);
         T newObj = get(pk);
         if (obj != newObj) {
-            log.warn("async cache repository table[{}] primary key[{}] expire, can't save", tableMeta.getName(), pk);
+            log.warn("async cache repository table[{}] primary key[{}] expire, can't save", getTableMeta().getName(), pk);
             return false;
         }
         waitSave.computeIfAbsent(pk, k -> new Save<>(obj, pk, System.currentTimeMillis()));
@@ -134,19 +134,18 @@ public abstract class AsyncCacheRepositoryDao<T, K> extends CacheRepositoryDao<T
 
     @SuppressWarnings("unchecked")
     @Override
-    public boolean forceSave(T obj) {
+    public void forceSave(T obj) {
         Objects.requireNonNull(obj, "async cache repository force save param not null");
-        K pk = (K) TableValueBuilder.getPrimaryKeyValue(tableMeta, obj);
+        K pk = (K) TableValueBuilder.getPrimaryKeyValue(getTableMeta(), obj);
         forceAddCache(pk, obj);
         waitSave.computeIfAbsent(pk, k -> new Save<>(obj, pk, System.currentTimeMillis()));
-        return true;
     }
 
     @Override
     public T getOrCreate(K primaryKey, Supplier<T> supplier) {
         T entity = get(primaryKey);
         if (entity == null) {
-            synchronized (StringUtil.getString(PREFIX, tableMeta.getName(), "getOrCreate", primaryKey)) {
+            synchronized (StringUtil.getString(PREFIX, getTableMeta().getName(), "getOrCreate", primaryKey)) {
                 entity = get(primaryKey);
                 if (entity == null) {
                     entity = supplier.get();

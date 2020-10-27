@@ -1,41 +1,80 @@
 package com.swingfrog.summer.ecs.component;
 
-import com.swingfrog.summer.app.Summer;
-import com.swingfrog.summer.db.repository.Repository;
-import com.swingfrog.summer.ecs.annotation.BindRepository;
-import com.swingfrog.summer.ecs.bean.SingleBean;
+import com.swingfrog.summer.ecs.bean.EntityBean;
+import com.swingfrog.summer.ecs.entity.Entity;
 
-public abstract class AbstractSingleBeanComponent<K, B extends SingleBean<K>> implements SingleBeanComponent<K, B> {
+public abstract class AbstractSingleBeanComponent<K, B extends EntityBean<K>, E extends Entity<K>>
+        extends AbstractBeanComponent<K, B, E> implements SingleBeanComponent<K, B> {
 
+    private B bean;
     private final K entityId;
-    private final Repository<B, K> repository;
 
-    protected AbstractSingleBeanComponent(K entityId) {
-        this.entityId = entityId;
-        BindRepository bindRepository = this.getClass().getAnnotation(BindRepository.class);
-        repository = Summer.getComponent(bindRepository.value());
+    protected AbstractSingleBeanComponent(E entity) {
+        super(entity);
+        entityId = entity.getId();
     }
 
     @Override
     public B getBean() {
-        return repository.get(entityId);
+        if (bean == null)
+            bean = repository.get(entityId);
+        return bean;
+    }
+
+    @Override
+    public B getOrCreate() {
+        B bean = getBean();
+        if (bean == null) {
+            bean = createBean();
+        }
+        if (bean != null) {
+            setBean(bean);
+        }
+        return bean;
     }
 
     @Override
     public void setBean(B bean) {
-        bean.setEntityId(entityId);
-        repository.add(bean);
+        B old = getBean();
+        this.bean = bean;
+        if (bean == null) {
+            removeBean();
+        } else {
+            bean.setEntityId(entityId);
+            if (old == null) {
+                repository.add(bean);
+            } else {
+                saveBean();
+            }
+        }
     }
 
     @Override
     public void removeBean() {
+        if (getBean() == null)
+            return;
         repository.removeByPrimaryKey(entityId);
     }
 
     @Override
-    public void saveBean(B bean) {
-        bean.setEntityId(entityId);
-        repository.save(bean);
+    public void saveBean() {
+        if (getBean() == null)
+            return;
+        repository.forceSave(bean);
+    }
+
+    @Override
+    public B createBean() {
+        try {
+            return repository.getEntityClass().newInstance();
+        } catch (Exception ignored) {
+
+        }
+        return null;
+    }
+
+    protected K getEntityId() {
+        return entityId;
     }
 
 }
