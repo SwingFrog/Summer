@@ -1,13 +1,15 @@
-package com.swingfrog.summer.ecs.quick;
+package com.swingfrog.summer.ecs.quick.bean;
 
+import com.swingfrog.summer.db.repository.annotation.CacheKey;
 import com.swingfrog.summer.db.repository.annotation.Column;
-import com.swingfrog.summer.db.repository.annotation.PrimaryKey;
+import com.swingfrog.summer.db.repository.annotation.IndexKey;
 import com.swingfrog.summer.ecs.bean.EntityBean;
 
-public class QuickSingleBean implements EntityBean<Long> {
+public abstract class QuickMultiBean implements EntityBean<Long> {
 
-    @PrimaryKey(auto = false)
-    @Column
+    @CacheKey
+    @IndexKey
+    @Column(readOnly = true)
     private long entityId;
 
     @Override

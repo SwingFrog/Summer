@@ -3,7 +3,7 @@ package com.swingfrog.summer.test.ecs.model;
 import com.swingfrog.summer.db.repository.annotation.Column;
 import com.swingfrog.summer.db.repository.annotation.PrimaryKey;
 import com.swingfrog.summer.db.repository.annotation.Table;
-import com.swingfrog.summer.ecs.quick.QuickMultiBean;
+import com.swingfrog.summer.ecs.quick.bean.QuickMultiBean;
 
 @Table(name = "t_test_multi_bean")
 public class TestMultiBean extends QuickMultiBean {

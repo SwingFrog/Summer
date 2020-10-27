@@ -3,7 +3,7 @@ package com.swingfrog.summer.test.ecs.component;
 import com.swingfrog.summer.annotation.Autowired;
 import com.swingfrog.summer.app.Summer;
 import com.swingfrog.summer.ecs.annotation.BindRepository;
-import com.swingfrog.summer.ecs.quick.QuickSingleBeanComponent;
+import com.swingfrog.summer.ecs.quick.component.QuickSingleBeanComponent;
 import com.swingfrog.summer.test.ecs.config.TestConfig;
 import com.swingfrog.summer.test.ecs.dao.TestSingleBeanDao;
 import com.swingfrog.summer.test.ecs.entity.TestEntity;

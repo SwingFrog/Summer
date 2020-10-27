@@ -1,4 +1,4 @@
-package com.swingfrog.summer.ecs.quick;
+package com.swingfrog.summer.ecs.quick.entity;
 
 import com.swingfrog.summer.ecs.entity.AbstractEntity;
 
