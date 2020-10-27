@@ -2,7 +2,7 @@ package com.swingfrog.summer.concurrent;
 
 import java.util.concurrent.Executor;
 
-public class SingleQueueMgr extends AbstractTokenQueue {
+public class SingleQueueMgr extends AbstractKeyQueue<Object> {
 
 	private static class SingleCase {
 		public static final SingleQueueMgr INSTANCE = new SingleQueueMgr();

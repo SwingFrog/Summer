@@ -1,5 +1,6 @@
 package com.swingfrog.summer.server;
 
+import java.util.Comparator;
 import java.util.List;
 
 import com.google.common.collect.Lists;
@@ -17,10 +18,12 @@ public class SessionHandlerGroup implements SessionHandler {
 	
 	public void addSessionHandler(SessionHandler sessionHandler) {
 		sessionHandlerList.add(sessionHandler);
+		sessionHandlerList.sort(Comparator.comparingInt(SessionHandler::priority).reversed());
 	}
 	
 	public void removeSessionHandler(SessionHandler sessionHandler) {
 		sessionHandlerList.remove(sessionHandler);
+		sessionHandlerList.sort(Comparator.comparingInt(SessionHandler::priority).reversed());
 	}
 
 	@Override

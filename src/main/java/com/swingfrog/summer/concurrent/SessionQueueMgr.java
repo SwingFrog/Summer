@@ -2,10 +2,9 @@ package com.swingfrog.summer.concurrent;
 
 import com.swingfrog.summer.server.SessionContext;
 
-import java.util.Objects;
 import java.util.concurrent.Executor;
 
-public class SessionQueueMgr extends AbstractTokenQueue {
+public class SessionQueueMgr extends AbstractKeyQueue<SessionContext> {
 
 	private static class SingleCase {
 		public static final SessionQueueMgr INSTANCE = new SessionQueueMgr();
@@ -20,47 +19,19 @@ public class SessionQueueMgr extends AbstractTokenQueue {
 	}
 
 	public void execute(SessionContext sctx, Runnable runnable) {
-		Objects.requireNonNull(sctx);
-		Objects.requireNonNull(runnable);
-		Object token = sctx.getToken();
-		if (token != null) {
-			super.execute(token, runnable);
-		} else {
-			super.execute(sctx.getSessionId(), runnable);
-		}
+		super.execute(sctx, runnable);
 	}
 
 	public void clear(SessionContext sctx) {
-		Objects.requireNonNull(sctx);
-		super.clear(sctx.getSessionId());
-		Object token = sctx.getToken();
-		if (token != null)
-			super.clear(token);
+		super.clear(sctx);
 	}
 
 	public int getQueueSize(SessionContext sctx) {
-		Objects.requireNonNull(sctx);
-		Object token = sctx.getToken();
-		if (token != null) {
-			return super.getQueueSize(token);
-		} else {
-			return super.getQueueSize(sctx.getSessionId());
-		}
+		return super.getQueueSize(sctx);
 	}
 
 	public Executor getExecutor(SessionContext sctx) {
-		Objects.requireNonNull(sctx);
-		Object token = sctx.getToken();
-		if (token != null) {
-			return super.getOrCreateQueue(token);
-		} else {
-			return super.getOrCreateQueue(sctx.getSessionId());
-		}
-	}
-
-	public Executor getExecutorByToken(Object token) {
-		Objects.requireNonNull(token);
-		return super.getOrCreateQueue(token);
+		return super.getOrCreateQueue(sctx);
 	}
 
 }

@@ -6,6 +6,10 @@ import com.swingfrog.summer.struct.AutowireParam;
 
 public interface SessionHandler {
 
+	default int priority() {
+		return 0;
+	}
+
 	default boolean accept(SessionContext ctx) {
 		return true;
 	}

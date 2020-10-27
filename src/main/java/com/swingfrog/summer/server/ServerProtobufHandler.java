@@ -2,6 +2,7 @@ package com.swingfrog.summer.server;
 
 import com.google.protobuf.Message;
 import com.swingfrog.summer.concurrent.SessionQueueMgr;
+import com.swingfrog.summer.concurrent.SessionTokenQueueMgr;
 import com.swingfrog.summer.protocol.ProtocolConst;
 import com.swingfrog.summer.protocol.protobuf.ErrorCodeProtobufBuilder;
 import com.swingfrog.summer.protocol.protobuf.Protobuf;
@@ -79,8 +80,7 @@ public class ServerProtobufHandler extends AbstractServerHandler<Protobuf> {
                     RemoteStatistics.finish(sctx, request, response.getSerializedSize());
                 }
             };
-
-            SessionQueueMgr.get().execute(sctx, runnable);
+            submitSessionQueue(sctx, runnable);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             serverContext.getSessionHandlerGroup().unableParseMsg(sctx);

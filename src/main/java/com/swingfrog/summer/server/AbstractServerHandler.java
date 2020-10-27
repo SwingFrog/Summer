@@ -2,6 +2,7 @@ package com.swingfrog.summer.server;
 
 import com.swingfrog.summer.concurrent.MatchGroupKey;
 import com.swingfrog.summer.concurrent.SessionQueueMgr;
+import com.swingfrog.summer.concurrent.SessionTokenQueueMgr;
 import com.swingfrog.summer.concurrent.SingleQueueMgr;
 import com.swingfrog.summer.ioc.ContainerMgr;
 import com.swingfrog.summer.protocol.SessionRequest;
@@ -105,7 +106,16 @@ public abstract class AbstractServerHandler<T> extends SimpleChannelInboundHandl
                 return;
             }
         }
-        SessionQueueMgr.get().execute(sctx, runnable);
+        submitSessionQueue(sctx, runnable);
+    }
+
+    protected void submitSessionQueue(SessionContext sctx, Runnable runnable) {
+        Object token = sctx.getToken();
+        if (token == null) {
+            SessionQueueMgr.get().execute(sctx, runnable);
+            return;
+        }
+        SessionTokenQueueMgr.get().execute(token, runnable);
     }
 
     @Override

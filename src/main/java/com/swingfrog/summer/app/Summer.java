@@ -10,6 +10,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 import com.google.protobuf.Message;
+import com.swingfrog.summer.concurrent.SessionTokenQueueMgr;
 import com.swingfrog.summer.db.repository.AsyncCacheRepositoryMgr;
 import com.swingfrog.summer.db.repository.RepositoryMgr;
 import com.swingfrog.summer.lifecycle.Lifecycle;
@@ -115,6 +116,7 @@ public class Summer {
 			ClientMgr.get().init();
 			EventBusMgr.get().init();
 			SessionQueueMgr.get().init(ServerMgr.get().getEventExecutor(), sessionQueueExpireTimeMs);
+			SessionTokenQueueMgr.get().init(ServerMgr.get().getEventExecutor(), sessionQueueExpireTimeMs);
 			SingleQueueMgr.get().init(ServerMgr.get().getEventExecutor(), singleQueueExpireTimeMs);
 			ContainerMgr.get().autowired();
 			ContainerMgr.get().proxyObj();
@@ -151,6 +153,7 @@ public class Summer {
 							l.stop();
 						});
 				SessionQueueMgr.get().shutdown();
+				SessionTokenQueueMgr.get().shutdown();
 				SingleQueueMgr.get().shutdown();
 				ClientMgr.get().shutdownEvent();
 				ServerMgr.get().shutdownEvent();
@@ -178,6 +181,10 @@ public class Summer {
 		SessionQueueMgr.get().execute(sctx, runnable);
 	}
 
+	public static void executeSessionToken(Object sessionToken, Runnable runnable) {
+		SessionTokenQueueMgr.get().execute(sessionToken, runnable);
+	}
+
 	public static Executor getExecutor(Object key) {
 		return SingleQueueMgr.get().getExecutor(key);
 	}
@@ -186,8 +193,8 @@ public class Summer {
 		return SessionQueueMgr.get().getExecutor(sctx);
 	}
 
-	public static Executor getSessionExecutor(Object token) {
-		return SessionQueueMgr.get().getExecutorByToken(token);
+	public static Executor getSessionTokenExecutor(Object SessionToken) {
+		return SessionTokenQueueMgr.get().getExecutor(SessionToken);
 	}
 	
 	public static void addComponent(Object obj) {
@@ -293,6 +300,10 @@ public class Summer {
 	
 	public static int getSessionQueueSize(SessionContext sctx) {
 		return SessionQueueMgr.get().getQueueSize(sctx);
+	}
+
+	public static int getSessionTokenQueueSize(Object sessionToken) {
+		return SessionTokenQueueMgr.get().getQueueSize(sessionToken);
 	}
 	
 	public static CodeException createCodeException(long code, String msg) {

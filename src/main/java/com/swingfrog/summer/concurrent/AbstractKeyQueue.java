@@ -8,9 +8,9 @@ import org.slf4j.LoggerFactory;
 import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
-public abstract class AbstractTokenQueue {
+public abstract class AbstractKeyQueue<T> {
 
-    private static final Logger log = LoggerFactory.getLogger(AbstractTokenQueue.class);
+    private static final Logger log = LoggerFactory.getLogger(AbstractKeyQueue.class);
 
     private volatile boolean active = true;
     private Executor eventExecutor;
@@ -26,7 +26,7 @@ public abstract class AbstractTokenQueue {
                 .build();
     }
 
-    protected void execute(Object key, Runnable runnable) {
+    protected void execute(T key, Runnable runnable) {
         if (!active) {
             throw new UnsupportedOperationException("token queue is shutdown.");
         }
@@ -34,7 +34,7 @@ public abstract class AbstractTokenQueue {
         log.debug("token queue execute runnable key[{}]", key);
     }
 
-    protected void clear(Object key) {
+    protected void clear(T key) {
         Objects.requireNonNull(key);
         RunnableQueue rq = queueCache.getIfPresent(key);
         if (rq == null)
@@ -43,7 +43,7 @@ public abstract class AbstractTokenQueue {
         rq.clear();
     }
 
-    protected int getQueueSize(Object key) {
+    protected int getQueueSize(T key) {
         return getOrCreateQueue(key).getSize();
     }
 
@@ -62,7 +62,7 @@ public abstract class AbstractTokenQueue {
         queueCache.invalidateAll();
     }
 
-    protected RunnableQueue getOrCreateQueue(Object key) {
+    protected RunnableQueue getOrCreateQueue(T key) {
         Objects.requireNonNull(key);
         RunnableQueue rq = queueCache.getIfPresent(key);
         if (rq == null) {

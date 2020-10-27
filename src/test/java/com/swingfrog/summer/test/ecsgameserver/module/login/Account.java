@@ -1,4 +1,4 @@
-package com.swingfrog.summer.test.ecsgameserver.login.model;
+package com.swingfrog.summer.test.ecsgameserver.module.login;
 
 import com.swingfrog.summer.db.repository.annotation.*;
 
