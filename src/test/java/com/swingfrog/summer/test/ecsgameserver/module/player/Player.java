@@ -5,6 +5,7 @@ import com.swingfrog.summer.ecs.component.Component;
 import com.swingfrog.summer.ecs.entity.AbstractAsyncEntity;
 import com.swingfrog.summer.test.ecsgameserver.module.login.Account;
 import com.swingfrog.summer.test.ecsgameserver.module.login.AccountDao;
+import com.swingfrog.summer.test.ecsgameserver.module.player.base.PlayerEvent;
 
 import java.util.concurrent.Executor;
 
@@ -38,6 +39,10 @@ public class Player extends AbstractAsyncEntity<Long> {
         if (account == null)
             return;
         accountDao.forceSave(account);
+    }
+
+    public void dispatch(String eventName, PlayerEvent playerEvent) {
+        Summer.syncDispatch(eventName, playerEvent);
     }
 
 }
