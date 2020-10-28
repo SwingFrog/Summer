@@ -1,4 +1,4 @@
-package com.swingfrog.summer.test.ecsgameserver.module.player;
+package com.swingfrog.summer.test.ecsgameserver.module.player.base;
 
 import com.swingfrog.summer.db.repository.annotation.Column;
 import com.swingfrog.summer.db.repository.annotation.PrimaryKey;

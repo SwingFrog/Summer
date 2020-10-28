@@ -2,7 +2,9 @@ package com.swingfrog.summer.test.ecsgameserver.module.login;
 
 import com.swingfrog.summer.annotation.Autowired;
 import com.swingfrog.summer.annotation.Remote;
+import com.swingfrog.summer.app.Summer;
 import com.swingfrog.summer.server.SessionContext;
+import com.swingfrog.summer.test.ecsgameserver.module.player.PlayerManager;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -11,6 +13,9 @@ public class LoginRemote {
 
     @Autowired
     private AccountDao accountDao;
+
+    @Autowired
+    private PlayerManager playerManager;
 
     public Account login(SessionContext sessionContext, String openId) {
         Account account = accountDao.get(openId);
@@ -21,6 +26,8 @@ public class LoginRemote {
             accountDao.add(account);
         }
         sessionContext.setToken(account.getId());
+        long loginTime = System.currentTimeMillis();
+        playerManager.acceptEntity(account.getId(), player -> Summer.syncDispatch(PlayerLoginEvent.ID, new PlayerLoginEvent(player, loginTime)));
         return account;
     }
 

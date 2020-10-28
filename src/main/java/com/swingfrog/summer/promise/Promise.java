@@ -1,9 +1,6 @@
 package com.swingfrog.summer.promise;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
@@ -11,6 +8,7 @@ import java.util.function.Predicate;
 
 public class Promise {
 
+    private final Integer id;
     private volatile boolean running;
     private Executor executor;
     private Consumer<Throwable> throwableConsumer;
@@ -25,10 +23,18 @@ public class Promise {
     // index, executor
     private final Map<Integer, Executor> executorMap = new HashMap<>();
 
+    public Promise() {
+        this(null);
+    }
+
+    public Promise(Integer id) {
+        this.id = id;
+    }
+
     void throwError(Throwable throwable) {
-        stop();
         if (throwableConsumer != null)
             throwableConsumer.accept(throwable);
+        stop();
     }
 
     void next() {
@@ -132,6 +138,7 @@ public class Promise {
         return this;
     }
 
+    // This method is easy to create a dead cycle, use with caution
     public Promise gotoMark(Object key) {
         checkNotRunning();
         runnableList.add(() -> {
@@ -242,6 +249,23 @@ public class Promise {
 
     public static RunnableTask newTask(Runnable runnable) {
         return new RunnableTask(runnable);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (id == null)
+            return super.equals(o);
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Promise promise = (Promise) o;
+        return Objects.equals(id, promise.id);
+    }
+
+    @Override
+    public int hashCode() {
+        if (id == null)
+            return super.hashCode();
+        return Objects.hash(id);
     }
 
 }
