@@ -28,8 +28,9 @@
 2. 新增meter包，可用于编写压测程序。
 3. 新增promise包，可用于异步有序执行。
 4. 优化SessionContextGroup，让SessionContext与Channel直接绑定。
-5. 优化SessionQueueMgr
-6. 新增ecs包，实现了简单的ECS(Entity-Component-System)架构
+5. 优化SessionQueueMgr。
+6. 新增ecs包，实现了简单的ECS(Entity-Component-System)架构。
+7. 优化RPC，在底层确保接口幂等性，所有client共用worker、event线程池。
 
 ### 2020.09.19
 1. 新增协议，支持protobuf。

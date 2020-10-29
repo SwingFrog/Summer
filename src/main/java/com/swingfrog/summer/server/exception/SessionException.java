@@ -8,5 +8,6 @@ public class SessionException {
 	public static final CodeMsg PARAMETER_ERROR = new CodeMsg(103, "parameter error");
 	public static final CodeMsg REMOTE_WAS_PROTECTED = new CodeMsg(104, "remote was protected");
 	public static final CodeMsg PROTOBUF_NOT_EXIST = new CodeMsg(105, "protobuf not exist");
+	public static final CodeMsg REPEATED_REQUEST = new CodeMsg(106, "repeated request");
 
 }

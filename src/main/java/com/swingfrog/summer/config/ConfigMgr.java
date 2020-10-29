@@ -11,6 +11,7 @@ public class ConfigMgr {
 
 	private final ServerConfig serverConfig;
 	private ServerConfig[] minorConfigs;
+	private ClientGroupConfig clientGroupConfig;
 	private ClientConfig[] clientConfigs;
 
 	private static class SingleCase {
@@ -44,6 +45,8 @@ public class ConfigMgr {
 		}
 		String clientList = pro.getProperty("server.clientList");
 		if (clientList != null && clientList.length() > 0) {
+			clientGroupConfig = new ClientGroupConfig();
+			ConfigUtil.loadDataWithBean(pro, "server.clientGroup.", clientGroupConfig);
 			String[] clients = ConfigUtil.getValueByTypeAndString(String[].class, clientList);
 			clientConfigs = new ClientConfig[clients.length];
 			for (int i = 0; i < clientConfigs.length; i ++) {
@@ -62,7 +65,11 @@ public class ConfigMgr {
 	public ServerConfig[] getMinorConfigs() {
 		return minorConfigs;
 	}
-	
+
+	public ClientGroupConfig getClientGroupConfig() {
+		return clientGroupConfig;
+	}
+
 	public ClientConfig[] getClientConfigs() {
 		return clientConfigs;
 	}

@@ -4,9 +4,12 @@ import java.lang.reflect.*;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ScheduledFuture;
 
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.swingfrog.summer.util.JSONConvertUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +29,7 @@ public class PushDispatchMgr {
 	private final Map<String, PushClass> pushClassMap;
 	private final ConcurrentMap<Long, SessionResponse> syncRemote;
 	private final ConcurrentMap<Long, RemoteCallback> asyncRemote;
-	private final ConcurrentMap<Long, Boolean> syncRemoteDiscard;
+	private final Set<Long> syncRemoteDiscard;
 	
 	private static class SingleCase {
 		public static final PushDispatchMgr INSTANCE = new PushDispatchMgr();
@@ -36,7 +39,7 @@ public class PushDispatchMgr {
 		pushClassMap = Maps.newHashMap();
 		syncRemote = Maps.newConcurrentMap();
 		asyncRemote = Maps.newConcurrentMap();
-		syncRemoteDiscard = Maps.newConcurrentMap();
+		syncRemoteDiscard = Sets.newConcurrentHashSet();
 	}
 	
 	public static PushDispatchMgr get() {
@@ -119,10 +122,17 @@ public class PushDispatchMgr {
 	public void processRemote(SessionResponse sessionResponse) {
 		log.debug("client response {}", sessionResponse.toJSONString());
 		if (asyncRemote.containsKey(sessionResponse.getId())) {
+			ScheduledFuture<?> scheduledFuture = ClientMgr.get().getFutureMap().remove(sessionResponse.getId());
+			if (scheduledFuture != null) {
+				scheduledFuture.cancel(false);
+			}
+			RemoteCallback remoteCallback = asyncRemote.remove(sessionResponse.getId());
+			if (remoteCallback == null) {
+				return;
+			}
 			if (sessionResponse.getCode() != 0) {
-				asyncRemote.remove(sessionResponse.getId()).failure(sessionResponse.getCode(), sessionResponse.getData().toString());
+				remoteCallback.failure(sessionResponse.getCode(), sessionResponse.getData().toString());
 			} else {
-				RemoteCallback remoteCallback = asyncRemote.remove(sessionResponse.getId());
 				if (remoteCallback instanceof RemoteCallbackQuick) {
 					RemoteCallbackQuick<?> remoteCallbackQuick = (RemoteCallbackQuick<?>) remoteCallback;
 					remoteCallbackQuick.success(parseData(sessionResponse.getData(), parseClass(remoteCallbackQuick)));
@@ -131,10 +141,10 @@ public class PushDispatchMgr {
 				}
 			}
 		} else {
-			if (syncRemoteDiscard.get(sessionResponse.getId()) == null) {	
-				syncRemote.put(sessionResponse.getId(), sessionResponse);
-			} else {
+			if (syncRemoteDiscard.remove(sessionResponse.getId())) {
 				log.warn("client discard response id[{}]", sessionResponse.getId());
+			} else {
+				syncRemote.put(sessionResponse.getId(), sessionResponse);
 			}
 		}
 	}
@@ -220,12 +230,16 @@ public class PushDispatchMgr {
 	public void putAsyncRemote(long id, RemoteCallback callback) {
 		asyncRemote.put(id, callback);
 	}
+
+	public boolean containsAsyncRemote(long id) {
+		return asyncRemote.containsKey(id);
+	}
 	
 	public SessionResponse getAndRemoveSyncRemote(long id) {
 		return syncRemote.remove(id);
 	}
-	
+
 	public void discardSyncRemote(long id) {
-		syncRemoteDiscard.put(id, true);
+		syncRemoteDiscard.add(id);
 	}
 }

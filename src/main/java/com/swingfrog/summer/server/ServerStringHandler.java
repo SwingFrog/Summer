@@ -1,7 +1,9 @@
 package com.swingfrog.summer.server;
 
+import com.google.common.collect.Sets;
 import com.swingfrog.summer.protocol.ProtocolConst;
 import com.swingfrog.summer.server.async.ProcessResult;
+import com.swingfrog.summer.server.rpc.RpcClientConst;
 import com.swingfrog.summer.statistics.RemoteStatistics;
 import com.swingfrog.summer.struct.AutowireParam;
 import io.netty.channel.Channel;
@@ -14,6 +16,8 @@ import com.swingfrog.summer.protocol.SessionResponse;
 import com.swingfrog.summer.server.exception.CodeException;
 import com.swingfrog.summer.server.exception.SessionException;
 import com.swingfrog.summer.server.rpc.RpcClientMgr;
+
+import java.util.Set;
 
 public class ServerStringHandler extends AbstractServerHandler<String> {
 	
@@ -31,6 +35,8 @@ public class ServerStringHandler extends AbstractServerHandler<String> {
 		} else if (msg.startsWith(ProtocolConst.RPC)) {
 			String[] msgs = msg.split(ProtocolConst.RPC_SPLIT);
 			RpcClientMgr.get().add(sctx, msgs[1], msgs[2]);
+			Set<Long> requestResult = Sets.newConcurrentHashSet();
+			sctx.put(RpcClientConst.SESSION_KEY_REQUEST_RESULT, requestResult);
 			return;
 		}
 		try {
@@ -55,6 +61,17 @@ public class ServerStringHandler extends AbstractServerHandler<String> {
 					return;
 				}
 				try {
+					if (sctx.containsKey(RpcClientConst.SESSION_KEY_REQUEST_RESULT)) {
+						Set<Long> requestResult = sctx.get(RpcClientConst.SESSION_KEY_REQUEST_RESULT);
+						if (!requestResult.add(request.getId())) {
+							String response = SessionResponse.buildError(request, SessionException.REPEATED_REQUEST).toJSONString();
+							log.debug("server response error {} to {}", response, sctx);
+							writeResponse(channel, sctx, response);
+							RemoteStatistics.finish(sctx, request, response.length());
+							return;
+						}
+					}
+
 					ProcessResult<SessionResponse> processResult = RemoteDispatchMgr.get().process(serverContext, request, sctx, autowireParam);
 					if (processResult.isAsync()) {
 						return;

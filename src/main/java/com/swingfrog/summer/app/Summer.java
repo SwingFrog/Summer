@@ -11,6 +11,7 @@ import java.util.function.Supplier;
 
 import com.google.protobuf.Message;
 import com.swingfrog.summer.concurrent.SessionTokenQueueMgr;
+import com.swingfrog.summer.config.ClientConfig;
 import com.swingfrog.summer.db.repository.AsyncCacheRepositoryMgr;
 import com.swingfrog.summer.db.repository.RepositoryMgr;
 import com.swingfrog.summer.lifecycle.Lifecycle;
@@ -113,7 +114,12 @@ public class Summer {
 			TaskMgr.get().init(taskProperties);
 			ContainerMgr.get().init(projectPackage);
 			ServerMgr.get().init();
-			ClientMgr.get().init();
+
+			ClientConfig[] configs = ConfigMgr.get().getClientConfigs();
+			boolean hasClient = configs != null && configs.length > 0;
+			if (hasClient)
+				ClientMgr.get().init();
+
 			EventBusMgr.get().init();
 			SessionQueueMgr.get().init(ServerMgr.get().getEventExecutor(), sessionQueueExpireTimeMs);
 			SessionTokenQueueMgr.get().init(ServerMgr.get().getEventExecutor(), sessionQueueExpireTimeMs);
@@ -137,7 +143,10 @@ public class Summer {
 			app.start();
 			Runtime.getRuntime().addShutdownHook(new Thread(()-> {
 				log.info("summer shutdown...");
-				ClientMgr.get().shutdown();
+
+				if (hasClient)
+					ClientMgr.get().shutdown();
+
 				ServerMgr.get().shutdown();
 				try {
 					TaskMgr.get().shutdownAll();
@@ -155,7 +164,10 @@ public class Summer {
 				SessionQueueMgr.get().shutdown();
 				SessionTokenQueueMgr.get().shutdown();
 				SingleQueueMgr.get().shutdown();
-				ClientMgr.get().shutdownEvent();
+
+				if (hasClient)
+					ClientMgr.get().shutdownEvent();
+
 				ServerMgr.get().shutdownEvent();
 				EventBusMgr.get().shutdown();
 				AsyncCacheRepositoryMgr.get().shutdown();

@@ -64,9 +64,9 @@ public class ClientStringHandler extends SimpleChannelInboundHandler<String> {
 		try {
 			SessionResponse response = JSON.parseObject(msg, SessionResponse.class);
 			if (response.getId() == 0) {
-				clientContext.getPushExecutor().execute(()-> PushDispatchMgr.get().processPush(response));
+				ClientMgr.get().getEventExecutor(clientContext.getId()).execute(() -> PushDispatchMgr.get().processPush(response));
 			} else {
-				clientContext.getEventExecutor().execute(()-> PushDispatchMgr.get().processRemote(response));
+				ClientMgr.get().getEventExecutor(clientContext.getId()).execute(() -> PushDispatchMgr.get().processRemote(response));
 			}
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);

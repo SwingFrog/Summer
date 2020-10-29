@@ -2,8 +2,8 @@ package com.swingfrog.summer.client;
 
 import com.swingfrog.summer.protocol.ProtocolConst;
 import com.swingfrog.summer.task.TaskTrigger;
-import com.swingfrog.summer.util.ThreadCountUtil;
 import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
 import org.quartz.SchedulerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,13 +15,7 @@ import com.swingfrog.summer.task.TaskUtil;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.util.concurrent.DefaultThreadFactory;
-
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 public class Client {
 
@@ -32,7 +26,7 @@ public class Client {
 	private final TaskTrigger checkHeartTask;
 	private volatile boolean active;
 	
-	public Client(int id, ClientConfig config) {
+	public Client(int id, ClientConfig config, EventLoopGroup workerGroup) {
 		log.info("client cluster {}", config.getCluster());
 		log.info("client serverName {}", config.getServerName());
 		log.info("client address {}", config.getAddress());
@@ -40,18 +34,13 @@ public class Client {
 		log.info("client protocol {}", config.getProtocol());
 		log.info("client charset {}", config.getCharset());
 		log.info("client password {}", config.getPassword());
-		log.info("client workerThread {}", config.getWorkerThread());
-		log.info("client eventThread {}", config.getEventThread());
 		log.info("client msgLength {}", config.getMsgLength());
 		log.info("client heartSec {}", config.getHeartSec());
 		log.info("client reconnectMs {}", config.getReconnectMs());
 		log.info("client syncRemoteTimeOutMs {}", config.getSyncRemoteTimeOutMs());
 		log.info("client connectNum {}", config.getConnectNum());
-		workerGroup = new NioEventLoopGroup(config.getWorkerThread(), new DefaultThreadFactory("ClientWorker_" + config.getServerName()));
-		clientContext = new ClientContext(config,
-				this,
-				Executors.newFixedThreadPool(ThreadCountUtil.cpuDenseness(config.getEventThread()), new DefaultThreadFactory("ClientEvent_" + config.getServerName())),
-				Executors.newSingleThreadExecutor(new DefaultThreadFactory("ClientPush_" + config.getServerName())));
+		this.workerGroup = workerGroup;
+		clientContext = new ClientContext(id, config, this);
 		clientRemote = new ClientRemote(clientContext);
 
 		long intervalTime = clientContext.getConfig().getHeartSec() * 1000;
@@ -98,30 +87,6 @@ public class Client {
 		try {
 			TaskMgr.get().stop(checkHeartTask);
 		} catch (Exception e) {
-			log.error(e.getMessage(), e);
-		}
-		try {
-			workerGroup.shutdownGracefully().sync();
-		} catch (InterruptedException e) {
-			log.error(e.getMessage(), e);
-		}
-	}
-
-	public void shutdownEvent() {
-		clientContext.getEventExecutor().shutdown();
-		try {
-			while (!clientContext.getEventExecutor().isTerminated()) {
-				clientContext.getEventExecutor().awaitTermination(1, TimeUnit.SECONDS);
-			}
-		} catch (InterruptedException e){
-			log.error(e.getMessage(), e);
-		}
-		clientContext.getPushExecutor().shutdown();
-		try {
-			while (!clientContext.getPushExecutor().isTerminated()) {
-				clientContext.getPushExecutor().awaitTermination(1, TimeUnit.SECONDS);
-			}
-		} catch (InterruptedException e){
 			log.error(e.getMessage(), e);
 		}
 	}

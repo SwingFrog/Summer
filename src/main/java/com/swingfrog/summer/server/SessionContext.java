@@ -111,6 +111,10 @@ public class SessionContext {
 		return data;
 	}
 
+	public boolean containsKey(Object key) {
+		return data.containsKey(key);
+	}
+
 	public void put(Object key, Object value) {
 		data.put(key, value);
 	}

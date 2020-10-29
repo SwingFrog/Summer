@@ -2,10 +2,15 @@ package com.swingfrog.summer.client;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 
 import com.google.common.collect.Maps;
+import com.swingfrog.summer.config.ClientGroupConfig;
+import com.swingfrog.summer.util.ThreadCountUtil;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.util.concurrent.DefaultThreadFactory;
 import org.quartz.SchedulerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +28,11 @@ public class ClientMgr {
 	private final Map<String, ClientCluster> nameToCluster;
 	private final ConcurrentMap<Class<?>, Object> remoteMap;
 	private final AtomicLong currentId = new AtomicLong(0);
+	private final ScheduledExecutorService executor;
+	private final ConcurrentMap<Long, ScheduledFuture<?>> futureMap;
+
+	private EventLoopGroup workerGroup;
+	private ExecutorService[] eventExecutors;
 	
 	private static class SingleCase {
 		public static final ClientMgr INSTANCE = new ClientMgr();
@@ -31,6 +41,8 @@ public class ClientMgr {
 	private ClientMgr() {
 		nameToCluster = Maps.newHashMap();
 		remoteMap = Maps.newConcurrentMap();
+		executor = Executors.newScheduledThreadPool(1, new DefaultThreadFactory("ClientAsyncRemoteCheck"));
+		futureMap = Maps.newConcurrentMap();
 	}
 	
 	public static ClientMgr get() {
@@ -39,8 +51,18 @@ public class ClientMgr {
 	
 	public void init() throws NotFoundException {
 		log.info("client init...");
+		ClientGroupConfig clientGroupConfig = ConfigMgr.get().getClientGroupConfig();
+		log.info("client workerThread {}", clientGroupConfig.getWorkerThread());
+		log.info("client eventThread {}", clientGroupConfig.getEventThread());
 		ClientConfig[] configs = ConfigMgr.get().getClientConfigs();
-		if (configs != null) {
+		if (configs != null && configs.length > 0) {
+			workerGroup = new NioEventLoopGroup(clientGroupConfig.getWorkerThread(),
+					new DefaultThreadFactory("ClientWorker"));
+			int count = ThreadCountUtil.cpuDenseness(clientGroupConfig.getEventThread());
+			eventExecutors = new ExecutorService[count];
+			for (int i = 0; i < count; i++) {
+				eventExecutors[i] = Executors.newSingleThreadExecutor(new DefaultThreadFactory("ClientEvent_" + i));
+			}
 			log.info("client count {}", configs.length);
 			for (ClientConfig config : configs) {
 				ClientCluster clientCluster = nameToCluster.get(config.getCluster());
@@ -51,7 +73,7 @@ public class ClientMgr {
 				}
 				ClientGroup clientGroup = new ClientGroup();
 				for (int j = 0; j < config.getConnectNum(); j++) {
-					clientGroup.addClient(new Client(j, config));
+					clientGroup.addClient(new Client(j, config, workerGroup));
 				}
 				clientCluster.addClient(config.getServerName(), clientGroup);
 			}
@@ -83,16 +105,22 @@ public class ClientMgr {
 				}
 			}
 		}
+		try {
+			workerGroup.shutdownGracefully().sync();
+		} catch (InterruptedException e) {
+			log.error(e.getMessage(), e);
+		}
 	}
 
 	public void shutdownEvent() {
-		if (nameToCluster.size() > 0) {
-			log.info("clients shutdown event...");
-			for (ClientCluster clientCluster : nameToCluster.values()) {
-				List<Client> clients = clientCluster.listClients();
-				for (Client client : clients) {
-					client.shutdownEvent();
+		for (ExecutorService eventExecutor : eventExecutors) {
+			eventExecutor.shutdown();
+			try {
+				while (!eventExecutor.isTerminated()) {
+					eventExecutor.awaitTermination(1, TimeUnit.SECONDS);
 				}
+			} catch (InterruptedException e){
+				log.error(e.getMessage(), e);
 			}
 		}
 	}
@@ -178,4 +206,17 @@ public class ClientMgr {
 	long incrementCurrentId() {
 		return currentId.incrementAndGet();
 	}
+
+	ScheduledExecutorService getAsyncRemoteCheckExecutor() {
+		return executor;
+	}
+
+	ConcurrentMap<Long, ScheduledFuture<?>> getFutureMap() {
+		return futureMap;
+	}
+
+	Executor getEventExecutor(int clientId) {
+		return eventExecutors[clientId % eventExecutors.length];
+	}
+
 }

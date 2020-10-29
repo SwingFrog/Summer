@@ -157,7 +157,7 @@ public class RemoteProtobufDispatchMgr {
         private final String[] params;
         private final Parameter[] parameters;
         private int messageIndex = -1;
-        private int messageId;
+        private final int messageId;
         public RemoteMethod(RemoteClass remoteClass, Method method, MethodParameterName mpn) throws Exception {
             this.remoteClass = remoteClass;
             this.method = method;

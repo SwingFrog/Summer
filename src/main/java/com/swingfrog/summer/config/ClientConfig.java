@@ -16,10 +16,6 @@ public class ClientConfig {
 	private String charset;
 	/**秘钥*/
 	private String password;
-	/**读写线程数*/
-	private int workerThread;
-	/**业务线程数*/
-	private int eventThread;
 	/**消息长度*/
 	private int msgLength;
 	/**心跳时间*/
@@ -73,18 +69,6 @@ public class ClientConfig {
 	public void setPassword(String password) {
 		this.password = password;
 	}
-	public int getWorkerThread() {
-		return workerThread;
-	}
-	public void setWorkerThread(int workerThread) {
-		this.workerThread = workerThread;
-	}
-	public int getEventThread() {
-		return eventThread;
-	}
-	public void setEventThread(int eventThread) {
-		this.eventThread = eventThread;
-	}
 	public int getMsgLength() {
 		return msgLength;
 	}
@@ -117,11 +101,19 @@ public class ClientConfig {
 	}
 	@Override
 	public String toString() {
-		return "ClientConfig [cluster=" + cluster + ", serverName=" + serverName + ", address=" + address + ", port="
-				+ port + ", protocol=" + protocol + ", charset=" + charset + ", password=" + password
-				+ ", workerThread=" + workerThread + ", eventThread=" + eventThread + ", msgLength=" + msgLength
-				+ ", heartSec=" + heartSec + ", reconnectMs=" + reconnectMs + ", syncRemoteTimeOutMs="
-				+ syncRemoteTimeOutMs + ", connectNum=" + connectNum + "]";
+		return "ClientConfig{" +
+				"cluster='" + cluster + '\'' +
+				", serverName='" + serverName + '\'' +
+				", address='" + address + '\'' +
+				", port=" + port +
+				", protocol='" + protocol + '\'' +
+				", charset='" + charset + '\'' +
+				", password='" + password + '\'' +
+				", msgLength=" + msgLength +
+				", heartSec=" + heartSec +
+				", reconnectMs=" + reconnectMs +
+				", syncRemoteTimeOutMs=" + syncRemoteTimeOutMs +
+				", connectNum=" + connectNum +
+				'}';
 	}
-	
 }

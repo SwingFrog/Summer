@@ -1,6 +1,7 @@
 package com.swingfrog.summer.client;
 
 import java.lang.reflect.Type;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,8 +29,7 @@ public class ClientRemote {
 		if (remoteCallback == null) {
 			throw new NullPointerException("remoteCallback is null");
 		}
-		SessionRequest sessionRequest = SessionRequest.buildRemote(
-				ClientMgr.get().incrementCurrentId(), remote, method, data);
+		SessionRequest sessionRequest = SessionRequest.buildRemote(ClientMgr.get().incrementCurrentId(), remote, method, data);
 		PushDispatchMgr.get().putAsyncRemote(sessionRequest.getId(), remoteCallback);
 		if (clientContext.getChannel() != null) {
 			String msg = sessionRequest.toJSONString();
@@ -39,20 +39,45 @@ public class ClientRemote {
 			clientContext.getRequestQueue().add(sessionRequest);
 		}
 	}
+
+	public void retryAsyncRemote(String remote, String method, Object data, RemoteCallback remoteCallback, long afterTimeRetry, TimeUnit unit) {
+		if (remoteCallback == null) {
+			throw new NullPointerException("remoteCallback is null");
+		}
+		SessionRequest sessionRequest = SessionRequest.buildRemote(ClientMgr.get().incrementCurrentId(), remote, method, data);
+		String msg = sessionRequest.toJSONString();
+		PushDispatchMgr.get().putAsyncRemote(sessionRequest.getId(), remoteCallback);
+		if (clientContext.getChannel() != null) {
+			log.debug("client request serverName[{}] retry async {}", clientContext.getConfig().getServerName(), msg);
+			clientContext.getChannel().writeAndFlush(msg);
+		}
+		addAsyncRemoteTimeoutTask(sessionRequest.getId(), msg, afterTimeRetry, unit);
+	}
+
+	private void addAsyncRemoteTimeoutTask(long id, String msg, long afterTimeRetry, TimeUnit unit) {
+		ClientMgr.get().getAsyncRemoteCheckExecutor().schedule(() -> {
+			if (!PushDispatchMgr.get().containsAsyncRemote(id)) {
+				ClientMgr.get().getFutureMap().remove(id);
+				return;
+			}
+			if (clientContext.getChannel() != null) {
+				log.debug("client request serverName[{}] retry async {}", clientContext.getConfig().getServerName(), msg);
+				clientContext.getChannel().writeAndFlush(msg);
+			}
+			addAsyncRemoteTimeoutTask(id, msg, afterTimeRetry, unit);
+		}, afterTimeRetry, unit);
+	}
 	
 	@SuppressWarnings("unchecked")
-	public <T> T syncRemote(String remote, String method, Object data, Type type) {
+	private <T> T sendSyncRemote(long id, String msg, String remote, String method, Type type) {
 		try {
 			int count = 0;
 			while (true) {
 				if (clientContext.getChannel() != null) {
-					SessionRequest sessionRequest = SessionRequest.buildRemote(
-							ClientMgr.get().incrementCurrentId(), remote, method, data);
-					String msg = sessionRequest.toJSONString();
 					log.debug("client request serverName[{}] sync {}", clientContext.getConfig().getServerName(), msg);
 					clientContext.getChannel().writeAndFlush(msg);
 					while (true) {
-						SessionResponse sessionResponse = PushDispatchMgr.get().getAndRemoveSyncRemote(sessionRequest.getId());
+						SessionResponse sessionResponse = PushDispatchMgr.get().getAndRemoveSyncRemote(id);
 						if (sessionResponse != null) {
 							if (sessionResponse.getCode() != 0) {
 								throw new CodeException(sessionResponse.getCode(), sessionResponse.getData().toString());
@@ -81,7 +106,6 @@ public class ClientRemote {
 						Thread.sleep(1);
 						count ++;
 						if (count > clientContext.getConfig().getSyncRemoteTimeOutMs()) {
-							PushDispatchMgr.get().discardSyncRemote(sessionRequest.getId());
 							throw new SyncRemoteTimeOutException(remote, method);
 						}
 					}
@@ -98,10 +122,23 @@ public class ClientRemote {
 		return null;
 	}
 
+	public <T> T syncRemote(String remote, String method, Object data, Type type) {
+		SessionRequest sessionRequest = SessionRequest.buildRemote(ClientMgr.get().incrementCurrentId(), remote, method, data);
+		String msg = sessionRequest.toJSONString();
+		try {
+			return sendSyncRemote(sessionRequest.getId(), msg, remote, method, type);
+		} catch (SyncRemoteTimeOutException e) {
+			PushDispatchMgr.get().discardSyncRemote(sessionRequest.getId());
+			throw e;
+		}
+	}
+
 	public <T> T rsyncRemote(String remote, String method, Object data, Type type) {
-		while (true) {
+		SessionRequest sessionRequest = SessionRequest.buildRemote(ClientMgr.get().incrementCurrentId(), remote, method, data);
+		String msg = sessionRequest.toJSONString();
+		for (;;) {
 			try {				
-				return syncRemote(remote, method, data, type);
+				return sendSyncRemote(sessionRequest.getId(), msg, remote, method, type);
 			} catch (SyncRemoteTimeOutException e) {
 				log.error(e.getMessage(), e);
 			}
