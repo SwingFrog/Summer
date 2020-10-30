@@ -1,9 +1,10 @@
 package com.swingfrog.summer.test.ecsgameserver.module.login;
 
 import com.swingfrog.summer.db.repository.annotation.*;
+import com.swingfrog.summer.ecs.bean.Bean;
 
 @Table
-public class Account {
+public class Account implements Bean<Long> {
 
     @PrimaryKey
     @Column
@@ -60,6 +61,16 @@ public class Account {
                 ", name='" + name + '\'' +
                 ", level=" + level +
                 '}';
+    }
+
+    @Override
+    public Long getEntityId() {
+        return id;
+    }
+
+    @Override
+    public void setEntityId(Long aLong) {
+        id = aLong;
     }
 
 }

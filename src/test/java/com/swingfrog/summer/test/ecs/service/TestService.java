@@ -5,7 +5,7 @@ import com.swingfrog.summer.lifecycle.Lifecycle;
 import com.swingfrog.summer.lifecycle.LifecycleInfo;
 import com.swingfrog.summer.test.ecs.component.TestAllBeanComponent;
 import com.swingfrog.summer.test.ecs.component.TestMultiBeanComponent;
-import com.swingfrog.summer.test.ecs.component.TestSingleBeanComponent;
+import com.swingfrog.summer.test.ecs.component.TestBeanComponent;
 import com.swingfrog.summer.test.ecs.entity.TestBEntity;
 import com.swingfrog.summer.test.ecs.entity.TestEntity;
 import com.swingfrog.summer.test.ecs.model.TestAllBean;
@@ -24,7 +24,7 @@ public class TestService implements Lifecycle {
     @Override
     public void start() {
         TestEntity testEntity = new TestEntity(100L);
-        TestSingleBeanComponent singleBeanComponent = testEntity.getComponent(TestSingleBeanComponent.class);
+        TestBeanComponent singleBeanComponent = testEntity.getComponent(TestBeanComponent.class);
         TestMultiBeanComponent multiBeanComponent = testEntity.getComponent(TestMultiBeanComponent.class);
         TestAllBeanComponent allBeanComponent = testEntity.getComponent(TestAllBeanComponent.class);
 
@@ -35,7 +35,7 @@ public class TestService implements Lifecycle {
 
         IntStream.rangeClosed(1, 10).forEach(i -> {
             TestMultiBean testMultiBean = new TestMultiBean();
-            testMultiBean.setContent("A " + i);;
+            testMultiBean.setContent("A " + i);
             multiBeanComponent.addBean(testMultiBean);
 
             TestAllBean testAllBean = new TestAllBean();

@@ -17,7 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.swingfrog.summer.annotation.base.AutowiredManager;
-import com.swingfrog.summer.annotation.base.Component;
+import com.swingfrog.summer.annotation.base.ComponentManager;
 import com.swingfrog.summer.annotation.base.MethodParameter;
 import com.swingfrog.summer.annotation.base.QueueManager;
 import com.swingfrog.summer.annotation.base.SynchronizedManager;
@@ -74,6 +74,11 @@ public class ContainerMgr {
 	}
 
 	private void analysis(Class<?> clazz, Class<?> anno) throws InstantiationException, IllegalAccessException {
+		if (anno.isAnnotationPresent(Component.class)) {
+			log.info("register component {}", clazz.getSimpleName());
+			map.put(clazz, clazz.newInstance());
+			analysis(clazz, Component.class);
+		}
 		if (anno.isAnnotationPresent(Bean.class)) {
 			log.info("register bean {}", clazz.getSimpleName());
 			map.put(clazz, clazz.newInstance());
@@ -139,7 +144,7 @@ public class ContainerMgr {
 		if (anno.isAnnotationPresent(AutowiredManager.class)) {
 			autowiredList.add(clazz);
 		} 
-		if (anno.isAnnotationPresent(Component.class)) {
+		if (anno.isAnnotationPresent(ComponentManager.class)) {
 			componentSet.add(clazz);
 		} 
 		if (anno.isAnnotationPresent(MethodParameter.class)) {

@@ -3,9 +3,9 @@ package com.swingfrog.summer.test.ecsgameserver.module.player.base;
 import com.swingfrog.summer.db.repository.annotation.CacheKey;
 import com.swingfrog.summer.db.repository.annotation.Column;
 import com.swingfrog.summer.db.repository.annotation.IndexKey;
-import com.swingfrog.summer.ecs.bean.EntityBean;
+import com.swingfrog.summer.ecs.bean.Bean;
 
-public class PlayerMultiBean implements EntityBean<Long> {
+public class PlayerMultiBean implements Bean<Long> {
 
     @CacheKey
     @IndexKey

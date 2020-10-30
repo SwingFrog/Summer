@@ -1,6 +1,6 @@
 package com.swingfrog.summer.ecs.bean;
 
-public interface EntityBean<K> {
+public interface Bean<K> {
 
     K getEntityId();
     void setEntityId(K k);

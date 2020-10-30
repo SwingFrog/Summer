@@ -2,10 +2,10 @@ package com.swingfrog.summer.test.ecs.model;
 
 import com.swingfrog.summer.db.repository.annotation.Column;
 import com.swingfrog.summer.db.repository.annotation.Table;
-import com.swingfrog.summer.ecs.quick.bean.QuickSingleBean;
+import com.swingfrog.summer.ecs.quick.bean.QuickBean;
 
 @Table(name = "t_test_single_bean")
-public class TestSingleBean extends QuickSingleBean {
+public class TestBean extends QuickBean {
 
     @Column
     private String content;

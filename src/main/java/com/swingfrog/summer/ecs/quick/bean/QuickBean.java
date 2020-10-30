@@ -2,9 +2,9 @@ package com.swingfrog.summer.ecs.quick.bean;
 
 import com.swingfrog.summer.db.repository.annotation.Column;
 import com.swingfrog.summer.db.repository.annotation.PrimaryKey;
-import com.swingfrog.summer.ecs.bean.EntityBean;
+import com.swingfrog.summer.ecs.bean.Bean;
 
-public class QuickSingleBean implements EntityBean<Long> {
+public class QuickBean implements Bean<Long> {
 
     @PrimaryKey(auto = false)
     @Column

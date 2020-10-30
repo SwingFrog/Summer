@@ -3,26 +3,26 @@ package com.swingfrog.summer.test.ecs.component;
 import com.swingfrog.summer.annotation.Autowired;
 import com.swingfrog.summer.app.Summer;
 import com.swingfrog.summer.ecs.annotation.BindRepository;
-import com.swingfrog.summer.ecs.quick.component.QuickSingleBeanComponent;
+import com.swingfrog.summer.ecs.quick.component.QuickBeanComponent;
 import com.swingfrog.summer.test.ecs.config.TestConfig;
-import com.swingfrog.summer.test.ecs.dao.TestSingleBeanDao;
+import com.swingfrog.summer.test.ecs.dao.TestBeanDao;
 import com.swingfrog.summer.test.ecs.entity.TestEntity;
-import com.swingfrog.summer.test.ecs.model.TestSingleBean;
+import com.swingfrog.summer.test.ecs.model.TestBean;
 
-@BindRepository(TestSingleBeanDao.class)
-public class TestSingleBeanComponent extends QuickSingleBeanComponent<TestSingleBean, TestEntity> {
+@BindRepository(TestBeanDao.class)
+public class TestBeanComponent extends QuickBeanComponent<TestBean, TestEntity> {
 
     @Autowired
     private TestConfig testConfig;
 
-    public TestSingleBeanComponent(TestEntity entity) {
+    public TestBeanComponent(TestEntity entity) {
         super(entity);
         Summer.autowired(this);
     }
 
     @Override
-    protected TestSingleBean createBean() {
-        TestSingleBean bean = new TestSingleBean();
+    protected TestBean createBean() {
+        TestBean bean = new TestBean();
         bean.setContent(testConfig.getContent());
         return bean;
     }

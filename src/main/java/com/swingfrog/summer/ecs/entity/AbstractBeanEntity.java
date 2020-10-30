@@ -1,23 +1,28 @@
-package com.swingfrog.summer.ecs.component;
+package com.swingfrog.summer.ecs.entity;
 
-import com.swingfrog.summer.ecs.bean.EntityBean;
-import com.swingfrog.summer.ecs.entity.Entity;
+import com.swingfrog.summer.app.Summer;
+import com.swingfrog.summer.db.repository.Repository;
+import com.swingfrog.summer.ecs.EcsRuntimeException;
+import com.swingfrog.summer.ecs.annotation.BindRepository;
+import com.swingfrog.summer.ecs.bean.Bean;
 
-public abstract class AbstractSingleBeanComponent<K, B extends EntityBean<K>, E extends Entity<K>>
-        extends AbstractBeanComponent<K, B, E> implements SingleBeanComponent<K, B, E> {
+public abstract class AbstractBeanEntity<K, B extends Bean<K>> extends AbstractEntity<K> implements BeanEntity<K, B> {
 
+    private final Repository<B, K> repository;
     private B bean;
-    private final K entityId;
 
-    public AbstractSingleBeanComponent(E entity) {
-        super(entity);
-        entityId = entity.getId();
+    public AbstractBeanEntity(K id) {
+        super(id);
+        BindRepository bindRepository = this.getClass().getAnnotation(BindRepository.class);
+        if (bindRepository == null)
+            throw new EcsRuntimeException("not found @BindRepository -> %s", this.getClass().getName());
+        repository = Summer.getComponent(bindRepository.value());
     }
 
     @Override
     public B getBean() {
         if (bean == null)
-            bean = repository.get(entityId);
+            bean = repository.get(getId());
         return bean;
     }
 
@@ -40,7 +45,7 @@ public abstract class AbstractSingleBeanComponent<K, B extends EntityBean<K>, E 
         if (bean == null) {
             removeBean();
         } else {
-            bean.setEntityId(entityId);
+            bean.setEntityId(getId());
             if (old == null) {
                 repository.add(bean);
             } else {
@@ -53,7 +58,7 @@ public abstract class AbstractSingleBeanComponent<K, B extends EntityBean<K>, E 
     public void removeBean() {
         if (getBean() == null)
             return;
-        repository.removeByPrimaryKey(entityId);
+        repository.removeByPrimaryKey(getId());
         bean = null;
     }
 

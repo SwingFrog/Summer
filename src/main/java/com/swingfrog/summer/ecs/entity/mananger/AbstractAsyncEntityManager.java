@@ -1,12 +1,12 @@
 package com.swingfrog.summer.ecs.entity.mananger;
 
-import com.swingfrog.summer.ecs.entity.AbstractAsyncEntity;
+import com.swingfrog.summer.ecs.entity.AsyncEntity;
 import com.swingfrog.summer.promise.Promise;
 import com.swingfrog.summer.promise.PromiseValueConsumer;
 
 import java.util.function.Consumer;
 
-public abstract class AbstractAsyncEntityManager<K, E extends AbstractAsyncEntity<K>> extends AbstractEntityManager<K, E> {
+public abstract class AbstractAsyncEntityManager<K, E extends AsyncEntity<K>> extends AbstractEntityManager<K, E> {
 
     public Promise.ConsumerTask promiseEntity(K entityId, PromiseValueConsumer<E> consumer) {
         E entity = getEntity(entityId);
