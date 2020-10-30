@@ -28,9 +28,6 @@ public class TestService implements Lifecycle {
         TestMultiBeanComponent multiBeanComponent = testEntity.getComponent(TestMultiBeanComponent.class);
         TestAllBeanComponent allBeanComponent = testEntity.getComponent(TestAllBeanComponent.class);
 
-        TestBEntity testBEntity = new TestBEntity(101L);
-        //singleBeanComponent = testBEntity.getComponent(TestSingleBeanComponent.class); // 不能获取非TestBEntity的Component
-
         System.out.println(singleBeanComponent.getOrCreate());
 
         IntStream.rangeClosed(1, 10).forEach(i -> {
@@ -49,6 +46,11 @@ public class TestService implements Lifecycle {
         singleBeanComponent.removeBean();
         multiBeanComponent.removeAllBean();
         allBeanComponent.removeAllBean();
+
+        TestBEntity testBEntity = new TestBEntity(101L);
+        //singleBeanComponent = testBEntity.getComponent(TestSingleBeanComponent.class); // 不能获取非TestBEntity的Component
+        System.out.println(testBEntity.getOrCreate().getContent());
+        testBEntity.removeBean();
     }
 
     @Override

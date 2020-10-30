@@ -31,9 +31,9 @@ public abstract class AbstractBeanEntity<K, B extends Bean<K>> extends AbstractE
         B bean = getBean();
         if (bean == null) {
             bean = createBean();
-        }
-        if (bean != null) {
-            setBean(bean);
+            if (bean != null) {
+                setBean(bean);
+            }
         }
         return bean;
     }

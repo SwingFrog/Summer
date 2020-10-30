@@ -26,9 +26,9 @@ public abstract class AbstractBeanComponent<K, B extends Bean<K>, E extends Enti
         B bean = getBean();
         if (bean == null) {
             bean = createBean();
-        }
-        if (bean != null) {
-            setBean(bean);
+            if (bean != null) {
+                setBean(bean);
+            }
         }
         return bean;
     }
