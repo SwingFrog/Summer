@@ -6,7 +6,7 @@ import java.util.List;
 
 public interface AllBeanComponent <K, B, E extends Entity<K>> extends Component<K, E> {
 
-    List<B> listAllBean();
+    List<B> listBean();
     void addBean(B bean);
     void removeBean(B bean);
     void removeBeanId(K beanId);

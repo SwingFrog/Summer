@@ -8,7 +8,7 @@ import com.swingfrog.summer.server.exception.CodeMsg;
 
 public class SessionResponse {
 
-	private long code;
+	private int code;
 	private long id;
 	private String remote;
 	private String method;
@@ -39,7 +39,7 @@ public class SessionResponse {
 		return buildMsg(req.getId(), req.getRemote(), req.getMethod(), data);
 	}
 
-	public static SessionResponse buildError(long id, String remote, String method, long code, String msg) {
+	public static SessionResponse buildError(long id, String remote, String method, int code, String msg) {
 		SessionResponse sr = new SessionResponse();
 		sr.setCode(code);
 		sr.setId(id);
@@ -66,7 +66,7 @@ public class SessionResponse {
 		return buildError(req.getId(), req.getRemote(), req.getMethod(), e);
 	}
 
-	public static SessionResponse buildError(SessionRequest req, long code, String msg) {
+	public static SessionResponse buildError(SessionRequest req, int code, String msg) {
 		return buildError(req.getId(), req.getRemote(), req.getMethod(), code, msg);
 	}
 	
@@ -74,10 +74,10 @@ public class SessionResponse {
 		return JSON.toJSONString(this);
 	}
 
-	public long getCode() {
+	public int getCode() {
 		return code;
 	}
-	public void setCode(long code) {
+	public void setCode(int code) {
 		this.code = code;
 	}
 	public long getId() {

@@ -7,7 +7,7 @@ import com.swingfrog.summer.server.exception.CodeMsg;
 
 public class ErrorCodeProtobufBuilder {
 
-    public static Message build(int reqId, long code, String msg) {
+    public static Message build(int reqId, int code, String msg) {
         return CommonProto.ErrorCode_Resp_1
                 .newBuilder()
                 .setReqId(reqId)

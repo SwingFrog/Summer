@@ -10,4 +10,8 @@ public abstract class PlayerEvent {
         this.player = player;
     }
 
+    public Player getPlayer() {
+        return player;
+    }
+
 }

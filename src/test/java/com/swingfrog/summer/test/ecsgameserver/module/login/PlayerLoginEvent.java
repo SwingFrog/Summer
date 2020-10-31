@@ -5,7 +5,7 @@ import com.swingfrog.summer.test.ecsgameserver.module.player.base.PlayerEvent;
 
 public class PlayerLoginEvent extends PlayerEvent {
 
-    public static final String ID = PlayerLoginEvent.class.getSimpleName();
+    public static final String ID = "PlayerLoginEvent";
 
     private final long loginTime;
 

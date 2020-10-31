@@ -121,7 +121,7 @@ public class AsyncResponseMgr {
         }
     }
 
-    public void sendErrorResponse(SessionContext sctx, SessionRequest request, long code, String msg) {
+    public void sendErrorResponse(SessionContext sctx, SessionRequest request, int code, String msg) {
         Server server = ServerMgr.get().findServer(sctx);
         if (server == null) {
             log.error("Async send response failure. cause: can't found server by session context");
@@ -150,7 +150,7 @@ public class AsyncResponseMgr {
         RemoteStatistics.finish(sctx, request, response.getSerializedSize());
     }
 
-    public void sendErrorResponse(SessionContext sctx, ProtobufRequest request, long code, String msg) {
+    public void sendErrorResponse(SessionContext sctx, ProtobufRequest request, int code, String msg) {
         Server server = ServerMgr.get().findServer(sctx);
         if (server == null) {
             log.error("Async send response failure. cause: can't found server by session context");

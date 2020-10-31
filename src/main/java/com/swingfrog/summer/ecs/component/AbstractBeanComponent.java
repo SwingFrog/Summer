@@ -22,7 +22,7 @@ public abstract class AbstractBeanComponent<K, B extends Bean<K>, E extends Enti
     }
 
     @Override
-    public B getOrCreate() {
+    public B getOrCreateBean() {
         B bean = getBean();
         if (bean == null) {
             bean = createBean();

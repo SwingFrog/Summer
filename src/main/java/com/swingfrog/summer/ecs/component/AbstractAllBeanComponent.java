@@ -12,7 +12,7 @@ public abstract class AbstractAllBeanComponent<K, B, E extends Entity<K>>
     }
 
     @Override
-    public List<B> listAllBean() {
+    public List<B> listBean() {
         return repository.list();
     }
 
@@ -33,7 +33,7 @@ public abstract class AbstractAllBeanComponent<K, B, E extends Entity<K>>
 
     @Override
     public void removeAllBean() {
-        listAllBean().forEach(repository::remove);
+        listBean().forEach(repository::remove);
     }
 
     @Override

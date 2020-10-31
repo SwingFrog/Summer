@@ -932,10 +932,10 @@ public final class CommonProto {
     int getReqId();
 
     /**
-     * <code>int64 code = 2;</code>
+     * <code>int32 code = 2;</code>
      * @return The code.
      */
-    long getCode();
+    int getCode();
 
     /**
      * <code>string msg = 3;</code>
@@ -1002,7 +1002,7 @@ public final class CommonProto {
             }
             case 16: {
 
-              code_ = input.readInt64();
+              code_ = input.readInt32();
               break;
             }
             case 26: {
@@ -1055,13 +1055,13 @@ public final class CommonProto {
     }
 
     public static final int CODE_FIELD_NUMBER = 2;
-    private long code_;
+    private int code_;
     /**
-     * <code>int64 code = 2;</code>
+     * <code>int32 code = 2;</code>
      * @return The code.
      */
     @java.lang.Override
-    public long getCode() {
+    public int getCode() {
       return code_;
     }
 
@@ -1120,8 +1120,8 @@ public final class CommonProto {
       if (reqId_ != 0) {
         output.writeInt32(1, reqId_);
       }
-      if (code_ != 0L) {
-        output.writeInt64(2, code_);
+      if (code_ != 0) {
+        output.writeInt32(2, code_);
       }
       if (!getMsgBytes().isEmpty()) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 3, msg_);
@@ -1139,9 +1139,9 @@ public final class CommonProto {
         size += com.google.protobuf.CodedOutputStream
           .computeInt32Size(1, reqId_);
       }
-      if (code_ != 0L) {
+      if (code_ != 0) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt64Size(2, code_);
+          .computeInt32Size(2, code_);
       }
       if (!getMsgBytes().isEmpty()) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, msg_);
@@ -1181,8 +1181,7 @@ public final class CommonProto {
       hash = (37 * hash) + REQID_FIELD_NUMBER;
       hash = (53 * hash) + getReqId();
       hash = (37 * hash) + CODE_FIELD_NUMBER;
-      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-          getCode());
+      hash = (53 * hash) + getCode();
       hash = (37 * hash) + MSG_FIELD_NUMBER;
       hash = (53 * hash) + getMsg().hashCode();
       hash = (29 * hash) + unknownFields.hashCode();
@@ -1320,7 +1319,7 @@ public final class CommonProto {
         super.clear();
         reqId_ = 0;
 
-        code_ = 0L;
+        code_ = 0;
 
         msg_ = "";
 
@@ -1404,7 +1403,7 @@ public final class CommonProto {
         if (other.getReqId() != 0) {
           setReqId(other.getReqId());
         }
-        if (other.getCode() != 0L) {
+        if (other.getCode() != 0) {
           setCode(other.getCode());
         }
         if (!other.getMsg().isEmpty()) {
@@ -1471,33 +1470,33 @@ public final class CommonProto {
         return this;
       }
 
-      private long code_ ;
+      private int code_ ;
       /**
-       * <code>int64 code = 2;</code>
+       * <code>int32 code = 2;</code>
        * @return The code.
        */
       @java.lang.Override
-      public long getCode() {
+      public int getCode() {
         return code_;
       }
       /**
-       * <code>int64 code = 2;</code>
+       * <code>int32 code = 2;</code>
        * @param value The code to set.
        * @return This builder for chaining.
        */
-      public Builder setCode(long value) {
+      public Builder setCode(int value) {
         
         code_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>int64 code = 2;</code>
+       * <code>int32 code = 2;</code>
        * @return This builder for chaining.
        */
       public Builder clearCode() {
         
-        code_ = 0L;
+        code_ = 0;
         onChanged();
         return this;
       }
@@ -1656,7 +1655,7 @@ public final class CommonProto {
     java.lang.String[] descriptorData = {
       "\n\014common.proto\"\021\n\017HeartBeat_Req_0\" \n\020Hea" +
       "rtBeat_Resp_0\022\014\n\004time\030\001 \001(\003\"<\n\020ErrorCode" +
-      "_Resp_1\022\r\n\005reqId\030\001 \001(\005\022\014\n\004code\030\002 \001(\003\022\013\n\003" +
+      "_Resp_1\022\r\n\005reqId\030\001 \001(\005\022\014\n\004code\030\002 \001(\005\022\013\n\003" +
       "msg\030\003 \001(\tB;\n,com.swingfrog.summer.protoc" +
       "ol.protobuf.protoB\013CommonProtob\006proto3"
     };

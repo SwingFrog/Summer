@@ -9,7 +9,7 @@ public interface BeanComponent<K, B extends Bean<K>, E extends Entity<K>> extend
 
     @Nullable
     B getBean();
-    B getOrCreate();
+    B getOrCreateBean();
     void setBean(B bean);
     void removeBean();
     void saveBean();

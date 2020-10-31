@@ -318,7 +318,7 @@ public class Summer {
 		return SessionTokenQueueMgr.get().getQueueSize(sessionToken);
 	}
 	
-	public static CodeException createCodeException(long code, String msg) {
+	public static CodeException createCodeException(int code, String msg) {
 		return new CodeException(code, msg);
 	}
 	
@@ -326,7 +326,7 @@ public class Summer {
 		return new CodeException(msg, args);
 	}
 	
-	public static CodeMsg createCodeMsg(long code, String msg) {
+	public static CodeMsg createCodeMsg(int code, String msg) {
 		return new CodeMsg(code, msg);
 	}
 	
@@ -370,7 +370,11 @@ public class Summer {
 		AsyncResponseMgr.get().sendResponse(sctx, request, data);
 	}
 
-	public static void asyncResponse(SessionContext sctx, SessionRequest request, long code, String msg) {
+	public static void asyncResponse(SessionContext sctx, SessionRequest request) {
+		AsyncResponseMgr.get().sendResponse(sctx, request, null);
+	}
+
+	public static void asyncResponse(SessionContext sctx, SessionRequest request, int code, String msg) {
 		AsyncResponseMgr.get().sendErrorResponse(sctx, request, code, msg);
 	}
 
@@ -382,7 +386,7 @@ public class Summer {
 		AsyncResponseMgr.get().sendResponse(sctx, request, response);
 	}
 
-	public static void asyncResponse(SessionContext sctx, ProtobufRequest request, long code, String msg) {
+	public static void asyncResponse(SessionContext sctx, ProtobufRequest request, int code, String msg) {
 		AsyncResponseMgr.get().sendErrorResponse(sctx, request, code, msg);
 	}
 	

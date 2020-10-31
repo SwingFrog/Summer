@@ -31,6 +31,7 @@
 5. 优化SessionQueueMgr。
 6. 新增ecs包，实现了简单的ECS(Entity-Component-System)架构。
 7. 优化RPC，在底层确保接口幂等性，所有client共用worker、event线程池。
+8. CodeMsg、CodeException中的code由long调整为int。
 
 ### 2020.09.19
 1. 新增协议，支持protobuf。

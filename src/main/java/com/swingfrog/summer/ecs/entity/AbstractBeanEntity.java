@@ -27,7 +27,7 @@ public abstract class AbstractBeanEntity<K, B extends Bean<K>> extends AbstractE
     }
 
     @Override
-    public B getOrCreate() {
+    public B getOrCreateBean() {
         B bean = getBean();
         if (bean == null) {
             bean = createBean();

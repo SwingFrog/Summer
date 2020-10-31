@@ -8,7 +8,7 @@ public interface BeanEntity<K, B extends Bean<K>> extends Entity<K> {
 
     @Nullable
     B getBean();
-    B getOrCreate();
+    B getOrCreateBean();
     void setBean(B bean);
     void removeBean();
     void saveBean();

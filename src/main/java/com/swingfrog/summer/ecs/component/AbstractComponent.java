@@ -6,7 +6,7 @@ public abstract class AbstractComponent<K, E extends Entity<K>> implements Compo
 
     private final E entity;
 
-    protected AbstractComponent(E entity) {
+    public AbstractComponent(E entity) {
         this.entity = entity;
     }
 

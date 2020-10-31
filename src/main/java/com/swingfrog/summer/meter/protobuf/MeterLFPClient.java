@@ -27,6 +27,7 @@ public abstract class MeterLFPClient extends AbstractMeterProtobufClient {
     @Override
     public void syncConnect(URI uri, EventLoopGroup group) throws Exception {
         RespProtobufMgr.get().registerMessage(ProtocolConst.PROTOBUF_HEART_BEAT_REQ_ID, CommonProto.HeartBeat_Resp_0.getDefaultInstance());
+        RespProtobufMgr.get().registerMessage(ProtocolConst.PROTOBUF_ERROR_CODE_RESP_ID, CommonProto.ErrorCode_Resp_1.getDefaultInstance());
 
         ClientHandler clientHandler = new ClientHandler();
         Bootstrap bootstrap = new Bootstrap();

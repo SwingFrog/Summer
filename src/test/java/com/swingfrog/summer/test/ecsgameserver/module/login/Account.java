@@ -12,14 +12,17 @@ public class Account implements Bean<Long> {
 
     @IndexKey
     @CacheKey
-    @Column
+    @Column(readOnly = true)
     private String openId;
 
     @Column
     private String name;
 
     @Column
-    private int level;
+    private long loginTime;
+
+    @Column
+    private String loginAddress;
 
     public long getId() {
         return id;
@@ -45,22 +48,20 @@ public class Account implements Bean<Long> {
         this.name = name;
     }
 
-    public int getLevel() {
-        return level;
+    public long getLoginTime() {
+        return loginTime;
     }
 
-    public void setLevel(int level) {
-        this.level = level;
+    public void setLoginTime(long loginTime) {
+        this.loginTime = loginTime;
     }
 
-    @Override
-    public String toString() {
-        return "Account{" +
-                "id=" + id +
-                ", openId='" + openId + '\'' +
-                ", name='" + name + '\'' +
-                ", level=" + level +
-                '}';
+    public String getLoginAddress() {
+        return loginAddress;
+    }
+
+    public void setLoginAddress(String loginAddress) {
+        this.loginAddress = loginAddress;
     }
 
     @Override
