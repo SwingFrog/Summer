@@ -1,11 +1,11 @@
 package com.swingfrog.summer.test.ecsgameserver.module.player.team;
 
-import com.google.common.collect.Queues;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.swingfrog.summer.annotation.Autowired;
 import com.swingfrog.summer.annotation.Remote;
 import com.swingfrog.summer.app.Summer;
-import com.swingfrog.summer.promise.PromiseFuture;
+import com.swingfrog.summer.promise.Promise;
 import com.swingfrog.summer.protocol.SessionRequest;
 import com.swingfrog.summer.server.SessionContext;
 import com.swingfrog.summer.server.async.AsyncResponse;
@@ -16,7 +16,7 @@ import com.swingfrog.summer.test.ecsgameserver.module.player.PlayerManager;
 import com.swingfrog.summer.test.ecsgameserver.module.team.TeamData;
 import com.swingfrog.summer.test.ecsgameserver.module.team.TeamManager;
 
-import java.util.Queue;
+import java.util.List;
 
 @Remote
 public class PlayerTeamRemote {
@@ -86,21 +86,22 @@ public class PlayerTeamRemote {
         int RESULT = 0;
         promiseManager.createPlayerPromise(player, ctx, req)
                 .then(teamManager.promiseEntity(teamId, (context, team) -> {
-                    Queue<String> list = Queues.newConcurrentLinkedQueue();
+                    List<String> list = Lists.newArrayList();
                     context.put(RESULT, list);
                     TeamData teamData = team.getBean();
                     if (teamData == null)
                         return;
-                    teamData.getMemberPlayerIds().forEach(memberPlayerId -> {
-                        PromiseFuture future = context.waitFuture();
-                        playerManager.promiseEntity(memberPlayerId, memberPlayer -> {
-                            list.add(memberPlayer.getName());
-                            future.success();
-                        });
-                    });
+                    context.waitFuture();
+                    Promise member = promiseManager.createPromise();
+                    teamData.getMemberPlayerIds().forEach(memberPlayerId ->
+                            member.then(playerManager.promiseEntity(memberPlayerId, memberPlayer ->
+                                    list.add(memberPlayer.getName()))));
+                    member.then(context::successFuture)
+                            .setCatch(context::failureFuture)
+                            .start();
                 }))
                 .then(context -> {
-                    Queue<String> list = context.get(RESULT);
+                    List<String> list = context.get(RESULT);
                     Summer.asyncResponse(ctx, req, list);
                 })
                 .start();
