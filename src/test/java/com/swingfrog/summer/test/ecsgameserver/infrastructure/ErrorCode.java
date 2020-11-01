@@ -12,6 +12,7 @@ public enum ErrorCode {
 
     TEAM_NOT_EXIST(12000, "team not exist"),
     TEAM_JOIN_ALREADY(12001, "team join already"),
+    TEAM_NOT_JOIN(12002, "team not join"),
     ;
 
     private final CodeMsg codeMsg;

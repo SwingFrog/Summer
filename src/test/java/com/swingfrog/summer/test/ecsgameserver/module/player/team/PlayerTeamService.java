@@ -18,11 +18,26 @@ public class PlayerTeamService {
         throw Summer.createCodeException(ErrorCode.TEAM_JOIN_ALREADY.getCodeMsg());
     }
 
+    public long checkOrGetJoinTeamId(Player player) {
+        PlayerTeamComponent component = player.getComponent(PlayerTeamComponent.class);
+        PlayerTeam bean = component.getBean();
+        if (bean != null && bean.getTeamId() != 0)
+            return bean.getTeamId();
+        throw Summer.createCodeException(ErrorCode.TEAM_NOT_JOIN.getCodeMsg());
+    }
+
     public void joinTeam(Player player, long teamId) {
         PlayerTeamComponent component = player.getComponent(PlayerTeamComponent.class);
         PlayerTeam bean = component.getOrCreateBean();
         bean.setTeamId(teamId);
         bean.setJoinTime(System.currentTimeMillis());
+        component.saveBean();
+    }
+
+    public void exitTeam(Player player) {
+        PlayerTeamComponent component = player.getComponent(PlayerTeamComponent.class);
+        PlayerTeam bean = component.getOrCreateBean();
+        bean.setTeamId(0);
         component.saveBean();
     }
 

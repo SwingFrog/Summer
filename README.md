@@ -23,7 +23,7 @@
 
 ## 更新说明
 
-### 2020.x
+### 2020.10.31
 1. 异步请求远程接口增加RemoteCallbackQuick接口，可用于接收响应的数据。
 2. 新增meter包，可用于编写压测程序。
 3. 新增promise包，可用于异步有序执行。
@@ -145,7 +145,7 @@ Redis 5.0 (仅供参考)<br/>
     <dependency>
         <groupId>com.swingfrog.summer</groupId>
         <artifactId>summer</artifactId>
-        <version>1.1.0</version>
+        <version>1.1.2</version>
     </dependency>
 ```
 

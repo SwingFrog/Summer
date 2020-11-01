@@ -30,4 +30,11 @@ public class Player extends AbstractAsyncBeanEntity<Long, Account> {
         Summer.syncDispatch(eventName, playerEvent);
     }
 
+    public String getName() {
+        Account account = getBean();
+        if (account == null)
+            return "ERROR";
+        return account.getName();
+    }
+
 }

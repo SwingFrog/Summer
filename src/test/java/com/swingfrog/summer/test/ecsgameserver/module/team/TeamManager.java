@@ -31,4 +31,8 @@ public class TeamManager extends AbstractAsyncEntityManager<Long, Team> {
             throw Summer.createCodeException(ErrorCode.TEAM_NOT_EXIST.getCodeMsg());
     }
 
+    public void addTeamData(TeamData teamData) {
+        teamDataDao.add(teamData);
+    }
+
 }
