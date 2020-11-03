@@ -2,29 +2,28 @@ package com.swingfrog.summer.db.repository;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Queues;
-import com.google.common.collect.Sets;
 import com.swingfrog.summer.db.DaoRuntimeException;
-import com.swingfrog.summer.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public abstract class AsyncCacheRepositoryDao<T, K> extends CacheRepositoryDao<T, K> {
 
     private static final Logger log = LoggerFactory.getLogger(AsyncCacheRepositoryDao.class);
-    private static final String PREFIX = "AsyncCacheRepositoryDao";
     private final ConcurrentLinkedQueue<Change<T, K>> waitChange = Queues.newConcurrentLinkedQueue();
     private final ConcurrentMap<K, Save<T, K>> waitSave = Maps.newConcurrentMap();
-    private final Set<K> waitAdd = Sets.newConcurrentHashSet();
+    private final ConcurrentMap<K, Long> waitAdd = Maps.newConcurrentMap();
+    private final ConcurrentMap<K, Long> waitRemove = Maps.newConcurrentMap();
+    private final AtomicLong changeVersion = new AtomicLong();
     long delayTime;
 
     protected abstract long delayTime();
@@ -49,9 +48,9 @@ public abstract class AsyncCacheRepositoryDao<T, K> extends CacheRepositoryDao<T
             while (!waitChange.isEmpty()) {
                 Change<T, K> change = waitChange.poll();
                 if (change.add) {
-                    delayAdd(change.obj, change.pk);
+                    delayAdd(change.obj, change.pk, change.version);
                 } else {
-                    delayRemove(change.pk);
+                    delayRemove(change.pk, change.version);
                 }
             }
             delaySave(force);
@@ -61,14 +60,22 @@ public abstract class AsyncCacheRepositoryDao<T, K> extends CacheRepositoryDao<T
         }
     }
 
-    private void delayAdd(T obj, K primaryKey) {
-        if (waitAdd.remove(primaryKey)) {
-            super.addByPrimaryKeyNotAddCache(obj, primaryKey);
-        }
+    private void delayAdd(T obj, K primaryKey, long version) {
+        Long currentVersion = waitAdd.get(primaryKey);
+        if (currentVersion == null)
+            return;
+        if (currentVersion != version)
+            return;
+        super.addByPrimaryKeyNotAddCache(obj, primaryKey);
     }
 
-    private void delayRemove(K pk) {
-        super.removeByPrimaryKeyNotRemoveCache(pk);
+    private void delayRemove(K primaryKey, long version) {
+        Long currentVersion = waitRemove.get(primaryKey);
+        if (currentVersion == null)
+            return;
+        if (currentVersion != version)
+            return;
+        super.removeByPrimaryKeyNotRemoveCache(primaryKey);
     }
 
     private void delaySave(boolean force) {
@@ -88,35 +95,40 @@ public abstract class AsyncCacheRepositoryDao<T, K> extends CacheRepositoryDao<T
 
     @SuppressWarnings("unchecked")
     @Override
-    public boolean add(T obj) {
+    public T add(T obj) {
+        Objects.requireNonNull(obj);
         super.autoIncrementPrimaryKey(obj);
         K primaryKey = (K) TableValueBuilder.getPrimaryKeyValue(getTableMeta(), obj);
-        super.addCache(primaryKey, obj);
-        waitAdd.add(primaryKey);
-        waitChange.add(new Change<>(obj, primaryKey));
-        return true;
+        T old = super.addCacheIfAbsent(primaryKey, obj);
+        if (old != null)
+            return old;
+        long version = changeVersion.incrementAndGet();
+        waitAdd.put(primaryKey, version);
+        waitChange.add(new Change<>(obj, primaryKey, version));
+        return obj;
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public boolean remove(T obj) {
+        Objects.requireNonNull(obj);
         return removeByPrimaryKey((K) TableValueBuilder.getPrimaryKeyValue(getTableMeta(), obj));
     }
 
     @Override
     public boolean removeByPrimaryKey(K primaryKey) {
+        Objects.requireNonNull(primaryKey);
         super.removeCacheByPrimaryKey(primaryKey);
-        if (waitAdd.remove(primaryKey)) {
-            return true;
-        }
-        waitChange.add(new Change<>(primaryKey));
+        long version = changeVersion.incrementAndGet();
+        waitRemove.put(primaryKey, version);
+        waitChange.add(new Change<>(primaryKey, version));
         return true;
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public boolean save(T obj) {
-        Objects.requireNonNull(obj, "async cache repository save param not null");
+        Objects.requireNonNull(obj);
         K pk = (K) TableValueBuilder.getPrimaryKeyValue(getTableMeta(), obj);
         T newObj = get(pk);
         if (obj != newObj) {
@@ -129,13 +141,14 @@ public abstract class AsyncCacheRepositoryDao<T, K> extends CacheRepositoryDao<T
 
     @Override
     public void save(Collection<T> objs) {
+        Objects.requireNonNull(objs);
         objs.forEach(this::save);
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public void forceSave(T obj) {
-        Objects.requireNonNull(obj, "async cache repository force save param not null");
+        Objects.requireNonNull(obj);
         K pk = (K) TableValueBuilder.getPrimaryKeyValue(getTableMeta(), obj);
         forceAddCache(pk, obj);
         waitSave.computeIfAbsent(pk, k -> new Save<>(obj, pk, System.currentTimeMillis()));
@@ -143,15 +156,12 @@ public abstract class AsyncCacheRepositoryDao<T, K> extends CacheRepositoryDao<T
 
     @Override
     public T getOrCreate(K primaryKey, Supplier<T> supplier) {
+        Objects.requireNonNull(primaryKey);
+        Objects.requireNonNull(supplier);
         T entity = get(primaryKey);
         if (entity == null) {
-            synchronized (StringUtil.getString(PREFIX, getTableMeta().getName(), "getOrCreate", primaryKey)) {
-                entity = get(primaryKey);
-                if (entity == null) {
-                    entity = supplier.get();
-                    add(entity);
-                }
-            }
+            entity = supplier.get();
+            entity = add(entity);
         }
         return entity;
     }
@@ -160,14 +170,17 @@ public abstract class AsyncCacheRepositoryDao<T, K> extends CacheRepositoryDao<T
         T obj;
         K pk;
         boolean add;
-        Change(T obj, K pk) {
+        long version;
+        Change(T obj, K pk, long version) {
             this.obj = obj;
             this.pk = pk;
             this.add = true;
+            this.version = version;
         }
-        Change(K pk) {
+        Change(K pk, long version) {
             this.pk = pk;
             this.add = false;
+            this.version = version;
         }
     }
 
@@ -182,7 +195,7 @@ public abstract class AsyncCacheRepositoryDao<T, K> extends CacheRepositoryDao<T
         }
     }
 
-    public boolean syncAdd(T obj) {
+    public T syncAdd(T obj) {
         return super.add(obj);
     }
 

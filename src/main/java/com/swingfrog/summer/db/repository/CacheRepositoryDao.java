@@ -7,7 +7,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.swingfrog.summer.db.DaoRuntimeException;
-import com.swingfrog.summer.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,7 +20,6 @@ public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
 
     private static final Logger log = LoggerFactory.getLogger(CacheRepositoryDao.class);
 
-    private static final String PREFIX = "CacheRepositoryDao";
     private T EMPTY;
     private Cache<K, T> cache;
     private final Map<String, Cache<Object, Set<K>>> cachePkMap = Maps.newHashMap();
@@ -70,51 +68,52 @@ public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
     }
 
     @Override
-    protected boolean addNotAutoIncrement(T obj) {
-        boolean ok = super.addNotAutoIncrement(obj);
-        if (ok) {
-            addCache(obj);
-        } else {
+    protected T addNotAutoIncrement(T obj) {
+        T old = addCacheIfAbsent(obj);
+        if (old != null && old != EMPTY)
+            return old;
+        T result = super.addNotAutoIncrement(obj);
+        if (result == null) {
             log.error("CacheRepository addNotAutoIncrement failure.");
             log.error(obj.toString());
         }
-        return ok;
+        return result;
     }
 
     @Override
-    protected boolean addByPrimaryKey(T obj, K primaryKey) {
-        boolean ok = super.addByPrimaryKey(obj, primaryKey);
-        if (ok) {
-            addCache(primaryKey, obj);
-        } else {
+    protected T addByPrimaryKey(T obj, K primaryKey) {
+        T old = addCacheIfAbsent(obj);
+        if (old != null && old != EMPTY)
+            return old;
+        T result = super.addByPrimaryKey(obj, primaryKey);
+        if (result == null) {
             log.error("CacheRepository addByPrimaryKey failure.");
             log.error("{} {}", obj.toString(), primaryKey.toString());
         }
-        return ok;
+        return result;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public boolean add(T obj) {
-        boolean ok = super.add(obj);
-        if (ok) {
-            addCache(obj);
-        } else {
+    public T add(T obj) {
+        Objects.requireNonNull(obj);
+        super.autoIncrementPrimaryKey(obj);
+        T old = addCacheIfAbsent(obj);
+        if (old != null && old != EMPTY)
+            return old;
+        T result = super.addByPrimaryKey(obj, (K) TableValueBuilder.getPrimaryKeyValue(getTableMeta(), obj));
+        if (result == null) {
             log.error("CacheRepository add failure.");
             log.error(obj.toString());
         }
-        return ok;
+        return result;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public boolean remove(T obj) {
-        boolean ok = super.remove(obj);
-        if (ok) {
-            removeCache(obj);
-        } else {
-            log.error("CacheRepository remove failure.");
-            log.error(obj.toString());
-        }
-        return ok;
+        Objects.requireNonNull(obj);
+        return removeByPrimaryKey((K) TableValueBuilder.getPrimaryKeyValue(getTableMeta(), obj));
     }
 
     @Override
@@ -131,36 +130,33 @@ public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
 
     @Override
     public boolean save(T obj) {
+        Objects.requireNonNull(obj);
         return super.save(obj);
     }
 
     @Override
     public void save(Collection<T> objs) {
+        Objects.requireNonNull(objs);
         super.save(objs);
     }
 
     @Override
     public void forceSave(T obj) {
-        Objects.requireNonNull(obj, "cache repository force save param not null");
+        Objects.requireNonNull(obj);
         forceAddCache(obj);
         super.save(obj);
     }
 
     @Override
     public T get(K primaryKey) {
+        Objects.requireNonNull(primaryKey);
         T obj = cache.getIfPresent(primaryKey);
         if (obj == null) {
-            synchronized (StringUtil.getString(PREFIX, getTableMeta().getName(), "get", primaryKey)) {
-                obj = cache.getIfPresent(primaryKey);
-                if (obj == null) {
-                    obj = super.get(primaryKey);
-                    if (obj != null) {
-                        addCache(primaryKey, obj);
-                    } else {
-                        addCache(primaryKey, EMPTY);
-                    }
-                }
-            }
+            obj = super.get(primaryKey);
+            obj = obj != null ? obj : EMPTY;
+            T old = addCacheIfAbsent(primaryKey, obj);
+            if (old != null)
+                obj = old;
         }
         if (obj == EMPTY) {
             return null;
@@ -170,21 +166,20 @@ public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
 
     @Override
     public T getOrCreate(K primaryKey, Supplier<T> supplier) {
+        Objects.requireNonNull(primaryKey);
+        Objects.requireNonNull(supplier);
         T entity = get(primaryKey);
         if (entity == null) {
-            synchronized (StringUtil.getString(PREFIX, getTableMeta().getName(), "getOrCreate", primaryKey)) {
-                entity = get(primaryKey);
-                if (entity == null) {
-                    entity = supplier.get();
-                    add(entity);
-                }
-            }
+            entity = supplier.get();
+            entity = add(entity);
         }
         return entity;
     }
 
     @Override
     public List<T> list(String field, Object value) {
+        Objects.requireNonNull(field);
+        Objects.requireNonNull(value);
         if (getTableMeta().getCacheKeys().contains(getTableMeta().getColumnMetaMap().get(field))) {
             return listPrimaryValueByCacheKey(field, value).stream().map(this::get).filter(Objects::nonNull).collect(Collectors.toList());
         }
@@ -193,17 +188,24 @@ public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
 
     @Override
     public List<T> list(Map<String, Object> optional) {
-        LinkedList<Set<K>> pkList = Lists.newLinkedList();
-        Map<String, Object> normal = Maps.newHashMap();
-        optional.forEach((key, value) -> {
+        Objects.requireNonNull(optional);
+        LinkedList<Set<K>> pkList = null;
+        Map<String, Object> normal = null;
+        for (Map.Entry<String, Object> entry : optional.entrySet()) {
+            String key = entry.getKey();
+            Object value = entry.getValue();
             if (getTableMeta().getCacheKeys().contains(getTableMeta().getColumnMetaMap().get(key))) {
+                if (pkList == null)
+                    pkList = Lists.newLinkedList();
                 pkList.add(listPrimaryValueByCacheKey(key, value));
             } else {
+                if (normal == null)
+                    normal = Maps.newHashMap();
                 normal.put(key, value);
             }
-        });
+        }
         List<T> list;
-        if (pkList.isEmpty()) {
+        if (pkList == null || pkList.isEmpty()) {
             super.listPrimaryKey(optional).forEach(this::get);
             list = cache.asMap().values().stream()
                     .filter(obj -> obj != EMPTY)
@@ -213,20 +215,21 @@ public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
                 list = pkList.getFirst().stream().map(this::get).filter(Objects::nonNull).collect(Collectors.toList());
             } else {
                 Set<K> first = Sets.newHashSet(pkList.removeFirst());
+                LinkedList<Set<K>> finalPkList = pkList;
                 first.removeIf(obj -> {
-                    for (Set<K> pk : pkList) {
-                        if (!pk.contains(obj)) {
+                    for (Set<K> pk : finalPkList) {
+                        if (!pk.contains(obj))
                             return true;
-                        }
                     }
                     return false;
                 });
                 list = first.stream().map(this::get).filter(Objects::nonNull).collect(Collectors.toList());
             }
         }
-        if (normal.size() > 0) {
+        if (normal != null && normal.size() > 0) {
+            Map<String, Object> finalNormal = normal;
             list = list.stream().filter(obj -> {
-                for (Map.Entry<String, Object> entry : normal.entrySet()) {
+                for (Map.Entry<String, Object> entry : finalNormal.entrySet()) {
                     if (!TableValueBuilder.isEqualsColumnValue(getTableMeta().getColumnMetaMap().get(entry.getKey()), obj, entry.getValue())) {
                         return false;
                     }
@@ -240,14 +243,9 @@ public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
     @Override
     public List<T> list() {
         long time = System.currentTimeMillis();
-        if (time - expireTime >= findAllTime.get()) {
-            synchronized (StringUtil.getString(PREFIX, getTableMeta().getName(), "list")) {
-                if (time - expireTime >= findAllTime.get()) {
-                    listPrimaryKey().forEach(this::get);
-                }
-            }
+        if (time - expireTime >= findAllTime.getAndSet(time)) {
+            listPrimaryKey().forEach(this::get);
         }
-        findAllTime.set(time);
         return cache.asMap().keySet().stream()
                 .map(this::get)
                 .filter(Objects::nonNull)
@@ -256,20 +254,20 @@ public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
 
     @Override
     public List<T> listSingleCache(Object value) {
+        Objects.requireNonNull(value);
         return list(getSingeCacheField(), value);
     }
 
     protected Set<K> listPrimaryValueByCacheKey(String column, Object cacheValue) {
+        Objects.requireNonNull(column);
+        Objects.requireNonNull(cacheValue);
         Cache<Object, Set<K>> cachePk = cachePkMap.get(column);
         Set<K> pkSet = cachePk.getIfPresent(cacheValue);
         if (cachePkFinishMap.get(column).getIfPresent(cacheValue) == null || pkSet == null) {
-            synchronized (StringUtil.getString(PREFIX, getTableMeta().getName(), "CacheKey", column, cacheValue)) {
-                pkSet = cachePk.getIfPresent(cacheValue);
-                if (pkSet == null) {
-                    pkSet = Sets.newConcurrentHashSet();
-                    cachePk.put(cacheValue, pkSet);
-                }
-            }
+            pkSet = Sets.newConcurrentHashSet();
+            Set<K> oldPkSet = cachePk.asMap().putIfAbsent(cacheValue, pkSet);
+            if (oldPkSet != null)
+                pkSet = oldPkSet;
             cachePkFinishMap.get(column).put(cacheValue, true);
             pkSet.addAll(listPrimaryKey(ImmutableMap.of(column, cacheValue)));
         }
@@ -277,12 +275,33 @@ public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
     }
 
     @SuppressWarnings("unchecked")
-    protected void addCache(T obj) {
-        addCache((K) TableValueBuilder.getPrimaryKeyValue(getTableMeta(), obj), obj);
+    protected T addCacheIfAbsent(T obj) {
+        return addCacheIfAbsent((K) TableValueBuilder.getPrimaryKeyValue(getTableMeta(), obj), obj);
     }
 
-    protected void addCache(K primaryKey, T obj) {
-        addCache(primaryKey, obj, false);
+    // add cache if absent or empty
+    protected T addCacheIfAbsent(K primaryKey, T obj) {
+        for (;;) {
+            T old = cache.getIfPresent(primaryKey);
+            if (old != null && old != EMPTY)
+                return old;
+            old = cache.asMap().putIfAbsent(primaryKey, obj);
+            if (old == null) {
+                addCache(primaryKey, obj);
+                return null;
+            } else if (old == EMPTY) {
+                old = cache.asMap().computeIfPresent(primaryKey, (k, v) -> v == EMPTY ? obj : v);
+                if (old == null) // Theoretically it should not be null.
+                    continue;
+                if (old == EMPTY)
+                    return null;
+                if (old == obj) {
+                    addCache(primaryKey, obj);
+                    return null;
+                }
+            }
+            return old;
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -291,35 +310,26 @@ public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
     }
 
     protected void forceAddCache(K primaryKey, T obj) {
-        addCache(primaryKey, obj, true);
+        cache.put(primaryKey, obj);
+        addCache(primaryKey, obj);
     }
 
-    protected void addCache(K primaryKey, T obj, boolean force) {
-        synchronized (StringUtil.getString(PREFIX, getTableMeta().getName(), "addCache", primaryKey)) {
-            T old = cache.getIfPresent(primaryKey);
-            if (force || old == null || old == EMPTY) {
-                cache.put(primaryKey, obj);
+    private void addCache(K primaryKey, T obj) {
+        if (obj == EMPTY)
+            return;
+        getTableMeta().getCacheKeys().forEach(columnMeta -> {
+            Object cacheValue = TableValueBuilder.getColumnValue(columnMeta, obj);
+            Cache<Object, Set<K>> cachePk = cachePkMap.get(columnMeta.getName());
+            Set<K> pkSet = cachePk.getIfPresent(cacheValue);
+            cachePkFinishMap.get(columnMeta.getName()).getIfPresent(cacheValue);
+            if (pkSet == null) {
+                pkSet = Sets.newConcurrentHashSet();
+                Set<K> oldPkSet = cachePk.asMap().putIfAbsent(cacheValue, pkSet);
+                if (oldPkSet != null)
+                    pkSet = oldPkSet;
             }
-            if (obj == EMPTY) {
-                return;
-            }
-            getTableMeta().getCacheKeys().forEach(columnMeta -> {
-                Object cacheValue = TableValueBuilder.getColumnValue(columnMeta, obj);
-                Cache<Object, Set<K>> cachePk = cachePkMap.get(columnMeta.getName());
-                Set<K> pkSet = cachePk.getIfPresent(cacheValue);
-                cachePkFinishMap.get(columnMeta.getName()).getIfPresent(cacheValue);
-                if (pkSet == null) {
-                    synchronized (StringUtil.getString(PREFIX, getTableMeta().getName(), "CacheKey", columnMeta.getName(), cacheValue)) {
-                        pkSet = cachePk.getIfPresent(cacheValue);
-                        if (pkSet == null) {
-                            pkSet = Sets.newConcurrentHashSet();
-                            cachePk.put(cacheValue, pkSet);
-                        }
-                    }
-                }
-                pkSet.add(primaryKey);
-            });
-        }
+            pkSet.add(primaryKey);
+        });
     }
 
     @SuppressWarnings("unchecked")
@@ -328,22 +338,20 @@ public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
     }
 
     protected void removeCacheByPrimaryKey(K primaryKey) {
-        synchronized (StringUtil.getString(PREFIX, getTableMeta().getName(), "addCache", primaryKey)) {
-            cache.put(primaryKey, EMPTY);
-            getTableMeta().getCacheKeys().forEach(columnMeta ->
+        cache.put(primaryKey, EMPTY);
+        getTableMeta().getCacheKeys().forEach(columnMeta ->
                 cachePkMap.get(columnMeta.getName()).asMap().values().stream()
                         .filter(Objects::nonNull)
                         .forEach(pkSet -> pkSet.remove(primaryKey)));
-        }
     }
 
-    protected boolean addByPrimaryKeyNotAddCache(T obj, K primaryKey) {
-        boolean ok = super.addByPrimaryKey(obj, primaryKey);
-        if (!ok) {
+    protected T addByPrimaryKeyNotAddCache(T obj, K primaryKey) {
+        T result = super.addByPrimaryKey(obj, primaryKey);
+        if (result == null) {
             log.error("CacheRepository addByPrimaryKeyNotAddCache failure.");
             log.error("{} {}", obj.toString(), primaryKey.toString());
         }
-        return ok;
+        return result;
     }
 
     protected boolean removeByPrimaryKeyNotRemoveCache(K primaryKey) {

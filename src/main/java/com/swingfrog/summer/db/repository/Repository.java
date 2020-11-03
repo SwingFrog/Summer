@@ -7,7 +7,7 @@ import java.util.function.Supplier;
 
 public interface Repository<T, K> {
 
-    boolean add(T obj);
+    T add(T obj);
     boolean remove(T obj);
     boolean removeByPrimaryKey(K primaryKey);
     boolean save(T obj);

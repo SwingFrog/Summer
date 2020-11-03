@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.swingfrog.summer.db.BaseDao;
 import com.swingfrog.summer.db.DaoRuntimeException;
-import com.swingfrog.summer.util.StringUtil;
 import org.apache.commons.dbutils.BasicRowProcessor;
 import org.apache.commons.dbutils.handlers.BeanHandler;
 import org.apache.commons.dbutils.handlers.BeanListHandler;
@@ -20,12 +19,10 @@ import java.util.stream.Collectors;
 
 public abstract class RepositoryDao<T, K> extends BaseDao<T> implements Repository<T, K> {
 
-    private static final String PREFIX = "RepositoryDao";
-
     private final BeanHandler<T> beanHandler;
     private final BeanListHandler<T> beanListHandler;
 
-    private String insertSql;
+    private String replaceSql;
     private String deleteSql;
     private String updateSql;
     private String selectSql;
@@ -64,7 +61,7 @@ public abstract class RepositoryDao<T, K> extends BaseDao<T> implements Reposito
                 primaryKey = new AtomicLong(Long.parseLong(maxPk.toString()));
             }
         }
-        insertSql = SqlBuilder.getInsert(tableMeta);
+        replaceSql = SqlBuilder.getReplace(tableMeta);
         deleteSql = SqlBuilder.getDelete(tableMeta);
         updateSql = SqlBuilder.getUpdate(tableMeta);
         selectSql = SqlBuilder.getSelect(tableMeta);
@@ -92,86 +89,83 @@ public abstract class RepositoryDao<T, K> extends BaseDao<T> implements Reposito
         return primaryKey.incrementAndGet();
     }
 
-    protected boolean addNotAutoIncrement(T obj) {
-        Objects.requireNonNull(obj, "repository add param not null");
-        return update(insertSql, TableValueBuilder.listInsertValue(tableMeta, obj)) > 0;
+    protected T addNotAutoIncrement(T obj) {
+        if (update(replaceSql, TableValueBuilder.listInsertValue(tableMeta, obj)) > 0)
+            return obj;
+        return null;
     }
 
-    protected boolean addByPrimaryKey(T obj, K primaryKey) {
-        Objects.requireNonNull(obj, "repository add param not null");
-        Objects.requireNonNull(primaryKey, "repository add param not null");
-        return update(insertSql, TableValueBuilder.listInsertValue(tableMeta, obj, primaryKey)) > 0;
+    protected T addByPrimaryKey(T obj, K primaryKey) {
+        if (update(replaceSql, TableValueBuilder.listInsertValue(tableMeta, obj, primaryKey)) > 0)
+            return obj;
+        return null;
     }
 
     protected void autoIncrementPrimaryKey(T obj) {
-        Objects.requireNonNull(obj, "repository auto increment primary key param not null");
         if (isAutoIncrement()) {
             TableValueBuilder.setPrimaryKeyIntNumberValue(tableMeta, obj, nextPrimaryKey());
         }
     }
 
     @Override
-    public boolean add(T obj) {
-        Objects.requireNonNull(obj, "repository add param not null");
+    public T add(T obj) {
+        Objects.requireNonNull(obj);
         autoIncrementPrimaryKey(obj);
         return addNotAutoIncrement(obj);
     }
 
     @Override
     public boolean remove(T obj) {
-        Objects.requireNonNull(obj, "repository remove param not null");
+        Objects.requireNonNull(obj);
         return update(deleteSql, TableValueBuilder.getPrimaryKeyValue(tableMeta, obj)) > 0;
     }
 
     @Override
     public boolean removeByPrimaryKey(K primaryKey) {
-        Objects.requireNonNull(primaryKey, "repository remove param not null");
+        Objects.requireNonNull(primaryKey);
         return update(deleteSql, primaryKey) > 0;
     }
 
     @Override
     public boolean save(T obj) {
-        Objects.requireNonNull(obj, "repository save param not null");
+        Objects.requireNonNull(obj);
         return update(updateSql, TableValueBuilder.listUpdateValue(tableMeta, obj)) > 0;
     }
 
     @Override
     public void save(Collection<T> objs) {
-        Objects.requireNonNull(objs, "repository save param not null");
+        Objects.requireNonNull(objs);
         objs.forEach(obj -> update(updateSql, TableValueBuilder.listUpdateValue(tableMeta, obj)));
     }
 
     @Override
     public void forceSave(T obj) {
-        Objects.requireNonNull(obj, "repository force save param not null");
+        Objects.requireNonNull(obj);
         update(updateSql, TableValueBuilder.listUpdateValue(tableMeta, obj));
     }
 
     @Override
     public T get(K primaryKey) {
-        Objects.requireNonNull(primaryKey, "repository get primary key not null");
+        Objects.requireNonNull(primaryKey);
         return get(selectSql, primaryKey);
     }
 
     @Override
     public T getOrCreate(K primaryKey, Supplier<T> supplier) {
+        Objects.requireNonNull(primaryKey);
+        Objects.requireNonNull(supplier);
         T entity = get(primaryKey);
         if (entity == null) {
-            synchronized (StringUtil.getString(PREFIX, tableMeta.getName(), "getOrCreate", primaryKey)) {
-                entity = get(primaryKey);
-                if (entity == null) {
-                    entity = supplier.get();
-                    add(entity);
-                }
-            }
+            entity = supplier.get();
+            entity = add(entity);
         }
         return entity;
     }
 
     @Override
     public List<T> list(String field, Object value) {
-        Objects.requireNonNull(field, "repository list field not null");
-        Objects.requireNonNull(value, "repository list value not null");
+        Objects.requireNonNull(field);
+        Objects.requireNonNull(value);
         Map<String, Object> optional = ImmutableMap.of(field, value);
         List<String> fields = TableValueBuilder.listValidFieldByOptional(tableMeta, optional);
         String sql = SqlBuilder.getSelectField(tableMeta, fields);
@@ -180,7 +174,7 @@ public abstract class RepositoryDao<T, K> extends BaseDao<T> implements Reposito
 
     @Override
     public List<T> list(Map<String, Object> optional) {
-        Objects.requireNonNull(optional, "repository list optional not null");
+        Objects.requireNonNull(optional);
         List<String> fields = TableValueBuilder.listValidFieldByOptional(tableMeta, optional);
         String sql = SqlBuilder.getSelectField(tableMeta, fields);
         return list(sql, TableValueBuilder.listValidValueByOptional(tableMeta, optional, fields));
@@ -193,8 +187,10 @@ public abstract class RepositoryDao<T, K> extends BaseDao<T> implements Reposito
 
     @Override
     public List<T> listSingleCache(Object value) {
-        Objects.requireNonNull(singeCacheField, "repository list single cache field not null");
-        Objects.requireNonNull(value, "repository list single cache value not null");
+        if (singeCacheField == null) {
+            throw new DaoRuntimeException("sing cache field not found");
+        }
+        Objects.requireNonNull(value);
         Map<String, Object> optional = ImmutableMap.of(singeCacheField, value);
         List<String> fields = TableValueBuilder.listValidFieldByOptional(tableMeta, optional);
         String sql = SqlBuilder.getSelectField(tableMeta, fields);

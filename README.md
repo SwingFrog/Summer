@@ -23,6 +23,12 @@
 
 ## 更新说明
 
+### 2020.11.x
+1. Repository中add操作不再执行insertSql语句，修改为replaceSql语句。
+2. Repository增加listSingleCache方法，当实体只包含一个cacheKey时，可直接调用此方法查询数据。
+3. Repository采用原子性、自旋等方式替换掉原有的同步锁。
+4. AsyncCacheRepository中的add、remove增加版本号控制，定时器触发时只会对最新版本的数据进行数据库操作。
+
 ### 2020.10.31
 1. 异步请求远程接口增加RemoteCallbackQuick接口，可用于接收响应的数据。
 2. 新增meter包，可用于编写压测程序。
