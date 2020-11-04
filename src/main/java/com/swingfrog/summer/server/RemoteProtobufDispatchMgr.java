@@ -8,7 +8,7 @@ import com.swingfrog.summer.annotation.Remote;
 import com.swingfrog.summer.ioc.ContainerMgr;
 import com.swingfrog.summer.ioc.MethodParameterName;
 import com.swingfrog.summer.protocol.protobuf.Protobuf;
-import com.swingfrog.summer.protocol.protobuf.RespProtobufMgr;
+import com.swingfrog.summer.protocol.protobuf.ReqProtobufMgr;
 import com.swingfrog.summer.protocol.protobuf.ProtobufRequest;
 import com.swingfrog.summer.server.async.AsyncResponse;
 import com.swingfrog.summer.server.async.ProcessResult;
@@ -57,9 +57,9 @@ public class RemoteProtobufDispatchMgr {
                 RemoteMethod remoteMethod = new RemoteMethod(remoteClass, method, mpn);
                 int messageId = remoteMethod.getMessageId();
                 if (remoteMethodMap.putIfAbsent(messageId, remoteMethod) == null) {
-                    log.info("remote protobuf register {}.{} {}", clazz.getSimpleName(), method.getName(), RespProtobufMgr.get().getProtoName(messageId));
+                    log.info("remote protobuf register {}.{} {}", clazz.getSimpleName(), method.getName(), ReqProtobufMgr.get().getProtoName(messageId));
                 } else {
-                    throw new RuntimeException(String.format("protobuf message repeat %s.%s messageId[%s] protoName[%s]",  clazz.getSimpleName(), method.getName(), messageId, RespProtobufMgr.get().getProtoName(messageId)));
+                    throw new RuntimeException(String.format("protobuf message repeat %s.%s messageId[%s] protoName[%s]",  clazz.getSimpleName(), method.getName(), messageId, ReqProtobufMgr.get().getProtoName(messageId)));
                 }
             }
         }
@@ -144,7 +144,7 @@ public class RemoteProtobufDispatchMgr {
 
     public Message parse(Protobuf data) throws InvalidProtocolBufferException {
         int messageId = data.getId();
-        Message messageTemplate = RespProtobufMgr.get().getMessageTemplate(messageId);
+        Message messageTemplate = ReqProtobufMgr.get().getMessageTemplate(messageId);
         if (messageTemplate == null) {
             throw new CodeException(SessionException.PROTOBUF_NOT_EXIST);
         }
@@ -175,7 +175,7 @@ public class RemoteProtobufDispatchMgr {
             if (messageTemplate == null)
                 throw new RuntimeException("not found protobuf message in remote method");
             messageId = ProtobufUtil.getMessageId(messageTemplate);
-            RespProtobufMgr.get().registerMessage(messageId, messageTemplate);
+            ReqProtobufMgr.get().registerMessage(messageId, messageTemplate);
         }
         public RemoteClass getRemoteClass() {
             return remoteClass;

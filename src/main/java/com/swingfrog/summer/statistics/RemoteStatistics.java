@@ -2,7 +2,7 @@ package com.swingfrog.summer.statistics;
 
 import com.google.common.collect.Maps;
 import com.swingfrog.summer.protocol.SessionRequest;
-import com.swingfrog.summer.protocol.protobuf.RespProtobufMgr;
+import com.swingfrog.summer.protocol.protobuf.ReqProtobufMgr;
 import com.swingfrog.summer.protocol.protobuf.ProtobufRequest;
 import com.swingfrog.summer.server.SessionContext;
 import org.slf4j.Logger;
@@ -102,7 +102,7 @@ public class RemoteStatistics {
             return;
         }
         int consumeMs = (int) (System.currentTimeMillis() - req.time);
-        String protoName = RespProtobufMgr.get().getProtoName(request.getId());
+        String protoName = ReqProtobufMgr.get().getProtoName(request.getId());
         statistics(protoName == null ? "" : protoName, consumeMs, req.size, respSize);
     }
 
