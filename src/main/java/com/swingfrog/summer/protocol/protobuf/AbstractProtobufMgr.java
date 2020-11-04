@@ -11,6 +11,7 @@ public abstract class AbstractProtobufMgr {
 
     private final ConcurrentMap<Integer, Message> messageTemplateMap;
     private final ConcurrentMap<Class<? extends Message>, Integer> messageIdMap;
+    private volatile boolean openCheckProto = true;
 
     protected AbstractProtobufMgr() {
         messageTemplateMap = Maps.newConcurrentMap();
@@ -20,6 +21,8 @@ public abstract class AbstractProtobufMgr {
     public void registerMessage(int messageId, Message messageTemplate) {
         if (messageTemplateMap.containsKey(messageId))
             return;
+        if (openCheckProto)
+            checkProto(messageTemplate);
         messageTemplateMap.putIfAbsent(messageId, messageTemplate);
         messageIdMap.putIfAbsent(messageTemplate.getClass(), messageId);
     }
@@ -50,6 +53,12 @@ public abstract class AbstractProtobufMgr {
         if (message == null)
             return null;
         return message.getClass().getSimpleName();
+    }
+
+    protected abstract void checkProto(Message messageTemplate);
+
+    public void setOpenCheckProto(boolean openCheckProto) {
+        this.openCheckProto = openCheckProto;
     }
 
 }
