@@ -1,14 +1,15 @@
 package com.swingfrog.summer.server;
 
 import java.lang.reflect.*;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
 import com.google.common.collect.Maps;
+import com.swingfrog.summer.annotation.RequestMapping;
 import com.swingfrog.summer.annotation.Remote;
 import com.swingfrog.summer.server.async.AsyncResponse;
 import com.swingfrog.summer.server.async.ProcessResult;
+import com.swingfrog.summer.server.exception.RemoteRuntimeException;
 import com.swingfrog.summer.struct.AutowireParam;
 import com.swingfrog.summer.util.JSONConvertUtil;
 import com.swingfrog.summer.util.ProtobufUtil;
@@ -33,14 +34,14 @@ import javassist.NotFoundException;
 public class RemoteDispatchMgr {
 	
 	private static final Logger log = LoggerFactory.getLogger(RemoteDispatchMgr.class);
-	private final Map<String, RemoteClass> remoteClassMap;
+	private final Map<String, RemoteMethod> remoteMethodMap;
 
 	private static class SingleCase {
 		public static final RemoteDispatchMgr INSTANCE = new RemoteDispatchMgr();
 	}
 	
 	private RemoteDispatchMgr() {
-		remoteClassMap = Maps.newHashMap();
+		remoteMethodMap = Maps.newHashMap();
 	}
 	
 	public static RemoteDispatchMgr get() {
@@ -52,36 +53,64 @@ public class RemoteDispatchMgr {
 		while (ite.hasNext()) {
 			Class<?> clazz = ite.next();
 			log.info("server try register remote {}", clazz.getSimpleName());
-			remoteClassMap.put(clazz.getSimpleName(), new RemoteClass(clazz));
+			RemoteClass remoteClass = new RemoteClass(clazz);
+			Method[] methods = clazz.getDeclaredMethods();
+			MethodParameterName mpn = new MethodParameterName(clazz);
+			for (Method method : methods) {
+				if (method.getModifiers() != Modifier.PUBLIC || ProtobufUtil.hasProtobufParam(method)) {
+					continue;
+				}
+				RequestMapping requestMapping = method.getAnnotation(RequestMapping.class);
+				String remoteMethod;
+				if (requestMapping != null) {
+					remoteMethod = requestMapping.value();
+				} else {
+					remoteMethod = mergeRemoteMethod(clazz.getSimpleName(), method.getName());
+				}
+				if (remoteMethodMap.putIfAbsent(remoteMethod, new RemoteMethod(remoteClass, method, mpn)) == null) {
+					if (requestMapping != null) {
+						log.info("remote register {}.{} -> {}", clazz.getSimpleName(), method.getName(), remoteMethod);
+					} else {
+						log.info("remote register {}.{}", clazz.getSimpleName(), method.getName());
+					}
+				} else {
+					throw new RemoteRuntimeException("remote register repeat %s.%s %s", clazz.getSimpleName(), method.getName(), remoteMethod);
+				}
+			}
 		}
+	}
+
+	private String mergeRemoteMethod(String remote, String method) {
+		if (method == null || method.isEmpty())
+			return remote;
+		if (remote == null || remote.isEmpty())
+			return method;
+		return remote + "." + method;
 	}
 	
 	public Method getMethod(SessionRequest req) {
 		String remote = req.getRemote();
 		String method = req.getMethod();
-		RemoteClass remoteClass = remoteClassMap.get(remote);
-		if (remoteClass != null) {
-			RemoteMethod remoteMethod = remoteClass.getRemoteMethod(method);
-			if (remoteMethod != null) {
-				return remoteMethod.getMethod();
-			}
-		}
-		return null;
+		RemoteMethod remoteMethod = remoteMethodMap.get(mergeRemoteMethod(remote, method));
+		if (remoteMethod == null)
+			return null;
+		return remoteMethod.getMethod();
+	}
+
+	public boolean containsRemoteMethod(String remoteMethod) {
+		return remoteMethodMap.containsKey(remoteMethod);
 	}
 	
 	private Object invoke(ServerContext serverContext, String remote, String method, JSONObject data, AutowireParam autowireParam) throws Throwable {
 		Map<Class<?>, Object> objForTypes = autowireParam.getTypes();
 		Map<String, Object> objForNames = autowireParam.getNames();
-		RemoteClass remoteClass = remoteClassMap.get(remote);
-		if (remoteClass == null) {
-			throw new CodeException(SessionException.REMOTE_NOT_EXIST);
-		}
-		if (remoteClass.isFilter() && !remoteClass.getServerName().equals(serverContext.getConfig().getServerName())) {
-			throw new CodeException(SessionException.REMOTE_WAS_PROTECTED);
-		}
-		RemoteMethod remoteMethod = remoteClass.getRemoteMethod(method);
+		RemoteMethod remoteMethod = remoteMethodMap.get(mergeRemoteMethod(remote, method));
 		if (remoteMethod == null) {
 			throw new CodeException(SessionException.METHOD_NOT_EXIST);
+		}
+		RemoteClass remoteClass = remoteMethod.getRemoteClass();
+		if (remoteClass.isFilter() && !remoteClass.getServerName().equals(serverContext.getConfig().getServerName())) {
+			throw new CodeException(SessionException.REMOTE_WAS_PROTECTED);
 		}
 		Object remoteObj = ContainerMgr.get().getDeclaredComponent(remoteClass.getClazz());
 		Method remoteMod = remoteMethod.getMethod();
@@ -179,46 +208,19 @@ public class RemoteDispatchMgr {
 		return new ProcessResult<>(false, new TextView(JSON.toJSONString(result)));
 	}
 	
-	private static class RemoteClass {
-		private final boolean filter;
-		private final String serverName;
-		private final Class<?> clazz;
-		private final Map<String, RemoteMethod> remoteMethodMap = new HashMap<>();
-		public RemoteClass(Class<?> clazz) throws NotFoundException {
-			this.clazz = clazz;
-			filter = clazz.getAnnotation(Remote.class).filter();
-			serverName = clazz.getAnnotation(Remote.class).serverName();
-			Method[] methods = clazz.getDeclaredMethods();
-			for (Method method : methods) {
-				if (method.getModifiers() != Modifier.PUBLIC || ProtobufUtil.hasProtobufParam(method)) {
-					continue;
-				}
-				log.info("remote register {}.{}", clazz.getSimpleName(), method.getName());
-				remoteMethodMap.put(method.getName(), new RemoteMethod(method, new MethodParameterName(clazz)));
-			}
-		}
-		public boolean isFilter() {
-			return filter;
-		}
-		public String getServerName() {
-			return serverName;
-		}
-		public Class<?> getClazz() {
-			return clazz;
-		}
-		public RemoteMethod getRemoteMethod(String method) {
-			return remoteMethodMap.get(method);
-		}
-	}
-	
 	private static class RemoteMethod {
+		private final RemoteClass remoteClass;
 		private final Method method;
 		private final String[] params;
 		private final Parameter[] parameters;
-		public RemoteMethod(Method method, MethodParameterName mpn) throws NotFoundException {
+		public RemoteMethod(RemoteClass remoteClass, Method method, MethodParameterName mpn) throws NotFoundException {
+			this.remoteClass = remoteClass;
 			this.method = method;
 			params = mpn.getParameterNameByMethod(method);
 			parameters = method.getParameters();
+		}
+		public RemoteClass getRemoteClass() {
+			return remoteClass;
 		}
 		public Method getMethod() {
 			return method;
@@ -230,4 +232,25 @@ public class RemoteDispatchMgr {
 			return parameters;
 		}
 	}
+
+	private static class RemoteClass {
+		private final boolean filter;
+		private final String serverName;
+		private final Class<?> clazz;
+		public RemoteClass(Class<?> clazz) {
+			this.clazz = clazz;
+			filter = clazz.getAnnotation(Remote.class).filter();
+			serverName = clazz.getAnnotation(Remote.class).serverName();
+		}
+		public boolean isFilter() {
+			return filter;
+		}
+		public String getServerName() {
+			return serverName;
+		}
+		public Class<?> getClazz() {
+			return clazz;
+		}
+	}
+
 }

@@ -6,6 +6,7 @@ import java.util.Map;
 import com.alibaba.fastjson.JSONObject;
 import com.swingfrog.summer.protocol.SessionRequest;
 
+import com.swingfrog.summer.server.RemoteDispatchMgr;
 import io.netty.handler.codec.http.HttpRequest;
 
 public class WebRequest extends SessionRequest {
@@ -23,10 +24,10 @@ public class WebRequest extends SessionRequest {
 		webRequest.setHttpRequest(httpRequest);
 		JSONObject data = new JSONObject();
 		if (uri.contains("?")) {
-			String[] strs = uri.split("\\?");
-			if (strs.length == 2) {
-				uri = strs[0];
-				String query = strs[1];
+			String[] texts = uri.split("\\?");
+			if (texts.length == 2) {
+				uri = texts[0];
+				String query = texts[1];
 				if (query.length() > 0) {
 					String[] value = query.split("&");
 					for (String keyValue : value) {
@@ -40,16 +41,23 @@ public class WebRequest extends SessionRequest {
 			}
 		}
 		webRequest.setPath(uri);
-		if (uri.contains(".")) {
-			webRequest.setDynamic(false);
-		} else {
+		String remoteMethod = uri.substring(1);
+		if (RemoteDispatchMgr.get().containsRemoteMethod(remoteMethod)) {
 			webRequest.setDynamic(true);
-			String[] remoteMethod = uri.split("_");
-			if (remoteMethod.length == 2) {
-				webRequest.setRemote(remoteMethod[0].substring(1));
-				webRequest.setMethod(remoteMethod[1]);
-			} else {
+			webRequest.setRemote(remoteMethod);
+			webRequest.setMethod(null);
+		} else {
+			if (uri.contains(".")) {
 				webRequest.setDynamic(false);
+			} else {
+				webRequest.setDynamic(true);
+				String[] remoteMethods = uri.split("_");
+				if (remoteMethods.length == 2) {
+					webRequest.setRemote(remoteMethods[0].substring(1));
+					webRequest.setMethod(remoteMethods[1]);
+				} else {
+					webRequest.setDynamic(false);
+				}
 			}
 		}
 		webRequest.setData(data);

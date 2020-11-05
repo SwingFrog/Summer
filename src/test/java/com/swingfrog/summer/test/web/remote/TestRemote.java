@@ -3,6 +3,7 @@ package com.swingfrog.summer.test.web.remote;
 import com.swingfrog.summer.annotation.Autowired;
 import com.swingfrog.summer.annotation.Optional;
 import com.swingfrog.summer.annotation.Remote;
+import com.swingfrog.summer.annotation.RequestMapping;
 import com.swingfrog.summer.app.Summer;
 import com.swingfrog.summer.protocol.SessionRequest;
 import com.swingfrog.summer.server.SessionContext;
@@ -50,6 +51,11 @@ public class TestRemote {
     public AsyncResponse asyncHello(SessionContext sctx, SessionRequest request) {
         executor.execute(() -> Summer.asyncResponse(sctx, request, () -> "hello async world!"));
         return AsyncResponse.of();
+    }
+
+    @RequestMapping("custom_request_mapping")
+    public String customRequestMapping() {
+        return "custom_request_mapping";
     }
 
 }

@@ -13,6 +13,7 @@ import com.swingfrog.summer.protocol.protobuf.ProtobufRequest;
 import com.swingfrog.summer.server.async.AsyncResponse;
 import com.swingfrog.summer.server.async.ProcessResult;
 import com.swingfrog.summer.server.exception.CodeException;
+import com.swingfrog.summer.server.exception.RemoteRuntimeException;
 import com.swingfrog.summer.server.exception.SessionException;
 import com.swingfrog.summer.struct.AutowireParam;
 import com.swingfrog.summer.util.ProtobufUtil;
@@ -59,7 +60,7 @@ public class RemoteProtobufDispatchMgr {
                 if (remoteMethodMap.putIfAbsent(messageId, remoteMethod) == null) {
                     log.info("remote protobuf register {}.{} {}", clazz.getSimpleName(), method.getName(), ReqProtobufMgr.get().getProtoName(messageId));
                 } else {
-                    throw new RuntimeException(String.format("protobuf message repeat %s.%s messageId[%s] protoName[%s]",  clazz.getSimpleName(), method.getName(), messageId, ReqProtobufMgr.get().getProtoName(messageId)));
+                    throw new RemoteRuntimeException("protobuf message repeat %s.%s messageId[%s] protoName[%s]",  clazz.getSimpleName(), method.getName(), messageId, ReqProtobufMgr.get().getProtoName(messageId));
                 }
             }
         }
