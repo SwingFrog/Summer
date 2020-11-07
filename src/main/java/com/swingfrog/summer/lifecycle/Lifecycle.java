@@ -2,7 +2,9 @@ package com.swingfrog.summer.lifecycle;
 
 public interface Lifecycle {
 
-	LifecycleInfo getInfo();
+	default LifecycleInfo getInfo() {
+		return LifecycleInfo.build(this.getClass().getSimpleName());
+	}
 	void start();
 	void stop();
 }
