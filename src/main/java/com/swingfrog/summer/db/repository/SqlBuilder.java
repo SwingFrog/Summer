@@ -109,17 +109,21 @@ public class SqlBuilder {
             builder.append(" SET");
             Iterator<TableMeta.ColumnMeta> iterator = tableMeta.getColumns().iterator();
             if (iterator.hasNext()) {
-                while (true) {
-                    TableMeta.ColumnMeta columnMeta = iterator.next();
+                TableMeta.ColumnMeta columnMeta = iterator.next();
+                for (;;) {
                     if (columnMeta.isReadOnly()) {
-                        if (!iterator.hasNext()) {
+                        if (iterator.hasNext()) {
+                            columnMeta = iterator.next();
+                        } else {
                             break;
                         }
                     } else{
                         builder.append(" `").append(columnMeta.getName()).append("` = ?");
                         if (iterator.hasNext()) {
-                            builder.append(",");
-                        } else {
+                            columnMeta = iterator.next();
+                            if (!columnMeta.isReadOnly())
+                                builder.append(",");
+                        }  else {
                             break;
                         }
                     }
