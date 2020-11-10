@@ -36,7 +36,7 @@ public class TestService implements Lifecycle {
         testDao.list("type", 5).forEach(testDao::remove);
         testDao.add(new Test(5, 0, "new"));
         System.out.println(testDao.list("type", 5));
-        testDao.list().forEach(testDao::remove);
+        testDao.removeAll();
     }
 
     @Override

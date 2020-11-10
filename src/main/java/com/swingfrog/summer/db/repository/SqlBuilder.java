@@ -102,6 +102,10 @@ public class SqlBuilder {
         return builder.toString();
     }
 
+    public static String getDeleteAll(TableMeta tableMeta) {
+        return String.format("DELETE FROM `%s`;", tableMeta.getName());
+    }
+
     public static String getUpdate(TableMeta tableMeta) {
         StringBuilder builder = new StringBuilder();
         builder.append("UPDATE `").append(tableMeta.getName()).append("`");

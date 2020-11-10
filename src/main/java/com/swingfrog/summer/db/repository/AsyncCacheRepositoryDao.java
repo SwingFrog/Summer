@@ -47,10 +47,16 @@ public abstract class AsyncCacheRepositoryDao<T, K> extends CacheRepositoryDao<T
         try {
             while (!waitChange.isEmpty()) {
                 Change<T, K> change = waitChange.poll();
-                if (change.add) {
-                    delayAdd(change.obj, change.pk, change.version);
-                } else {
-                    delayRemove(change.pk, change.version);
+                switch (change.flag) {
+                    case ADD:
+                        delayAdd(change.obj, change.pk, change.version);
+                        break;
+                    case REMOVE:
+                        delayRemove(change.pk, change.version);
+                        break;
+                    case REMOVE_ALL:
+                        delayRemoveAll();
+                        break;
                 }
             }
             delaySave(force);
@@ -76,6 +82,10 @@ public abstract class AsyncCacheRepositoryDao<T, K> extends CacheRepositoryDao<T
         if (currentVersion != version)
             return;
         super.removeByPrimaryKeyNotRemoveCache(primaryKey);
+    }
+
+    private void delayRemoveAll() {
+        super.removeAllNotRemoveCache();
     }
 
     private void delaySave(boolean force) {
@@ -104,7 +114,7 @@ public abstract class AsyncCacheRepositoryDao<T, K> extends CacheRepositoryDao<T
             return old;
         long version = changeVersion.incrementAndGet();
         waitAdd.put(primaryKey, version);
-        waitChange.add(new Change<>(obj, primaryKey, version));
+        waitChange.add(Change.ofAdd(obj, primaryKey, version));
         return obj;
     }
 
@@ -121,8 +131,18 @@ public abstract class AsyncCacheRepositoryDao<T, K> extends CacheRepositoryDao<T
         super.removeCacheByPrimaryKey(primaryKey);
         long version = changeVersion.incrementAndGet();
         waitRemove.put(primaryKey, version);
-        waitChange.add(new Change<>(primaryKey, version));
+        waitChange.add(Change.ofRemove(primaryKey, version));
         return true;
+    }
+
+    @Override
+    public void removeAll() {
+        waitAdd.clear();
+        waitRemove.clear();
+        waitChange.clear();
+        waitSave.clear();
+        super.removeAllCache();
+        waitChange.add(Change.ofRemoveAll());
     }
 
     @SuppressWarnings("unchecked")
@@ -166,28 +186,41 @@ public abstract class AsyncCacheRepositoryDao<T, K> extends CacheRepositoryDao<T
         return entity;
     }
 
+    private enum ChangeFlag {
+        ADD, REMOVE, REMOVE_ALL
+    }
+
     private static class Change<T, K> {
-        T obj;
-        K pk;
-        boolean add;
-        long version;
-        Change(T obj, K pk, long version) {
+        final T obj;
+        final K pk;
+        final ChangeFlag flag;
+        final long version;
+
+        Change(T obj, K pk, ChangeFlag flag, long version) {
             this.obj = obj;
             this.pk = pk;
-            this.add = true;
+            this.flag = flag;
             this.version = version;
         }
-        Change(K pk, long version) {
-            this.pk = pk;
-            this.add = false;
-            this.version = version;
+
+        static <T, K> Change<T, K> ofAdd(T obj, K pk, long version) {
+            return new Change<>(obj, pk, ChangeFlag.ADD, version);
         }
+
+        static <T, K> Change<T, K> ofRemove(K pk, long version) {
+            return new Change<>(null, pk, ChangeFlag.REMOVE, version);
+        }
+
+        static <T, K> Change<T, K> ofRemoveAll() {
+            return new Change<>(null, null, ChangeFlag.REMOVE_ALL, 0);
+        }
+
     }
 
     private static class Save<T, K> {
-        T obj;
-        K pk;
-        long saveTime;
+        final T obj;
+        final K pk;
+        final long saveTime;
         Save(T obj, K pk, long saveTime) {
             this.obj = obj;
             this.pk = pk;

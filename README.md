@@ -29,6 +29,7 @@
 3. Repository采用原子性、自旋等方式替换掉原有的同步锁。
 4. AsyncCacheRepository中的add、remove增加版本号控制，定时器触发时只会对最新版本的数据进行数据库操作。
 5. 新增@RequestMapping，可自定义请求映射的接口名称。
+6. Repository新增removalAll方法。
 
 ### 2020.10.31
 1. 异步请求远程接口增加RemoteCallbackQuick接口，可用于接收响应的数据。

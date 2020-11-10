@@ -129,6 +129,12 @@ public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
     }
 
     @Override
+    public void removeAll() {
+        super.removeAll();
+        removeAllCache();
+    }
+
+    @Override
     public boolean save(T obj) {
         Objects.requireNonNull(obj);
         return super.save(obj);
@@ -207,9 +213,7 @@ public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
         List<T> list;
         if (pkList == null || pkList.isEmpty()) {
             super.listPrimaryKey(optional).forEach(this::get);
-            list = cache.asMap().values().stream()
-                    .filter(obj -> obj != EMPTY)
-                    .collect(Collectors.toList());
+            list = cache.asMap().values().stream().filter(obj -> obj != EMPTY).collect(Collectors.toList());
         } else {
             if (pkList.size() == 1) {
                 list = pkList.getFirst().stream().map(this::get).filter(Objects::nonNull).collect(Collectors.toList());
@@ -345,6 +349,11 @@ public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
                         .forEach(pkSet -> pkSet.remove(primaryKey)));
     }
 
+    protected void removeAllCache() {
+        cache.asMap().keySet().forEach(k -> cache.put(k, EMPTY));
+        cachePkMap.values().forEach(Cache::invalidateAll);
+    }
+
     protected T addByPrimaryKeyNotAddCache(T obj, K primaryKey) {
         T result = super.addByPrimaryKey(obj, primaryKey);
         if (result == null) {
@@ -361,6 +370,10 @@ public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
             log.error(primaryKey.toString());
         }
         return ok;
+    }
+
+    protected void removeAllNotRemoveCache() {
+        super.removeAll();
     }
 
 }

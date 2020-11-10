@@ -10,6 +10,7 @@ public interface Repository<T, K> {
     T add(T obj);
     boolean remove(T obj);
     boolean removeByPrimaryKey(K primaryKey);
+    void removeAll();
     boolean save(T obj);
     void save(Collection<T> objs);
     void forceSave(T obj);
@@ -18,6 +19,9 @@ public interface Repository<T, K> {
     List<T> list(String field, Object value);
     List<T> list(Map<String, Object> optional);
     List<T> list();
+    default List<T> listAll() {
+        return list();
+    }
     List<T> listSingleCache(Object value);
     Class<T> getEntityClass();
 

@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -24,6 +25,7 @@ public abstract class RepositoryDao<T, K> extends BaseDao<T> implements Reposito
 
     private String replaceSql;
     private String deleteSql;
+    private String deleteAllSql;
     private String updateSql;
     private String selectSql;
     private String selectAllSql;
@@ -63,6 +65,7 @@ public abstract class RepositoryDao<T, K> extends BaseDao<T> implements Reposito
         }
         replaceSql = SqlBuilder.getReplace(tableMeta);
         deleteSql = SqlBuilder.getDelete(tableMeta);
+        deleteAllSql = SqlBuilder.getDeleteAll(tableMeta);
         updateSql = SqlBuilder.getUpdate(tableMeta);
         selectSql = SqlBuilder.getSelect(tableMeta);
         selectAllSql = SqlBuilder.getSelectAll(tableMeta);
@@ -124,6 +127,11 @@ public abstract class RepositoryDao<T, K> extends BaseDao<T> implements Reposito
     public boolean removeByPrimaryKey(K primaryKey) {
         Objects.requireNonNull(primaryKey);
         return update(deleteSql, primaryKey) > 0;
+    }
+
+    @Override
+    public void removeAll() {
+        update(deleteAllSql);
     }
 
     @Override
