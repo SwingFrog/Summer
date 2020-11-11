@@ -345,6 +345,14 @@ public class Summer {
 	public static void asyncDispatch(String eventName, Object ...args) {
 		EventBusMgr.get().asyncDispatch(eventName, args);
 	}
+
+	public static void syncDispatch(Object event) {
+		EventBusMgr.get().syncDispatch(event);
+	}
+
+	public static void asyncDispatch(Object event) {
+		EventBusMgr.get().asyncDispatch(event);
+	}
 	
 	public static WebMgr getWeb() {
 		return WebMgr.get();

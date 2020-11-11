@@ -1,6 +1,7 @@
 package com.swingfrog.summer.event;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
@@ -21,8 +22,9 @@ import com.swingfrog.summer.ioc.ContainerMgr;
 public class EventBusMgr {
 
 	private static final Logger log = LoggerFactory.getLogger(EventBusMgr.class);
-	private final Map<Method, Class<?>> methodMap;
-	private final Map<String, List<EventMethod>> eventMap;
+	private Map<String, List<EventMethod>> eventNameMap;
+	private Map<Class<?>, List<EventMethod>> eventClassMap;
+
 	private final ExecutorService eventExecutor;
 	
 	private static class SingleCase {
@@ -30,8 +32,6 @@ public class EventBusMgr {
 	}
 	
 	private EventBusMgr() {
-		methodMap = Maps.newHashMap();
-		eventMap = Maps.newHashMap();
 		eventExecutor = Executors.newSingleThreadExecutor(new DefaultThreadFactory("EventBus"));
 	}
 	
@@ -46,43 +46,104 @@ public class EventBusMgr {
 			Class<?> clazz = ite.next();
 			Method[] methods = clazz.getDeclaredMethods();
 			for (Method method : methods) {
+				if (method.getModifiers() != Modifier.PUBLIC)
+					continue;
 				BindEvent event = method.getDeclaredAnnotation(BindEvent.class);
 				if (event != null) {
-					methodMap.put(method, clazz);
-					List<EventMethod> eventList = eventMap.computeIfAbsent(event.value(), k -> Lists.newLinkedList());
-					eventList.add(new EventMethod(method, event.index()));
+					if (eventNameMap == null)
+						eventNameMap = Maps.newHashMap();
+					List<EventMethod> eventList = eventNameMap.computeIfAbsent(event.value(), k -> Lists.newLinkedList());
+					eventList.add(new EventMethod(clazz, method, event.index()));
+				}
+				Class<?>[] parameterTypes = method.getParameterTypes();
+				if (parameterTypes.length > 0) {
+					if (eventClassMap == null)
+						eventClassMap = Maps.newHashMap();
+					Class<?> parameterType = parameterTypes[0];
+					List<EventMethod> eventList = eventClassMap.computeIfAbsent(parameterType, k -> Lists.newLinkedList());
+					eventList.add(new EventMethod(clazz, method, 0));
 				}
 			}
 		}
-		for (String eventName : eventMap.keySet()) {
-			List<EventMethod> eventList = eventMap.get(eventName);
-			eventList.sort(Comparator.comparing(EventMethod::getIndex));
-			log.info("event name {}", eventName);
-			for (EventMethod event : eventList) {
-				Class<?> clazz = methodMap.get(event.getMethod());
-				log.info("event register event handler {}.{} index[{}]", clazz.getSimpleName(), event.getMethod().getName(), event.getIndex());
+		if (eventNameMap != null) {
+			for (String eventName : eventNameMap.keySet()) {
+				List<EventMethod> eventList = eventNameMap.get(eventName);
+				eventList.sort(Comparator.comparing(EventMethod::getIndex));
+				log.info("event name {}", eventName);
+				for (EventMethod event : eventList) {
+					log.info("event register event handler {}.{} index[{}]",
+							event.getClazz().getSimpleName(), event.getMethod().getName(), event.getIndex());
+				}
+			}
+		}
+		if (eventClassMap != null) {
+			for (Class<?> eventClass : eventClassMap.keySet()) {
+				List<EventMethod> eventList = eventClassMap.get(eventClass);
+				log.info("event class {}", eventClass.getName());
+				for (EventMethod event : eventList) {
+					log.info("event register event handler {}.{} index[{}]",
+							event.getClazz().getSimpleName(), event.getMethod().getName(), event.getIndex());
+				}
 			}
 		}
 	}
 	
 	private void dispatch(String eventName, Object ...args) {
-		log.debug("dispatch event[{}]", eventName);
-		List<EventMethod> eventList = eventMap.get(eventName);
+		if (log.isDebugEnabled())
+			log.debug("dispatch event[{}]", eventName);
+		if (eventNameMap == null) {
+			log.warn("event handler {} not exist", eventName);
+			return;
+		}
+		List<EventMethod> eventList = eventNameMap.get(eventName);
 		if (eventList == null) {
 			log.warn("event handler {} not exist", eventName);
-		} else {
-			for (EventMethod event : eventList) {
-				Class<?> clazz = methodMap.get(event.getMethod());
-				Object obj = ContainerMgr.get().getDeclaredComponent(clazz);
-				log.debug("dispatch event[{}] invoke {}.{}", eventName, clazz.getSimpleName(), event.getMethod().getName());
-				try {
-					if (event.getMethod().invoke(obj, args) != null) {
-						break;
-					}
-				} catch (Exception e) {
-					log.error("dispatch event[{}] invoke {}.{} failure", eventName, clazz.getSimpleName(), event.getMethod().getName());
-					log.error(e.getMessage(), e);
+			return;
+		}
+		for (EventMethod event : eventList) {
+			Class<?> clazz = event.getClazz();
+			Object obj = ContainerMgr.get().getDeclaredComponent(clazz);
+			if (log.isDebugEnabled())
+				log.debug("dispatch event[{}] invoke {}.{}",
+						eventName, clazz.getSimpleName(), event.getMethod().getName());
+			try {
+				if (event.getMethod().invoke(obj, args) != null) {
+					break;
 				}
+			} catch (Exception e) {
+				log.error("dispatch event[{}] invoke {}.{} failure",
+						eventName, clazz.getSimpleName(), event.getMethod().getName());
+				log.error(e.getMessage(), e);
+			}
+		}
+	}
+
+	private void post(Object eventObj) {
+		if (log.isDebugEnabled())
+			log.debug("dispatch event[{}]", eventObj.getClass().getSimpleName());
+		if (eventClassMap == null) {
+			log.warn("event handler {} not exist", eventObj.getClass().getSimpleName());
+			return;
+		}
+		List<EventMethod> eventList = eventClassMap.get(eventObj.getClass());
+		if (eventList == null) {
+			log.warn("event handler {} not exist", eventObj.getClass().getSimpleName());
+			return;
+		}
+		for (EventMethod event : eventList) {
+			Class<?> clazz = event.getClazz();
+			Object obj = ContainerMgr.get().getDeclaredComponent(clazz);
+			if (log.isDebugEnabled())
+				log.debug("dispatch event[{}] invoke {}.{}",
+						eventObj.getClass().getSimpleName(), clazz.getSimpleName(), event.getMethod().getName());
+			try {
+				if (event.getMethod().invoke(obj, eventObj) != null) {
+					break;
+				}
+			} catch (Exception e) {
+				log.error("dispatch event[{}] invoke {}.{} failure",
+						eventObj.getClass().getSimpleName(), clazz.getSimpleName(), event.getMethod().getName());
+				log.error(e.getMessage(), e);
 			}
 		}
 	}
@@ -93,6 +154,14 @@ public class EventBusMgr {
 	
 	public void asyncDispatch(String eventName, Object ...args) {
 		eventExecutor.execute(() -> dispatch(eventName, args));
+	}
+
+	public void syncDispatch(Object event) {
+		post(event);
+	}
+
+	public void asyncDispatch(Object event) {
+		eventExecutor.execute(() -> post(event));
 	}
 
 	public void shutdown() {
@@ -108,11 +177,16 @@ public class EventBusMgr {
 	}
 	
 	private static class EventMethod {
+		private final Class<?> clazz;
 		private final Method method;
 		private final int index;
-		public EventMethod(Method method, int index) {
+		public EventMethod(Class<?> clazz, Method method, int index) {
+			this.clazz = clazz;
 			this.method = method;
 			this.index = index;
+		}
+		public Class<?> getClazz() {
+			return clazz;
 		}
 		public Method getMethod() {
 			return method;
