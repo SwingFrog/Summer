@@ -29,8 +29,7 @@ public class TestBObserver {
         log.info("TestClassAEvent!!!");
     }
 
-    @BindEvent(TestNameAEvent.ID)
-    private void onEvent(TestNameAEvent event) {
+    public void onEvent(TestNameAEvent event) {
         log.info("TestNameAEvent!!!");
     }
 

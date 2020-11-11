@@ -47,9 +47,6 @@ public class EventBusMgr {
 			Class<?> clazz = ite.next();
 			Method[] methods = clazz.getDeclaredMethods();
 			for (Method method : methods) {
-				if (method.getModifiers() != Modifier.PUBLIC)
-					continue;
-
 				BindEvent bindEvent = method.getDeclaredAnnotation(BindEvent.class);
 				if (bindEvent != null) {
 					if (eventNameMap == null)
@@ -94,7 +91,7 @@ public class EventBusMgr {
 			}
 		}
 	}
-	
+
 	private void dispatch(String eventName, Object ...args) {
 		if (log.isDebugEnabled())
 			log.debug("dispatch event[{}]", eventName);
