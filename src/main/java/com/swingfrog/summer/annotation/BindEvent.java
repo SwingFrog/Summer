@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface BindEvent {
 
-	String value() default "";
+	String value();
 	int index() default 0;
 	
 }
