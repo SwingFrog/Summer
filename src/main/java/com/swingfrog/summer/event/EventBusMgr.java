@@ -54,15 +54,16 @@ public class EventBusMgr {
 						eventNameMap = Maps.newHashMap();
 					List<EventMethod> eventList = eventNameMap.computeIfAbsent(event.value(), k -> Lists.newLinkedList());
 					eventList.add(new EventMethod(clazz, method, event.index()));
+					continue;
 				}
 				Class<?>[] parameterTypes = method.getParameterTypes();
-				if (parameterTypes.length > 0) {
-					if (eventClassMap == null)
-						eventClassMap = Maps.newHashMap();
-					Class<?> parameterType = parameterTypes[0];
-					List<EventMethod> eventList = eventClassMap.computeIfAbsent(parameterType, k -> Lists.newLinkedList());
-					eventList.add(new EventMethod(clazz, method, 0));
-				}
+				if (parameterTypes.length != 1)
+					throw new EventBusRuntimeException("event handler only one param -> %s.%s", clazz.getSimpleName(), method.getName());
+				if (eventClassMap == null)
+					eventClassMap = Maps.newHashMap();
+				Class<?> parameterType = parameterTypes[0];
+				List<EventMethod> eventList = eventClassMap.computeIfAbsent(parameterType, k -> Lists.newLinkedList());
+				eventList.add(new EventMethod(clazz, method, 0));
 			}
 		}
 		if (eventNameMap != null) {
