@@ -12,6 +12,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.swingfrog.summer.annotation.AcceptEvent;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,14 +49,19 @@ public class EventBusMgr {
 			for (Method method : methods) {
 				if (method.getModifiers() != Modifier.PUBLIC)
 					continue;
-				BindEvent event = method.getDeclaredAnnotation(BindEvent.class);
-				if (event != null) {
+
+				BindEvent bindEvent = method.getDeclaredAnnotation(BindEvent.class);
+				if (bindEvent != null) {
 					if (eventNameMap == null)
 						eventNameMap = Maps.newHashMap();
-					List<EventMethod> eventList = eventNameMap.computeIfAbsent(event.value(), k -> Lists.newLinkedList());
-					eventList.add(new EventMethod(clazz, method, event.index()));
+					List<EventMethod> eventList = eventNameMap.computeIfAbsent(bindEvent.value(), k -> Lists.newLinkedList());
+					eventList.add(new EventMethod(clazz, method, bindEvent.index()));
 					continue;
 				}
+
+				AcceptEvent acceptEvent = method.getDeclaredAnnotation(AcceptEvent.class);
+				if (acceptEvent == null)
+					continue;
 				Class<?>[] parameterTypes = method.getParameterTypes();
 				if (parameterTypes.length != 1)
 					throw new EventBusRuntimeException("event handler only one param -> %s.%s", clazz.getSimpleName(), method.getName());
@@ -63,7 +69,7 @@ public class EventBusMgr {
 					eventClassMap = Maps.newHashMap();
 				Class<?> parameterType = parameterTypes[0];
 				List<EventMethod> eventList = eventClassMap.computeIfAbsent(parameterType, k -> Lists.newLinkedList());
-				eventList.add(new EventMethod(clazz, method, 0));
+				eventList.add(new EventMethod(clazz, method, acceptEvent.index()));
 			}
 		}
 		if (eventNameMap != null) {

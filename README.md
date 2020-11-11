@@ -30,7 +30,7 @@
 4. AsyncCacheRepository中的add、remove增加版本号控制，定时器触发时只会对最新版本的数据进行数据库操作。
 5. 新增@RequestMapping，可自定义请求映射的接口名称。
 6. Repository新增removalAll方法。
-7. EventBus新增订阅和派送方式，当使用@EventHandler的类，其成员方法为public且未使用注解@BindEvent时，以方法第一个传参的类型作为事件派发的ID，详细请看test中的例子。
+7. EventBus新增订阅和派送方式，使用注解@AcceptEvent，无需设定事件名称，该注解下的方法只允许一个参数，并且该参数的类型将作为"事件名称"用于事件派送，详细请看test中的例子。
 
 ### 2020.10.31
 1. 异步请求远程接口增加RemoteCallbackQuick接口，可用于接收响应的数据。

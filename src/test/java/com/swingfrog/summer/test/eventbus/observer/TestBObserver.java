@@ -1,5 +1,6 @@
 package com.swingfrog.summer.test.eventbus.observer;
 
+import com.swingfrog.summer.annotation.AcceptEvent;
 import com.swingfrog.summer.annotation.BindEvent;
 import com.swingfrog.summer.annotation.EventHandler;
 import com.swingfrog.summer.test.eventbus.event.TestClassAEvent;
@@ -14,6 +15,7 @@ public class TestBObserver {
 
     private static final Logger log = LoggerFactory.getLogger(TestBObserver.class);
 
+    @AcceptEvent
     public void onEvent(TestClassBEvent event) {
         log.info("TestClassBEvent");
     }
@@ -23,7 +25,7 @@ public class TestBObserver {
         log.info("TestNameBEvent");
     }
 
-    private void onEvent(TestClassAEvent event) {
+    public void onEvent(TestClassAEvent event) {
         log.info("TestClassAEvent!!!");
     }
 
