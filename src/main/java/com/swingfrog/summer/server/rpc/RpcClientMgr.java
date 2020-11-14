@@ -32,9 +32,16 @@ public class RpcClientMgr {
 		if (clientCluster == null) {
 			clientCluster = new RpcClientCluster();
 			clientCluster.addClient(serverName, new RpcClientGroup());
-			nameToCluster.put(cluster, clientCluster);
+			RpcClientCluster old = nameToCluster.putIfAbsent(cluster, clientCluster);
+			if (old != null)
+				clientCluster = old;
 		}
-		clientCluster.getRpcClientGroup(serverName).addClient(sctx);
+		RpcClientGroup rpcClientGroup = clientCluster.getRpcClientGroup(serverName);
+		if (rpcClientGroup == null) {
+			rpcClientGroup = new RpcClientGroup();
+			clientCluster.addClient(serverName, rpcClientGroup);
+		}
+		rpcClientGroup.addClient(sctx);
 	}
 	
 	public void remove(SessionContext sctx) {

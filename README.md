@@ -31,6 +31,7 @@
 5. 新增@RequestMapping，可自定义请求映射的接口名称。
 6. Repository新增removalAll方法。
 7. EventBus新增订阅和派送方式，使用注解@AcceptEvent，无需设定事件名称，该注解下的方法只允许一个参数，并且该参数的类型将作为"事件名称"用于事件派送，详细请看test中的例子。
+8. 修复RPC在一个Cluster下多个不同serverName时出现的BUG。感谢 [kingo132](https://github.com/kingo132) 大佬指出问题。
 
 ### 2020.10.31
 1. 异步请求远程接口增加RemoteCallbackQuick接口，可用于接收响应的数据。
