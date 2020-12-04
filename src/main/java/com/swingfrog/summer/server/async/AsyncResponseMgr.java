@@ -2,6 +2,7 @@ package com.swingfrog.summer.server.async;
 
 import com.alibaba.fastjson.JSON;
 import com.google.protobuf.Message;
+import com.swingfrog.summer.protocol.ProtocolConst;
 import com.swingfrog.summer.protocol.SessionRequest;
 import com.swingfrog.summer.protocol.SessionResponse;
 import com.swingfrog.summer.protocol.protobuf.ErrorCodeProtobufBuilder;
@@ -159,7 +160,7 @@ public class AsyncResponseMgr {
         Channel channel = server.getChannel(sctx);
         Message response = ErrorCodeProtobufBuilder.build(request.getId(), code, msg);
         log.debug("server async response error {} to {}", response, sctx);
-        ServerWriteHelper.write(channel, server.getServerContext(), sctx, response);
+        ServerWriteHelper.write(channel, server.getServerContext(), sctx, Protobuf.of(ProtocolConst.PROTOBUF_ERROR_CODE_RESP_ID, response));
         RemoteStatistics.finish(sctx, request, response.getSerializedSize());
     }
 

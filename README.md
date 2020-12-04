@@ -23,6 +23,9 @@
 
 ## 更新说明
 
+### 2020.12.x
+1. 修复异步响应Summer.asyncResponse无法发送错误码。
+
 ### 2020.11.30
 1. Repository中add操作不再执行insertSql语句，修改为replaceSql语句。
 2. Repository增加listSingleCache方法，当实体只包含一个cacheKey时，可直接调用此方法查询数据。
