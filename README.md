@@ -23,7 +23,7 @@
 
 ## 更新说明
 
-### 2020.12.x
+### 2020.12.31
 1. 修复异步响应Summer.asyncResponse无法发送错误码。
 
 ### 2020.11.30
@@ -158,7 +158,7 @@ Redis 5.0 (仅供参考)<br/>
     <dependency>
         <groupId>com.swingfrog.summer</groupId>
         <artifactId>summer</artifactId>
-        <version>1.1.3</version>
+        <version>1.1.4</version>
     </dependency>
 ```
 
