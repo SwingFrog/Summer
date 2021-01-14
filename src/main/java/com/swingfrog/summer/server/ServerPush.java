@@ -3,6 +3,7 @@ package com.swingfrog.summer.server;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 
 import com.google.protobuf.Message;
 import com.swingfrog.summer.protocol.protobuf.Protobuf;
@@ -80,8 +81,13 @@ public class ServerPush {
 	}
 	
 	public void asyncPushToSessionContext(SessionContext sessionContext, String remote, String method, Object data) {
+		ExecutorService pushExecutor = serverContext.getPushExecutor();
+		if (pushExecutor.isShutdown()) {
+			log.debug("server push executor shutdown");
+			return;
+		}
 		String msg = SessionResponse.buildPush(remote, method, data).toJSONString();
-		serverContext.getPushExecutor().execute(()->{
+		pushExecutor.execute(()->{
 			log.debug("server push to {} {}", sessionContext, msg);
 			Channel channel = sessionContext.getChannel();
 			write(channel, sessionContext, msg);
@@ -96,8 +102,13 @@ public class ServerPush {
 	}
 	
 	public void asyncPushToSessionContexts(Collection<SessionContext> sessionContexts, String remote, String method, Object data) {
+		ExecutorService pushExecutor = serverContext.getPushExecutor();
+		if (pushExecutor.isShutdown()) {
+			log.debug("server push executor shutdown");
+			return;
+		}
 		String msg = SessionResponse.buildPush(remote, method, data).toJSONString();
-		serverContext.getPushExecutor().execute(()->{
+		pushExecutor.execute(()->{
 			log.debug("server push to {} {}", sessionContexts, msg);
 			for (SessionContext sessionContext : sessionContexts) {
 				Channel channel = sessionContext.getChannel();
@@ -122,9 +133,14 @@ public class ServerPush {
 	}
 
 	public void asyncPushToAll(String remote, String method, Object data) {
+		ExecutorService pushExecutor = serverContext.getPushExecutor();
+		if (pushExecutor.isShutdown()) {
+			log.debug("server push executor shutdown");
+			return;
+		}
 		SessionContextGroup group = serverContext.getSessionContextGroup();
 		String msg = SessionResponse.buildPush(remote, method, data).toJSONString();
-		serverContext.getPushExecutor().execute(()->{
+		pushExecutor.execute(()->{
 			log.debug("server push to all {}", msg);
 			Iterator<Channel> ite = group.iteratorChannel();
 			while (ite.hasNext()) {
@@ -150,13 +166,18 @@ public class ServerPush {
 	// protobuf
 
 	public void asyncPushToSessionContext(SessionContext sessionContext, Message response) {
+		ExecutorService pushExecutor = serverContext.getPushExecutor();
+		if (pushExecutor.isShutdown()) {
+			log.debug("server push executor shutdown");
+			return;
+		}
 		Integer messageId = RespProtobufMgr.get().getMessageId(response.getClass());
 		if (messageId == null) {
 			log.error("protobuf[{}] not found", response.getClass().getName());
 			return;
 		}
 		Protobuf protobuf = Protobuf.of(messageId, response);
-		serverContext.getPushExecutor().execute(()->{
+		pushExecutor.execute(()->{
 			log.debug("server push to {} {}", sessionContext, response);
 			Channel channel = sessionContext.getChannel();
 			write(channel, sessionContext, protobuf);
@@ -176,14 +197,18 @@ public class ServerPush {
 	}
 
 	public void asyncPushToSessionContexts(Collection<SessionContext> sessionContexts, Message response) {
+		ExecutorService pushExecutor = serverContext.getPushExecutor();
+		if (pushExecutor.isShutdown()) {
+			log.debug("server push executor shutdown");
+			return;
+		}
 		Integer messageId = RespProtobufMgr.get().getMessageId(response.getClass());
 		if (messageId == null) {
 			log.error("protobuf[{}] not found", response.getClass().getName());
 			return;
 		}
 		Protobuf protobuf = Protobuf.of(messageId, response);
-		SessionContextGroup group = serverContext.getSessionContextGroup();
-		serverContext.getPushExecutor().execute(()->{
+		pushExecutor.execute(()->{
 			log.debug("server push to {} {}", sessionContexts, response);
 			for (SessionContext sessionContext : sessionContexts) {
 				Channel channel = sessionContext.getChannel();
@@ -202,7 +227,6 @@ public class ServerPush {
 			return;
 		}
 		Protobuf protobuf = Protobuf.of(messageId, response);
-		SessionContextGroup group = serverContext.getSessionContextGroup();
 		log.debug("server push to {} {}", sessionContexts, response);
 		for (SessionContext sessionContext : sessionContexts) {
 			Channel channel = sessionContext.getChannel();
@@ -214,6 +238,11 @@ public class ServerPush {
 	}
 
 	public void asyncPushToAll(Message response) {
+		ExecutorService pushExecutor = serverContext.getPushExecutor();
+		if (pushExecutor.isShutdown()) {
+			log.debug("server push executor shutdown");
+			return;
+		}
 		Integer messageId = RespProtobufMgr.get().getMessageId(response.getClass());
 		if (messageId == null) {
 			log.error("protobuf[{}] not found", response.getClass().getName());
@@ -221,7 +250,7 @@ public class ServerPush {
 		}
 		Protobuf protobuf = Protobuf.of(messageId, response);
 		SessionContextGroup group = serverContext.getSessionContextGroup();
-		serverContext.getPushExecutor().execute(()->{
+		pushExecutor.execute(()->{
 			log.debug("server push to all {}", response);
 			Iterator<Channel> ite = group.iteratorChannel();
 			while (ite.hasNext()) {
