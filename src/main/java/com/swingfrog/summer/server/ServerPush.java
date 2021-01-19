@@ -4,11 +4,11 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+import java.util.stream.Stream;
 
 import com.google.protobuf.Message;
 import com.swingfrog.summer.protocol.protobuf.Protobuf;
 import com.swingfrog.summer.protocol.protobuf.RespProtobufMgr;
-import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -87,18 +87,16 @@ public class ServerPush {
 			return;
 		}
 		String msg = SessionResponse.buildPush(remote, method, data).toJSONString();
-		pushExecutor.execute(()->{
+		pushExecutor.execute(() -> {
 			log.debug("server push to {} {}", sessionContext, msg);
-			Channel channel = sessionContext.getChannel();
-			write(channel, sessionContext, msg);
+			write(sessionContext, msg);
 		});
 	}
 
 	public void syncPushToSessionContext(SessionContext sessionContext, String remote, String method, Object data) {
 		String msg = SessionResponse.buildPush(remote, method, data).toJSONString();
 		log.debug("server push to {} {}", sessionContext, msg);
-		Channel channel = sessionContext.getChannel();
-		write(channel, sessionContext, msg);
+		write(sessionContext, msg);
 	}
 	
 	public void asyncPushToSessionContexts(Collection<SessionContext> sessionContexts, String remote, String method, Object data) {
@@ -108,14 +106,10 @@ public class ServerPush {
 			return;
 		}
 		String msg = SessionResponse.buildPush(remote, method, data).toJSONString();
-		pushExecutor.execute(()->{
+		pushExecutor.execute(() -> {
 			log.debug("server push to {} {}", sessionContexts, msg);
 			for (SessionContext sessionContext : sessionContexts) {
-				Channel channel = sessionContext.getChannel();
-				if (channel != null) {
-					SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(channel);
-					write(channel, sctx, msg);
-				}
+				write(sessionContext, msg);
 			}
 		});
 	}
@@ -124,12 +118,27 @@ public class ServerPush {
 		String msg = SessionResponse.buildPush(remote, method, data).toJSONString();
 		log.debug("server push to {} {}", sessionContexts, msg);
 		for (SessionContext sessionContext : sessionContexts) {
-			Channel channel = sessionContext.getChannel();
-			if (channel != null) {
-				SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(channel);
-				write(channel, sctx, msg);
-			}
+			write(sessionContext, msg);
 		}
+	}
+
+	public void asyncPushToSessionContexts(Stream<SessionContext> sctxStream, String remote, String method, Object data) {
+		ExecutorService pushExecutor = serverContext.getPushExecutor();
+		if (pushExecutor.isShutdown()) {
+			log.debug("server push executor shutdown");
+			return;
+		}
+		String msg = SessionResponse.buildPush(remote, method, data).toJSONString();
+		pushExecutor.execute(() -> {
+			log.debug("server push to part {}", msg);
+			sctxStream.forEach(sessionContext -> write(sessionContext, msg));
+		});
+	}
+
+	public void syncPushToSessionContexts(Stream<SessionContext> sctxStream, String remote, String method, Object data) {
+		String msg = SessionResponse.buildPush(remote, method, data).toJSONString();
+		log.debug("server push to part {}", msg);
+		sctxStream.forEach(sessionContext -> write(sessionContext, msg));
 	}
 
 	public void asyncPushToAll(String remote, String method, Object data) {
@@ -140,13 +149,12 @@ public class ServerPush {
 		}
 		SessionContextGroup group = serverContext.getSessionContextGroup();
 		String msg = SessionResponse.buildPush(remote, method, data).toJSONString();
-		pushExecutor.execute(()->{
+		pushExecutor.execute(() -> {
 			log.debug("server push to all {}", msg);
-			Iterator<Channel> ite = group.iteratorChannel();
+			Iterator<SessionContext> ite = group.iteratorSession();
 			while (ite.hasNext()) {
-				Channel channel = ite.next();
-				SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(channel);
-				write(channel, sctx, msg);
+				SessionContext sctx = ite.next();
+				write(sctx, msg);
 			}
 		});
 	}
@@ -155,11 +163,10 @@ public class ServerPush {
 		SessionContextGroup group = serverContext.getSessionContextGroup();
 		String msg = SessionResponse.buildPush(remote, method, data).toJSONString();
 		log.debug("server push to all {}", msg);
-		Iterator<Channel> ite = group.iteratorChannel();
+		Iterator<SessionContext> ite = group.iteratorSession();
 		while (ite.hasNext()) {
-			Channel channel = ite.next();
-			SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(channel);
-			write(channel, sctx, msg);
+			SessionContext sctx = ite.next();
+			write(sctx, msg);
 		}
 	}
 
@@ -177,10 +184,9 @@ public class ServerPush {
 			return;
 		}
 		Protobuf protobuf = Protobuf.of(messageId, response);
-		pushExecutor.execute(()->{
+		pushExecutor.execute(() -> {
 			log.debug("server push to {} {}", sessionContext, response);
-			Channel channel = sessionContext.getChannel();
-			write(channel, sessionContext, protobuf);
+			write(sessionContext, protobuf);
 		});
 	}
 
@@ -192,8 +198,7 @@ public class ServerPush {
 		}
 		Protobuf protobuf = Protobuf.of(messageId, response);
 		log.debug("server push to {} {}", sessionContext, response);
-		Channel channel = sessionContext.getChannel();
-		write(channel, sessionContext, protobuf);
+		write(sessionContext, protobuf);
 	}
 
 	public void asyncPushToSessionContexts(Collection<SessionContext> sessionContexts, Message response) {
@@ -208,14 +213,10 @@ public class ServerPush {
 			return;
 		}
 		Protobuf protobuf = Protobuf.of(messageId, response);
-		pushExecutor.execute(()->{
+		pushExecutor.execute(() -> {
 			log.debug("server push to {} {}", sessionContexts, response);
 			for (SessionContext sessionContext : sessionContexts) {
-				Channel channel = sessionContext.getChannel();
-				if (channel != null) {
-					SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(channel);
-					write(channel, sctx, protobuf);
-				}
+				write(sessionContext, protobuf);
 			}
 		});
 	}
@@ -229,12 +230,37 @@ public class ServerPush {
 		Protobuf protobuf = Protobuf.of(messageId, response);
 		log.debug("server push to {} {}", sessionContexts, response);
 		for (SessionContext sessionContext : sessionContexts) {
-			Channel channel = sessionContext.getChannel();
-			if (channel != null) {
-				SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(channel);
-				write(channel, sctx, protobuf);
-			}
+			write(sessionContext, protobuf);
 		}
+	}
+
+	public void asyncPushToSessionContexts(Stream<SessionContext> sctxStream, Message response) {
+		ExecutorService pushExecutor = serverContext.getPushExecutor();
+		if (pushExecutor.isShutdown()) {
+			log.debug("server push executor shutdown");
+			return;
+		}
+		Integer messageId = RespProtobufMgr.get().getMessageId(response.getClass());
+		if (messageId == null) {
+			log.error("protobuf[{}] not found", response.getClass().getName());
+			return;
+		}
+		Protobuf protobuf = Protobuf.of(messageId, response);
+		pushExecutor.execute(() -> {
+			log.debug("server push to part {}", response);
+			sctxStream.forEach(sessionContext -> write(sessionContext, protobuf));
+		});
+	}
+
+	public void syncPushToSessionContexts(Stream<SessionContext> sctxStream, Message response) {
+		Integer messageId = RespProtobufMgr.get().getMessageId(response.getClass());
+		if (messageId == null) {
+			log.error("protobuf[{}] not found", response.getClass().getName());
+			return;
+		}
+		Protobuf protobuf = Protobuf.of(messageId, response);
+		log.debug("server push to part {}", response);
+		sctxStream.forEach(sessionContext -> write(sessionContext, protobuf));
 	}
 
 	public void asyncPushToAll(Message response) {
@@ -250,13 +276,12 @@ public class ServerPush {
 		}
 		Protobuf protobuf = Protobuf.of(messageId, response);
 		SessionContextGroup group = serverContext.getSessionContextGroup();
-		pushExecutor.execute(()->{
+		pushExecutor.execute(() -> {
 			log.debug("server push to all {}", response);
-			Iterator<Channel> ite = group.iteratorChannel();
+			Iterator<SessionContext> ite = group.iteratorSession();
 			while (ite.hasNext()) {
-				Channel ctx = ite.next();
-				SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(ctx);
-				write(ctx, sctx, protobuf);
+				SessionContext sctx = ite.next();
+				write(sctx, protobuf);
 			}
 		});
 	}
@@ -270,26 +295,91 @@ public class ServerPush {
 		Protobuf protobuf = Protobuf.of(messageId, response);
 		SessionContextGroup group = serverContext.getSessionContextGroup();
 		log.debug("server push to all {}", response);
-		Iterator<Channel> ite = group.iteratorChannel();
+		Iterator<SessionContext> ite = group.iteratorSession();
 		while (ite.hasNext()) {
-			Channel ctx = ite.next();
-			SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(ctx);
-			write(ctx, sctx, protobuf);
+			SessionContext sctx = ite.next();
+			write(sctx, protobuf);
 		}
 	}
 
-	private void write(Channel channel, SessionContext sctx, String response) {
-		if (channel == null) {
-			return;
-		}
-		ServerWriteHelper.write(channel, serverContext, sctx, response);
+	private void write(SessionContext sctx, String response) {
+		ServerWriteHelper.write(serverContext, sctx, response);
 	}
 
-	private void write(Channel channel, SessionContext sctx, Protobuf protobuf) {
-		if (channel == null) {
-			return;
-		}
-		ServerWriteHelper.write(channel, serverContext, sctx, protobuf);
+	private void write(SessionContext sctx, Protobuf protobuf) {
+		ServerWriteHelper.write(serverContext, sctx, protobuf);
+	}
+
+
+
+
+
+	// simple push
+
+	public void push(SessionContext sessionContext, String remote, String method, Object data) {
+		syncPushToSessionContext(sessionContext, remote, method, data);
+	}
+
+	public void push(Collection<SessionContext> sessionContexts, String remote, String method, Object data) {
+		syncPushToSessionContexts(sessionContexts, remote, method, data);
+	}
+
+	public void push(Stream<SessionContext> sctxStream, String remote, String method, Object data) {
+		syncPushToSessionContexts(sctxStream, remote, method, data);
+	}
+
+	public void push(String remote, String method, Object data) {
+		syncPushToAll(remote, method, data);
+	}
+
+	public void push(SessionContext sessionContext, Message response) {
+		syncPushToSessionContext(sessionContext, response);
+	}
+
+	public void push(Collection<SessionContext> sessionContexts, Message response) {
+		syncPushToSessionContexts(sessionContexts, response);
+	}
+
+	public void push(Stream<SessionContext> sctxStream, Message response) {
+		syncPushToSessionContexts(sctxStream, response);
+	}
+
+	public void push(Message response) {
+		syncPushToAll(response);
+	}
+
+	// async simple push
+
+	public void asyncPush(SessionContext sessionContext, String remote, String method, Object data) {
+		asyncPushToSessionContext(sessionContext, remote, method, data);
+	}
+
+	public void asyncPush(Collection<SessionContext> sessionContexts, String remote, String method, Object data) {
+		asyncPushToSessionContexts(sessionContexts, remote, method, data);
+	}
+
+	public void asyncPush(Stream<SessionContext> sctxStream, String remote, String method, Object data) {
+		asyncPushToSessionContexts(sctxStream, remote, method, data);
+	}
+
+	public void asyncPush(String remote, String method, Object data) {
+		asyncPushToAll(remote, method, data);
+	}
+
+	public void asyncPush(SessionContext sessionContext, Message response) {
+		asyncPushToSessionContext(sessionContext, response);
+	}
+
+	public void asyncPush(Collection<SessionContext> sessionContexts, Message response) {
+		asyncPushToSessionContexts(sessionContexts, response);
+	}
+
+	public void asyncPush(Stream<SessionContext> sctxStream, Message response) {
+		asyncPushToSessionContexts(sctxStream, response);
+	}
+
+	public void asyncPush(Message response) {
+		asyncPushToAll(response);
 	}
 
 }

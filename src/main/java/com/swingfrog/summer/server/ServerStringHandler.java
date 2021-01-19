@@ -33,8 +33,8 @@ public class ServerStringHandler extends AbstractServerHandler<String> {
 			channel.writeAndFlush(ProtocolConst.PONG);
 			return;
 		} else if (msg.startsWith(ProtocolConst.RPC)) {
-			String[] msgs = msg.split(ProtocolConst.RPC_SPLIT);
-			RpcClientMgr.get().add(sctx, msgs[1], msgs[2]);
+			String[] text = msg.split(ProtocolConst.RPC_SPLIT);
+			RpcClientMgr.get().add(sctx, text[1], text[2]);
 			Set<Long> requestResult = Sets.newConcurrentHashSet();
 			sctx.put(RpcClientConst.SESSION_KEY_REQUEST_RESULT, requestResult);
 			return;
@@ -66,7 +66,7 @@ public class ServerStringHandler extends AbstractServerHandler<String> {
 						if (!requestResult.add(request.getId())) {
 							String response = SessionResponse.buildError(request, SessionException.REPEATED_REQUEST).toJSONString();
 							log.debug("server response error {} to {}", response, sctx);
-							writeResponse(channel, sctx, response);
+							writeResponse(sctx, response);
 							RemoteStatistics.finish(sctx, request, response.length());
 							return;
 						}
@@ -78,19 +78,19 @@ public class ServerStringHandler extends AbstractServerHandler<String> {
 					}
 					String response = processResult.getValue().toJSONString();
 					log.debug("server response {} to {}", response, sctx);
-					writeResponse(channel, sctx, response);
+					writeResponse(sctx, response);
 					RemoteStatistics.finish(sctx, request, response.length());
 				} catch (CodeException ce) {
 					log.warn(ce.getMessage(), ce);
 					String response = SessionResponse.buildError(request, ce).toJSONString();
 					log.debug("server response error {} to {}", response, sctx);
-					writeResponse(channel, sctx, response);
+					writeResponse(sctx, response);
 					RemoteStatistics.finish(sctx, request, response.length());
 				} catch (Throwable e) {
 					log.error(e.getMessage(), e);
 					String response = SessionResponse.buildError(request, SessionException.INVOKE_ERROR).toJSONString();
 					log.debug("server response error {} to {}", response, sctx);
-					writeResponse(channel, sctx, response);
+					writeResponse(sctx, response);
 					RemoteStatistics.finish(sctx, request, response.length());
 				}
 			};
@@ -101,8 +101,8 @@ public class ServerStringHandler extends AbstractServerHandler<String> {
 		}
 	}
 
-	private void writeResponse(Channel channel, SessionContext sctx, String response) {
-		ServerWriteHelper.write(channel, serverContext, sctx, response);
+	private void writeResponse(SessionContext sctx, String response) {
+		ServerWriteHelper.write(serverContext, sctx, response);
 	}
 
 }

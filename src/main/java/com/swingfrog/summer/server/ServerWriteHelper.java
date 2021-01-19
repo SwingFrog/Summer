@@ -9,13 +9,14 @@ public class ServerWriteHelper {
 
     private static final Logger log = LoggerFactory.getLogger(ServerWriteHelper.class);
 
-    public static void write(Channel channel, ServerContext serverContext, SessionContext sctx, Object data) {
+    public static void write(ServerContext serverContext, SessionContext sctx, Object data) {
         if (data instanceof Protobuf) {
             if (!serverContext.isProtobuf()) {
                 log.error("can't write protobuf data int the non-protobuf protocol");
                 return;
             }
         }
+        Channel channel = sctx.getChannel();
         if (!channel.isActive()) {
             return;
         }

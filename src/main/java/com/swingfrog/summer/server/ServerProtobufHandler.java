@@ -1,8 +1,6 @@
 package com.swingfrog.summer.server;
 
 import com.google.protobuf.Message;
-import com.swingfrog.summer.concurrent.SessionQueueMgr;
-import com.swingfrog.summer.concurrent.SessionTokenQueueMgr;
 import com.swingfrog.summer.protocol.ProtocolConst;
 import com.swingfrog.summer.protocol.protobuf.ErrorCodeProtobufBuilder;
 import com.swingfrog.summer.protocol.protobuf.Protobuf;
@@ -64,19 +62,19 @@ public class ServerProtobufHandler extends AbstractServerHandler<Protobuf> {
                     }
                     Message response = processResult.getValue();
                     log.debug("server response {} to {}", response, sctx);
-                    writeResponse(channel, sctx, Protobuf.of(messageId, response));
+                    writeResponse(sctx, Protobuf.of(messageId, response));
                     RemoteStatistics.finish(sctx, request, response.getSerializedSize());
                 } catch (CodeException ce) {
                     log.warn(ce.getMessage(), ce);
                     Message response = ErrorCodeProtobufBuilder.build(messageId, ce);
                     log.debug("server response error {} to {}", response, sctx);
-                    writeResponse(channel, sctx, Protobuf.of(ProtocolConst.PROTOBUF_ERROR_CODE_RESP_ID, response));
+                    writeResponse(sctx, Protobuf.of(ProtocolConst.PROTOBUF_ERROR_CODE_RESP_ID, response));
                     RemoteStatistics.finish(sctx, request, response.getSerializedSize());
                 } catch (Throwable e) {
                     log.error(e.getMessage(), e);
                     Message response = ErrorCodeProtobufBuilder.build(messageId, SessionException.INVOKE_ERROR);
                     log.debug("server response error {} to {}", response, sctx);
-                    writeResponse(channel, sctx, Protobuf.of(ProtocolConst.PROTOBUF_ERROR_CODE_RESP_ID, response));
+                    writeResponse(sctx, Protobuf.of(ProtocolConst.PROTOBUF_ERROR_CODE_RESP_ID, response));
                     RemoteStatistics.finish(sctx, request, response.getSerializedSize());
                 }
             };
@@ -87,8 +85,8 @@ public class ServerProtobufHandler extends AbstractServerHandler<Protobuf> {
         }
     }
 
-    private void writeResponse(Channel channel, SessionContext sctx, Protobuf protobuf) {
-        ServerWriteHelper.write(channel, serverContext, sctx, protobuf);
+    private void writeResponse(SessionContext sctx, Protobuf protobuf) {
+        ServerWriteHelper.write(serverContext, sctx, protobuf);
     }
 
 }
