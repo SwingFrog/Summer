@@ -15,6 +15,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
 
@@ -210,38 +211,29 @@ public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
                 normal.put(key, value);
             }
         }
-        List<T> list;
+        Stream<T> stream;
         if (pkList == null || pkList.isEmpty()) {
             super.listPrimaryKey(optional).forEach(this::get);
-            list = cache.asMap().values().stream().filter(obj -> obj != EMPTY).collect(Collectors.toList());
+            stream = cache.asMap().values().stream().filter(obj -> obj != EMPTY);
         } else {
             if (pkList.size() == 1) {
-                list = pkList.getFirst().stream().map(this::get).filter(Objects::nonNull).collect(Collectors.toList());
+                stream = pkList.getFirst().stream().map(this::get).filter(Objects::nonNull);
             } else {
                 Set<K> first = Sets.newHashSet(pkList.removeFirst());
                 LinkedList<Set<K>> finalPkList = pkList;
-                first.removeIf(obj -> {
-                    for (Set<K> pk : finalPkList) {
-                        if (!pk.contains(obj))
-                            return true;
-                    }
-                    return false;
-                });
-                list = first.stream().map(this::get).filter(Objects::nonNull).collect(Collectors.toList());
+                first.removeIf(obj -> finalPkList.stream().anyMatch(pk -> !pk.contains(obj)));
+                stream = first.stream().map(this::get).filter(Objects::nonNull);
             }
         }
         if (normal != null && normal.size() > 0) {
             Map<String, Object> finalNormal = normal;
-            list = list.stream().filter(obj -> {
-                for (Map.Entry<String, Object> entry : finalNormal.entrySet()) {
-                    if (!TableValueBuilder.isEqualsColumnValue(getTableMeta().getColumnMetaMap().get(entry.getKey()), obj, entry.getValue())) {
-                        return false;
-                    }
-                }
-                return true;
-            }).collect(Collectors.toList());
+            stream = stream.filter(obj ->
+                finalNormal.entrySet().stream()
+                        .allMatch(entry ->
+                                TableValueBuilder.isEqualsColumnValue(
+                                        getTableMeta().getColumnMetaMap().get(entry.getKey()), obj, entry.getValue())));
         }
-        return list;
+        return stream.collect(Collectors.toList());
     }
 
     @Override
