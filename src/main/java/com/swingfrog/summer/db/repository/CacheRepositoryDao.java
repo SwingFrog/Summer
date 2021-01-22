@@ -225,7 +225,7 @@ public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
                 stream = first.stream().map(this::get).filter(Objects::nonNull);
             }
         }
-        if (normal != null && normal.size() > 0) {
+        if (normal != null && !normal.isEmpty()) {
             Map<String, Object> finalNormal = normal;
             stream = stream.filter(obj ->
                 finalNormal.entrySet().stream()
