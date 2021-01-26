@@ -1,5 +1,6 @@
 package com.swingfrog.summer.db;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.sql.Connection;
@@ -13,8 +14,14 @@ import java.util.concurrent.ConcurrentMap;
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.pool.DruidDataSourceFactory;
 import com.google.common.collect.Maps;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DataBaseMgr {
+
+	private static final Logger log = LoggerFactory.getLogger(DataBaseMgr.class);
+
+	public static final String DEFAULT_CONFIG_PATH = "config/db.properties";
 
 	private DruidDataSource dataSource;
 	private final Map<String, DruidDataSource> otherDataSourceMap = Maps.newHashMap();
@@ -33,13 +40,44 @@ public class DataBaseMgr {
 	}
 	
 	public void loadConfig(String path) throws Exception {
-		loadConfig(new FileInputStream(path));
+		if (DEFAULT_CONFIG_PATH.equals(path)) {
+			File file = new File(path);
+			if (file.exists()) {
+				loadConfig(new FileInputStream(file));
+			} else {
+				log.debug("used default db config.");
+				dataSource = (DruidDataSource) DruidDataSourceFactory.createDataSource(createDefaultProperties());
+			}
+		} else {
+			loadConfig(new FileInputStream(path));
+		}
 	}
 	
 	public void loadConfig(InputStream in) throws Exception {
 		Properties properties = new Properties();
 		properties.load(in);
 		dataSource = (DruidDataSource) DruidDataSourceFactory.createDataSource(properties);
+	}
+
+	private Properties createDefaultProperties() {
+		Properties properties = new Properties();
+		properties.setProperty("driverClassName", "com.mysql.cj.jdbc.Driver");
+		properties.setProperty("url", "jdbc:mysql://127.0.0.1:3306/db_test?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull&serverTimezone=Asia/Shanghai");
+		properties.setProperty("username", "root");
+		properties.setProperty("password", "123456");
+		properties.setProperty("filters", "stat");
+		properties.setProperty("initialSize", "2");
+		properties.setProperty("maxActive", "300");
+		properties.setProperty("maxWait", "60000");
+		properties.setProperty("timeBetweenEvictionRunsMillis", "60000");
+		properties.setProperty("minEvictableIdleTimeMillis", "300000");
+		properties.setProperty("validationQuery", "SELECT 1");
+		properties.setProperty("testWhileIdle", "true");
+		properties.setProperty("testOnBorrow", "false");
+		properties.setProperty("testOnReturn", "false");
+		properties.setProperty("poolPreparedStatements", "false");
+		properties.setProperty("maxPoolPreparedStatementPerConnectionSize", "200");
+		return properties;
 	}
 
 	public void loadConfigForOther(String topic, String path) throws Exception {

@@ -2,14 +2,17 @@ package com.swingfrog.summer.db.repository;
 
 import com.google.common.collect.Lists;
 import com.swingfrog.summer.config.ConfigUtil;
+import com.swingfrog.summer.db.DataBaseMgr;
 import com.swingfrog.summer.util.ThreadCountUtil;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.beans.IntrospectionException;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.Executors;
@@ -37,14 +40,30 @@ public class AsyncCacheRepositoryMgr {
     }
 
     public void loadConfig(String path) throws IOException, IntrospectionException {
+        if (DataBaseMgr.DEFAULT_CONFIG_PATH.equals(path)) {
+            File file = new File(path);
+            if (file.exists()) {
+                loadConfig(new FileInputStream(file));
+            } else {
+                loadDefaultConfig();
+            }
+        } else {
+            loadConfig(new FileInputStream(path));
+        }
+        log.info("async cache repository manager loading config, core thread num[{}]", config.getCoreThread());
+    }
+
+    public void loadConfig(InputStream in) throws IOException, IntrospectionException {
         Properties pro = new Properties();
-        FileInputStream in = new FileInputStream(path);
         pro.load(in);
         ConfigUtil.loadDataWithBean(pro, "asyncCache.", config);
         in.close();
         pro.clear();
         config.setCoreThread(ThreadCountUtil.ioDenseness(config.getCoreThread()));
-        log.info("async cache repository manager loading config, core thread num[{}]", config.getCoreThread());
+    }
+
+    private void loadDefaultConfig() {
+        config.setCoreThread(ThreadCountUtil.ioDenseness(0));
     }
 
     public void shutdown() {

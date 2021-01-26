@@ -90,10 +90,10 @@ public class Summer {
 		hot(config.getApp(),
 				config.getProjectPackage() == null ? config.getApp().getClass().getPackage().getName() : config.getProjectPackage(),
 				config.getLibPath() == null ? "lib" : config.getLibPath(),
-				config.getServerProperties() == null ? "config/server.properties" : config.getServerProperties(),
-				config.getRedisProperties() == null ? "config/redis.properties" : config.getRedisProperties(),
-				config.getDbProperties() == null ? "config/db.properties" : config.getDbProperties(),
-				config.getTaskProperties() == null ? "config/task.properties" : config.getTaskProperties(),
+				config.getServerProperties() == null ? ConfigMgr.DEFAULT_CONFIG_PATH : config.getServerProperties(),
+				config.getRedisProperties() == null ? RedisMgr.DEFAULT_CONFIG_PATH : config.getRedisProperties(),
+				config.getDbProperties() == null ? DataBaseMgr.DEFAULT_CONFIG_PATH : config.getDbProperties(),
+				config.getTaskProperties() == null ? TaskMgr.DEFAULT_CONFIG_PATH : config.getTaskProperties(),
 				config.getSessionQueueExpireTimeMs() == null ? TimeUnit.MINUTES.toMillis(10) : config.getSessionQueueExpireTimeMs(),
 				config.getSingleQueueExpireTimeMs() == null ? TimeUnit.MINUTES.toMillis(10) : config.getSingleQueueExpireTimeMs()
 		);

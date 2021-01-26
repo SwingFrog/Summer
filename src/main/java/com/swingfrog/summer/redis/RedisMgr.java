@@ -1,21 +1,24 @@
 package com.swingfrog.summer.redis;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.Properties;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
 public class RedisMgr {
 
+	private static final Logger log = LoggerFactory.getLogger(RedisMgr.class);
+
+	public static final String DEFAULT_CONFIG_PATH = "config/redis.properties";
+
 	private JedisPool jedisPool;
-	private final ThreadLocal<ConnInfo> local = new ThreadLocal<ConnInfo>() {
-		protected ConnInfo initialValue() {
-			return new ConnInfo();
-		}
-	};
+	private final ThreadLocal<ConnInfo> local = ThreadLocal.withInitial(ConnInfo::new);
 	
 	private static class SingleCase {
 		public static final RedisMgr INSTANCE = new RedisMgr();
@@ -30,7 +33,17 @@ public class RedisMgr {
 	}
 	
 	public void loadConfig(String path) throws Exception {
-		loadConfig(new FileInputStream(path));
+		File file = new File(path);
+		if (DEFAULT_CONFIG_PATH.equals(path)) {
+			if (file.exists()) {
+				loadConfig(new FileInputStream(file));
+			} else {
+				log.debug("used default redis config.");
+				loadDefaultConfig();
+			}
+		} else {
+			loadConfig(new FileInputStream(file));
+		}
 	}
 	
 	public void loadConfig(InputStream in) throws Exception {
@@ -50,6 +63,26 @@ public class RedisMgr {
 		redisConfig.setTestOnBorrow(Boolean.parseBoolean(pro.getProperty("testOnBorrow")));
 		in.close();
 		pro.clear();
+		loadJedisPool(redisConfig);
+	}
+
+	private void loadDefaultConfig() {
+		RedisConfig redisConfig = new RedisConfig();
+		redisConfig.setUrl("127.0.0.1");
+		redisConfig.setPort(6379);
+		redisConfig.setTimeout(3000);
+		redisConfig.setPassword("123456");
+		redisConfig.setBlockWhenExhausted(true);
+		redisConfig.setEvictionPolicyClassName("org.apache.commons.pool2.impl.DefaultEvictionPolicy");
+		redisConfig.setJmxEnabled(true);
+		redisConfig.setMaxIdle(8);
+		redisConfig.setMaxTotal(200);
+		redisConfig.setMaxWaitMillis(100000);
+		redisConfig.setTestOnBorrow(true);
+		loadJedisPool(redisConfig);
+	}
+
+	private void loadJedisPool(RedisConfig redisConfig) {
 		JedisPoolConfig jedisPoolConfig = new JedisPoolConfig();
 		jedisPoolConfig.setBlockWhenExhausted(redisConfig.isBlockWhenExhausted());
 		jedisPoolConfig.setEvictionPolicyClassName(redisConfig.getEvictionPolicyClassName());
@@ -57,8 +90,8 @@ public class RedisMgr {
 		jedisPoolConfig.setMaxIdle(redisConfig.getMaxIdle());
 		jedisPoolConfig.setMaxTotal(redisConfig.getMaxTotal());
 		jedisPoolConfig.setMaxWaitMillis(redisConfig.getMaxWaitMillis());
-        jedisPoolConfig.setTestOnBorrow(redisConfig.isTestOnBorrow());
-        jedisPool = new JedisPool(jedisPoolConfig, redisConfig.getUrl(), redisConfig.getPort(), redisConfig.getTimeout(), redisConfig.getPassword()); 
+		jedisPoolConfig.setTestOnBorrow(redisConfig.isTestOnBorrow());
+		jedisPool = new JedisPool(jedisPoolConfig, redisConfig.getUrl(), redisConfig.getPort(), redisConfig.getTimeout(), redisConfig.getPassword());
 	}
 	
 	public Jedis getConnection() {
