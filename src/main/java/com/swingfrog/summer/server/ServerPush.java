@@ -328,7 +328,7 @@ public class ServerPush {
 		syncPushToSessionContexts(sctxStream, remote, method, data);
 	}
 
-	public void push(String remote, String method, Object data) {
+	public void pushAll(String remote, String method, Object data) {
 		syncPushToAll(remote, method, data);
 	}
 
@@ -344,7 +344,7 @@ public class ServerPush {
 		syncPushToSessionContexts(sctxStream, response);
 	}
 
-	public void push(Message response) {
+	public void pushAll(Message response) {
 		syncPushToAll(response);
 	}
 
@@ -362,7 +362,7 @@ public class ServerPush {
 		asyncPushToSessionContexts(sctxStream, remote, method, data);
 	}
 
-	public void asyncPush(String remote, String method, Object data) {
+	public void asyncPushAll(String remote, String method, Object data) {
 		asyncPushToAll(remote, method, data);
 	}
 
@@ -378,7 +378,7 @@ public class ServerPush {
 		asyncPushToSessionContexts(sctxStream, response);
 	}
 
-	public void asyncPush(Message response) {
+	public void asyncPushAll(Message response) {
 		asyncPushToAll(response);
 	}
 
