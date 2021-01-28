@@ -7,6 +7,8 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class SessionContext {
 
@@ -122,6 +124,22 @@ public class SessionContext {
 	@SuppressWarnings("unchecked")
 	public <T> T get(Object key) {
 		return (T) data.get(key);
+	}
+
+	@SuppressWarnings("unchecked")
+	public <T> T getOrDefault(Object key, T defaultValue) {
+		Object value = data.get(key);
+		if (value == null)
+			return defaultValue;
+		return (T) value;
+	}
+
+	@SuppressWarnings("unchecked")
+	public <T> T getOrSupplier(Object key, Supplier<T> supplier) {
+		Object value = data.get(key);
+		if (value == null)
+			return supplier.get();
+		return (T) value;
 	}
 
 	@SuppressWarnings("unchecked")
