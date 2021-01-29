@@ -89,7 +89,7 @@ public class Summer {
 	public static void hot(SummerConfig config) {
 		hot(config.getApp(),
 				config.getProjectPackage() == null ? config.getApp().getClass().getPackage().getName() : config.getProjectPackage(),
-				config.getLibPath() == null ? "lib" : config.getLibPath(),
+				config.getLibPath(),
 				config.getServerProperties() == null ? ConfigMgr.DEFAULT_CONFIG_PATH : config.getServerProperties(),
 				config.getRedisProperties() == null ? RedisMgr.DEFAULT_CONFIG_PATH : config.getRedisProperties(),
 				config.getDbProperties() == null ? DataBaseMgr.DEFAULT_CONFIG_PATH : config.getDbProperties(),
@@ -105,7 +105,8 @@ public class Summer {
 		try {
 			logo();
 			log.info("summer init...");
-			JarLoader.loadJarByDir(new File(libPath));
+			if (libPath != null)
+				JarLoader.loadJarByDir(new File(libPath));
 			log.info("config load...");
 			ConfigMgr.get().loadConfig(serverProperties);
 			RedisMgr.get().loadConfig(redisProperties);

@@ -28,6 +28,7 @@
 2. 优化ServerPush，新增简单的调用接口。
 3. 优化CacheRepositoryDao.list(Map<String, Object> optional)，在筛选数据的过程中改用stream，在最后才进行collect操作。
 4. 新增默认配置，在未明确指定配置文件路径的时候，并且默认路径下的配置文件不存在，则会启用默认配置。例如，在项目中引入summer依赖，无需本地配置文件，即可直接使用Summer.hot启动。
+5. 通过Summer.hot启动时，未明确指定libPath时将不再通过默认路径"lib"去扫描加载jar。(mvn打包时可通过配置插件自动拷贝依赖以及在程序启动时加载指定依赖)
 
 ### 2020.12.31
 1. 修复异步响应Summer.asyncResponse无法发送错误码。
