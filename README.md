@@ -23,7 +23,7 @@
 
 ## 更新说明
 
-### 2021.01.xx
+### 2021.01.31
 1. 修复在程序关闭时，异步事件中有推送异步消息的操作导致异常的问题。
 2. 优化ServerPush，新增简单的调用接口。
 3. 优化CacheRepositoryDao.list(Map<String, Object> optional)，在筛选数据的过程中改用stream，在最后才进行collect操作。
@@ -165,7 +165,7 @@ Redis 5.0 (仅供参考)<br/>
     <dependency>
         <groupId>com.swingfrog.summer</groupId>
         <artifactId>summer</artifactId>
-        <version>1.1.4</version>
+        <version>1.1.5</version>
     </dependency>
 ```
 
