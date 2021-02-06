@@ -218,7 +218,7 @@ public class Summer {
 		ContainerMgr.get().removeComponent(obj);
 	}
 	
-	public static <T> T getComponent(Class<?> clazz) {
+	public static <T> T getComponent(Class<T> clazz) {
 		return ContainerMgr.get().getComponent(clazz);
 	}
 	

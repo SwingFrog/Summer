@@ -249,7 +249,7 @@ public class ContainerMgr {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public <T> T getComponent(Class<?> clazz) {
+	public <T> T getComponent(Class<T> clazz) {
 		if (componentSet.contains(clazz)) {
 			return (T)map.get(clazz);
 		}
