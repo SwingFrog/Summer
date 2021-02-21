@@ -16,12 +16,16 @@ public class JSONConvertUtil {
         map.put(short.class, JSONObject::getShortValue);
         map.put(int.class, JSONObject::getIntValue);
         map.put(long.class, JSONObject::getLongValue);
+        map.put(float.class, JSONObject::getFloatValue);
+        map.put(double.class, JSONObject::getDoubleValue);
         map.put(Boolean.class, JSONObject::getBoolean);
         map.put(Byte.class, JSONObject::getByte);
         map.put(Short.class, JSONObject::getShort);
         map.put(Integer.class, JSONObject::getInteger);
         map.put(Long.class, JSONObject::getLong);
         map.put(String.class, JSONObject::getString);
+        map.put(Float.class, JSONObject::getFloat);
+        map.put(Double.class, JSONObject::getDouble);
     }
 
     public static boolean containsType(Type type) {

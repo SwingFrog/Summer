@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 import com.google.common.collect.Maps;
+import com.swingfrog.summer.annotation.ParamPacking;
 import com.swingfrog.summer.annotation.RequestMapping;
 import com.swingfrog.summer.annotation.Remote;
 import com.swingfrog.summer.server.async.AsyncResponse;
@@ -125,6 +126,8 @@ public class RemoteDispatchMgr {
 				Type type = parameter.getParameterizedType();
 				if (JSONConvertUtil.containsType(type)) {
 					obj[i] = JSONConvertUtil.convert(type, data, param);
+				} else if (parameter.isAnnotationPresent(ParamPacking.class)) {
+					obj[i] = processParamPacking(parameter.getType(), data);
 				} else {
 					if (data.containsKey(param)) {
 						try {
@@ -206,6 +209,34 @@ public class RemoteDispatchMgr {
 			return new ProcessResult<>(false, (WebView) result);
 		}
 		return new ProcessResult<>(false, new TextView(JSON.toJSONString(result)));
+	}
+
+	private Object processParamPacking(Class<?> clazz, JSONObject data) throws IllegalAccessException, InstantiationException {
+		Object obj = clazz.newInstance();
+		for (Field field : clazz.getDeclaredFields()) {
+			field.setAccessible(true);
+			Class<?> type = field.getType();
+			String param = field.getName();
+			Object fieldObj = null;
+			if (JSONConvertUtil.containsType(type)) {
+				fieldObj = JSONConvertUtil.convert(type, data, param);
+			} else {
+				if (data.containsKey(param)) {
+					try {
+						fieldObj = JSON.parseObject(data.getString(param), type);
+					} catch (Exception e) {
+						log.error(e.getMessage(), e);
+					}
+				}
+			}
+			if (fieldObj == null) {
+				if (!field.isAnnotationPresent(Optional.class)) {
+					throw new CodeException(SessionException.PARAMETER_ERROR);
+				}
+			}
+			field.set(obj, fieldObj);
+		}
+		return obj;
 	}
 	
 	private static class RemoteMethod {

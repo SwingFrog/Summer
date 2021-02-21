@@ -1,13 +1,11 @@
 package com.swingfrog.summer.test.web.remote;
 
-import com.swingfrog.summer.annotation.Autowired;
-import com.swingfrog.summer.annotation.Optional;
-import com.swingfrog.summer.annotation.Remote;
-import com.swingfrog.summer.annotation.RequestMapping;
+import com.swingfrog.summer.annotation.*;
 import com.swingfrog.summer.app.Summer;
 import com.swingfrog.summer.protocol.SessionRequest;
 import com.swingfrog.summer.server.SessionContext;
 import com.swingfrog.summer.server.async.AsyncResponse;
+import com.swingfrog.summer.test.web.model.TestModel;
 import com.swingfrog.summer.test.web.service.TestService;
 import com.swingfrog.summer.web.WebFileUpload;
 import com.swingfrog.summer.web.view.ModelView;
@@ -56,6 +54,11 @@ public class TestRemote {
     @RequestMapping("custom_request_mapping")
     public String customRequestMapping() {
         return "custom_request_mapping";
+    }
+
+    public TestModel paramPacking(@ParamPacking TestModel testModel, String name) {
+        System.out.println(name);
+        return testModel;
     }
 
 }

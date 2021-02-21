@@ -11,12 +11,13 @@ public abstract class AbstractBeanEntity<K, B extends Bean<K>> extends AbstractE
     private final Repository<B, K> repository;
     private B bean;
 
+    @SuppressWarnings("unchecked")
     public AbstractBeanEntity(K id) {
         super(id);
         BindRepository bindRepository = this.getClass().getAnnotation(BindRepository.class);
         if (bindRepository == null)
             throw new EcsRuntimeException("not found @BindRepository -> %s", this.getClass().getName());
-        repository = Summer.getComponent(bindRepository.value());
+        repository = (Repository<B, K>) Summer.getComponent(bindRepository.value());
     }
 
     @Override

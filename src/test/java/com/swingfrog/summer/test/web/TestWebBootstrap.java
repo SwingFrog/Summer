@@ -66,6 +66,7 @@ public class TestWebBootstrap implements SummerApp {
         // http://127.0.0.1:8080/upload.html
         // http://127.0.0.1:8080/TestRemote_asyncHello
         // http://127.0.0.1:8080/custom_request_mapping
+        // http://127.0.0.1:8080/TestRemote_paramPacking?id=123&name=abc
     }
 
 }
