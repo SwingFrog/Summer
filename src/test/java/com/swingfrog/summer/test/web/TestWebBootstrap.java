@@ -81,6 +81,7 @@ public class TestWebBootstrap implements SummerApp {
                 return cookie.substring(index + token.length(), index + token.length() + 32);
             }
         });
+        WebMgr.get().setIndex("TestRemote_hello");
 
         // http://127.0.0.1:8080/TestRemote_hello
         // http://127.0.0.1:8080/TestRemote_add?a=1&b=2
