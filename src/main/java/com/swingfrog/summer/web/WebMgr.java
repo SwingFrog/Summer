@@ -3,6 +3,7 @@ package com.swingfrog.summer.web;
 import java.io.File;
 import java.io.IOException;
 
+import com.swingfrog.summer.web.token.WebTokenHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,6 +23,7 @@ public class WebMgr {
 	private String templatePath;
 	private InteriorViewFactory interiorViewFactory;
 	private volatile Configuration freeMarkerConfig;
+	private WebTokenHandler webTokenHandler;
 	
 	private static class SingleCase {
 		public static final WebMgr INSTANCE = new WebMgr();
@@ -100,5 +102,13 @@ public class WebMgr {
 	public void setFavicon(String favicon) {
 		this.favicon = favicon;
 	}
-	
+
+	public WebTokenHandler getWebTokenHandler() {
+		return webTokenHandler;
+	}
+
+	public void setWebTokenHandler(WebTokenHandler webTokenHandler) {
+		this.webTokenHandler = webTokenHandler;
+	}
+
 }

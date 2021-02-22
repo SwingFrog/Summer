@@ -11,6 +11,7 @@ import com.swingfrog.summer.server.async.ProcessResult;
 import com.swingfrog.summer.statistics.RemoteStatistics;
 import com.swingfrog.summer.struct.AutowireParam;
 import com.swingfrog.summer.util.ForwardedAddressUtil;
+import com.swingfrog.summer.web.token.WebTokenHandler;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -234,7 +235,7 @@ public class WebRequestHandler extends AbstractServerHandler<HttpObject> {
 			response.headers().set(HttpHeaderNames.CONTENT_LENGTH, webView.getLength());
 			response.headers().set(HttpHeaderNames.SERVER, Summer.NAME);
 			response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
-			if (sctx.getSessionId() == null) {
+			if (sctx.getToken() == null) {
 				response.headers().set(HttpHeaderNames.SET_COOKIE, createToken());
 			}
 			if (webView.getHeaders() != null) {
@@ -249,10 +250,18 @@ public class WebRequestHandler extends AbstractServerHandler<HttpObject> {
 	}
 
 	private static String createToken() {
-		return "sessionId=" + UUID.randomUUID().toString().replace("-", "").toLowerCase();
+		WebTokenHandler webTokenHandler = WebMgr.get().getWebTokenHandler();
+		if (webTokenHandler != null)
+			return webTokenHandler.createToken();
+
+		return "token=" + UUID.randomUUID().toString().replace("-", "").toLowerCase();
 	}
 
 	private static String parseToken(String cookie) {
+		WebTokenHandler webTokenHandler = WebMgr.get().getWebTokenHandler();
+		if (webTokenHandler != null)
+			return webTokenHandler.parseToken(cookie);
+
 		if (cookie == null)
 			return null;
 		String token = "token=";

@@ -5,11 +5,14 @@ import com.swingfrog.summer.app.Summer;
 import com.swingfrog.summer.app.SummerApp;
 import com.swingfrog.summer.app.SummerConfig;
 import com.swingfrog.summer.web.WebMgr;
+import com.swingfrog.summer.web.token.WebTokenHandler;
 import com.swingfrog.summer.web.view.InteriorViewFactory;
 import com.swingfrog.summer.web.view.JSONView;
 import com.swingfrog.summer.web.view.WebView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.UUID;
 
 public class TestWebBootstrap implements SummerApp {
 
@@ -58,6 +61,26 @@ public class TestWebBootstrap implements SummerApp {
                 return new JSONView(json);
             }
         });
+        WebMgr.get().setWebTokenHandler(new WebTokenHandler() {
+            @Override
+            public String createToken() {
+                return "test_token=" + UUID.randomUUID().toString().replace("-", "").toLowerCase();
+            }
+
+            @Override
+            public String parseToken(String cookie) {
+                if (cookie == null)
+                    return null;
+                String token = "test_token=";
+                int index = cookie.indexOf(token);
+                if (index == -1)
+                    return null;
+                if (index + token.length() + 32 > cookie.length()) {
+                    return null;
+                }
+                return cookie.substring(index + token.length(), index + token.length() + 32);
+            }
+        });
 
         // http://127.0.0.1:8080/TestRemote_hello
         // http://127.0.0.1:8080/TestRemote_add?a=1&b=2
@@ -67,6 +90,8 @@ public class TestWebBootstrap implements SummerApp {
         // http://127.0.0.1:8080/TestRemote_asyncHello
         // http://127.0.0.1:8080/custom_request_mapping
         // http://127.0.0.1:8080/TestRemote_paramPacking?id=123&name=abc
+        // http://127.0.0.1:8080/TestRemote_getToken
+        // http://127.0.0.1:8080/TestRemote_clearToken
     }
 
 }

@@ -61,4 +61,12 @@ public class TestRemote {
         return testModel;
     }
 
+    public String getToken(SessionContext sctx) {
+        return sctx.getToken();
+    }
+
+    public void clearToken(SessionContext sctx) {
+        sctx.clearToken();
+    }
+
 }
