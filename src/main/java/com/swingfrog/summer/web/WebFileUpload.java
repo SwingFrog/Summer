@@ -23,8 +23,14 @@ public class WebFileUpload {
 	public ByteBuf getByteBuf() {
 		return byteBuf;
 	}
+
+	public boolean isEmpty() {
+		return byteBuf.readableBytes() == 0;
+	}
 	
 	public void saveToFile(String path) throws IOException {
+		if (isEmpty())
+			return;
 		RandomAccessFile file = new RandomAccessFile(path, "rw");
 		file.getChannel().write(byteBuf.nioBuffer());
 		file.close();

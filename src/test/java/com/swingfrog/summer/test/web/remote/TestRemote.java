@@ -42,7 +42,11 @@ public class TestRemote {
 
     public ModelView uploadFile(WebFileUpload upload) {
         ModelView modelView = new ModelView("msg.html");
-        modelView.put("msg", upload.getFileName());
+        if (upload.isEmpty()) {
+            modelView.put("msg", "未选择文件");
+        } else {
+            modelView.put("msg", upload.getFileName());
+        }
         return modelView;
     }
 
