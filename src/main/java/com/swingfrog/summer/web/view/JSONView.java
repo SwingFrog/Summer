@@ -13,6 +13,11 @@ public class JSONView extends TextView {
 	}
 
 	@Override
+	public String getContentType() {
+		return "application/json";
+	}
+
+	@Override
 	public String toString() {
 		return "JSONView";
 	}

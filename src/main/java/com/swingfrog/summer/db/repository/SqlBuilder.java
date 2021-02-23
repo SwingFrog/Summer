@@ -114,21 +114,25 @@ public class SqlBuilder {
             Iterator<TableMeta.ColumnMeta> iterator = tableMeta.getColumns().iterator();
             if (iterator.hasNext()) {
                 TableMeta.ColumnMeta columnMeta = iterator.next();
-                for (;;) {
+                outLayer: for (;;) {
                     if (columnMeta.isReadOnly()) {
                         if (iterator.hasNext()) {
                             columnMeta = iterator.next();
                         } else {
                             break;
                         }
-                    } else{
+                    } else {
                         builder.append(" `").append(columnMeta.getName()).append("` = ?");
-                        if (iterator.hasNext()) {
-                            columnMeta = iterator.next();
-                            if (!columnMeta.isReadOnly())
-                                builder.append(",");
-                        }  else {
-                            break;
+                        for (;;) {
+                            if (iterator.hasNext()) {
+                                columnMeta = iterator.next();
+                                if (!columnMeta.isReadOnly()) {
+                                    builder.append(",");
+                                    break;
+                                }
+                            } else {
+                                break outLayer;
+                            }
                         }
                     }
                 }
