@@ -108,7 +108,6 @@ public class AsyncResponseMgr {
             }
             log.debug("server async response {} status[{}] from {}", webView, webView.getStatus(), sctx);
             try {
-                webView.ready();
                 WebRequestHandler.write(channel, sctx, (WebRequest) request, webView);
             } catch (Exception e) {
                 log.error(e.getMessage(), e);

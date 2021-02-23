@@ -3,13 +3,10 @@ package com.swingfrog.summer.web.view;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Map;
 
-import javax.activation.MimetypesFileTypeMap;
-
 import com.google.common.collect.Maps;
+import com.swingfrog.summer.web.WebContentTypes;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.stream.ChunkedFile;
 import io.netty.handler.stream.ChunkedInput;
@@ -27,10 +24,9 @@ public class FileView implements WebView {
 	public FileView(String fileName) throws IOException {
 		File f = new File(fileName);
 		file = new RandomAccessFile(f, "r");
-		contentType = Files.probeContentType(Paths.get(f.getName()));
+		contentType = WebContentTypes.getByFileName(f.getName());
 		if (contentType == null) {
-			MimetypesFileTypeMap mimeTypesMap = new MimetypesFileTypeMap();
-			contentType = mimeTypesMap.getContentType(f.getName());
+			contentType = "application/octet-stream";
 		}
 	}
 	

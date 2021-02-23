@@ -201,7 +201,6 @@ public class WebRequestHandler extends AbstractServerHandler<HttpObject> {
 				if (webView == null) {
 					writeResponse(channel, sctx, request, WebMgr.get().getInteriorViewFactory().createBlankView());
 				} else {
-					webView.ready();
 					writeResponse(channel, sctx, request, webView);
 				}
 			} catch (CodeException ce) {
@@ -226,6 +225,7 @@ public class WebRequestHandler extends AbstractServerHandler<HttpObject> {
 
 	public static void write(Channel channel, SessionContext sctx, WebRequest request, WebView webView) {
 		try {
+			webView.ready();
 			DefaultHttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, 
 					HttpResponseStatus.valueOf(webView.getStatus()));
 			if (HttpUtil.isKeepAlive(request.getHttpRequest())) {
