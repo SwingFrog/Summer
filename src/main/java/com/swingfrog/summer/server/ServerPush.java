@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.google.protobuf.Message;
@@ -128,10 +129,13 @@ public class ServerPush {
 			log.debug("server push executor shutdown");
 			return;
 		}
+		List<SessionContext> sessionContexts = sctxStream.collect(Collectors.toList());
 		String msg = SessionResponse.buildPush(remote, method, data).toJSONString();
 		pushExecutor.execute(() -> {
 			log.debug("server push to part {}", msg);
-			sctxStream.forEach(sessionContext -> write(sessionContext, msg));
+			for (SessionContext sessionContext : sessionContexts) {
+				write(sessionContext, msg);
+			}
 		});
 	}
 
@@ -245,10 +249,13 @@ public class ServerPush {
 			log.error("protobuf[{}] not found", response.getClass().getName());
 			return;
 		}
+		List<SessionContext> sessionContexts = sctxStream.collect(Collectors.toList());
 		Protobuf protobuf = Protobuf.of(messageId, response);
 		pushExecutor.execute(() -> {
 			log.debug("server push to part {}", response);
-			sctxStream.forEach(sessionContext -> write(sessionContext, protobuf));
+			for (SessionContext sessionContext : sessionContexts) {
+				write(sessionContext, protobuf);
+			}
 		});
 	}
 
