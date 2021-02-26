@@ -28,6 +28,10 @@ public abstract class AsyncCacheRepositoryDao<T, K> extends CacheRepositoryDao<T
 
     protected abstract long delayTime();
 
+    protected boolean showDelaySaveInfo() {
+        return true;
+    }
+
     @Override
     void init() {
         super.init();
@@ -100,7 +104,8 @@ public abstract class AsyncCacheRepositoryDao<T, K> extends CacheRepositoryDao<T
         }
 
         saves.stream().filter(value -> force || time - value.saveTime >= delayTime).forEach(value -> waitSave.remove(value.pk));
-        log.info("async cache repository table[{}] delay save nowSaveCount[{}] waitSaveCount[{}]", getTableMeta().getName(), saves.size(), waitSave.size());
+        if (showDelaySaveInfo())
+            log.info("async cache repository table[{}] delay save nowSaveCount[{}] waitSaveCount[{}]", getTableMeta().getName(), saves.size(), waitSave.size());
     }
 
     @SuppressWarnings("unchecked")

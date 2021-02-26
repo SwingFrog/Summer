@@ -30,6 +30,7 @@
 4. 新增WebContentTypes拓展名与内容类型的映射库。
 5. 优化Web模式下，Url的解析方式。
 6. 修复仓库模式，当字段设置为readOnly时，在某些情况下会构建出错误的sql语句的问题。
+7. AsyncCacheRepositoryDao新增showDelaySaveInfo方法，可用于关闭延迟保存数据信息的输出。
 
 ### 2021.01.31
 1. 修复在程序关闭时，异步事件中有推送异步消息的操作导致异常的问题。
