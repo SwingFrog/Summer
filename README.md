@@ -23,7 +23,7 @@
 
 ## 更新说明
 
-### 2021.02.xx
+### 2021.02.28
 1. 新增注解@ParamPacking，当接口的参数过多时，可使用一个类包装起来，并在参数前加上此注解。（建议对外开放的接口，不要传递JSON格式的数据）
 2. 新增WebTokenHandler，在http协议下可自定义token的生成和解析方式。
 3. 修复Web模式下，设置ErrorView无法渲染的问题。
@@ -174,7 +174,7 @@ Redis 5.0 (仅供参考)<br/>
     <dependency>
         <groupId>com.swingfrog.summer</groupId>
         <artifactId>summer</artifactId>
-        <version>1.1.5</version>
+        <version>1.1.6</version>
     </dependency>
 ```
 
