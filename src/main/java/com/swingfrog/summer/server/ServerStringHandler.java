@@ -42,17 +42,17 @@ public class ServerStringHandler extends AbstractServerHandler<String> {
 		try {
 			SessionRequest request = JSON.parseObject(msg, SessionRequest.class);
 			if (request.getId() == sctx.getCurrentMsgId()) {
-				serverContext.getSessionHandlerGroup().repetitionMsg(sctx);
+				sessionHandlerGroup.repetitionMsg(sctx);
 				return;
 			}
 			sctx.setCurrentMsgId(request.getId());
 			log.debug("server request {} from {}", msg, sctx);
-			if (!serverContext.getSessionHandlerGroup().receive(sctx, request)) {
+			if (!sessionHandlerGroup.receive(sctx, request)) {
 				return;
 			}
 
 			AutowireParam autowireParam = new AutowireParam();
-			serverContext.getSessionHandlerGroup().autowireParam(sctx, autowireParam);
+			sessionHandlerGroup.autowireParam(sctx, autowireParam);
 
 			RemoteStatistics.start(sctx, request, msg.length());
 			Runnable runnable = () -> {
@@ -61,6 +61,8 @@ public class ServerStringHandler extends AbstractServerHandler<String> {
 					return;
 				}
 				try {
+					sessionHandlerGroup.handleReady(sctx, request);
+
 					if (sctx.containsKey(RpcClientConst.SESSION_KEY_REQUEST_RESULT)) {
 						Set<Long> requestResult = sctx.get(RpcClientConst.SESSION_KEY_REQUEST_RESULT);
 						if (!requestResult.add(request.getId())) {
@@ -97,7 +99,7 @@ public class ServerStringHandler extends AbstractServerHandler<String> {
 			submitRunnable(sctx, request, runnable);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
-			serverContext.getSessionHandlerGroup().unableParseMsg(sctx);
+			sessionHandlerGroup.unableParseMsg(sctx);
 		}
 	}
 

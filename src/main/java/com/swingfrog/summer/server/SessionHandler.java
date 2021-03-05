@@ -40,5 +40,9 @@ public interface SessionHandler {
 	default void repetitionMsg(SessionContext ctx) {}
 
 	default void sending(SessionContext ctx) {}
-	
+
+	default void handleReady(SessionContext ctx, SessionRequest request) {}
+
+	default void handleReady(SessionContext ctx, ProtobufRequest request) {}
+
 }

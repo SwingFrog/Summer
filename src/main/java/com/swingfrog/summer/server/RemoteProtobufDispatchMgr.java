@@ -15,6 +15,7 @@ import com.swingfrog.summer.server.async.ProcessResult;
 import com.swingfrog.summer.server.exception.CodeException;
 import com.swingfrog.summer.server.exception.RemoteRuntimeException;
 import com.swingfrog.summer.server.exception.SessionException;
+import com.swingfrog.summer.server.handler.RemoteProtobufHandler;
 import com.swingfrog.summer.struct.AutowireParam;
 import com.swingfrog.summer.util.ProtobufUtil;
 import org.slf4j.Logger;
@@ -66,7 +67,8 @@ public class RemoteProtobufDispatchMgr {
         }
     }
 
-    private Object invoke(ServerContext serverContext, ProtobufRequest req, Message reqMessage, AutowireParam autowireParam) throws Throwable {
+    private Object invoke(ServerContext serverContext, ProtobufRequest req, Message reqMessage, SessionContext sctx,
+                          AutowireParam autowireParam) throws Throwable {
         Map<Class<?>, Object> objForTypes = autowireParam.getTypes();
         Map<String, Object> objForNames = autowireParam.getNames();
         int messageId = req.getId();
@@ -81,6 +83,10 @@ public class RemoteProtobufDispatchMgr {
 
         int messageIndex = remoteMethod.getMessageIndex();
         Object remoteObj = ContainerMgr.get().getDeclaredComponent(remoteClass.getClazz());
+
+        if (remoteObj instanceof RemoteProtobufHandler)
+            ((RemoteProtobufHandler) remoteObj).handleReady(sctx, req);
+
         Method remoteMod = remoteMethod.getMethod();
         String[] params = remoteMethod.getParams();
         Parameter[] parameters = remoteMethod.getParameters();
@@ -133,7 +139,7 @@ public class RemoteProtobufDispatchMgr {
         Map<Class<?>, Object> objForTypes = autowireParam.getTypes();
         objForTypes.putIfAbsent(SessionContext.class, sctx);
         objForTypes.putIfAbsent(ProtobufRequest.class, req);
-        Object result = invoke(serverContext, req, reqMessage, autowireParam);
+        Object result = invoke(serverContext, req, reqMessage, sctx, autowireParam);
         if (result instanceof AsyncResponse) {
             return new ProcessResult<>(true, null);
         }

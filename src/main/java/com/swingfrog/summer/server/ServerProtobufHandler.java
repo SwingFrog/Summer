@@ -37,12 +37,12 @@ public class ServerProtobufHandler extends AbstractServerHandler<Protobuf> {
         try {
             ProtobufRequest request = ProtobufRequest.of(messageId);
             log.debug("server request messageId[{}] from {}", messageId, sctx);
-            if (!serverContext.getSessionHandlerGroup().receive(sctx, request)) {
+            if (!sessionHandlerGroup.receive(sctx, request)) {
                 return;
             }
 
             AutowireParam autowireParam = new AutowireParam();
-            serverContext.getSessionHandlerGroup().autowireParam(sctx, autowireParam);
+            sessionHandlerGroup.autowireParam(sctx, autowireParam);
 
             RemoteStatistics.start(sctx, request, protobuf.getBytes().length);
             Runnable runnable = () -> {
@@ -51,6 +51,8 @@ public class ServerProtobufHandler extends AbstractServerHandler<Protobuf> {
                     return;
                 }
                 try {
+                    sessionHandlerGroup.handleReady(sctx, request);
+
                     Message reqMessage = RemoteProtobufDispatchMgr.get().parse(protobuf);
                     log.debug("server request {} from {}", reqMessage, sctx);
                     ProcessResult<Message> processResult = RemoteProtobufDispatchMgr.get().process(serverContext, request, reqMessage, sctx, autowireParam);
@@ -81,7 +83,7 @@ public class ServerProtobufHandler extends AbstractServerHandler<Protobuf> {
             submitSessionQueue(sctx, runnable);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            serverContext.getSessionHandlerGroup().unableParseMsg(sctx);
+            sessionHandlerGroup.unableParseMsg(sctx);
         }
     }
 

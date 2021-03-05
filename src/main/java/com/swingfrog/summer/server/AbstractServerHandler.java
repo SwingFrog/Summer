@@ -21,9 +21,13 @@ public abstract class AbstractServerHandler<T> extends SimpleChannelInboundHandl
 
     private static final Logger log = LoggerFactory.getLogger(AbstractServerHandler.class);
     protected final ServerContext serverContext;
+    protected final SessionHandlerGroup sessionHandlerGroup;
+    protected final SessionContextGroup sessionContextGroup;
 
     protected AbstractServerHandler(ServerContext serverContext) {
         this.serverContext = serverContext;
+        sessionHandlerGroup = serverContext.getSessionHandlerGroup();
+        sessionContextGroup = serverContext.getSessionContextGroup();
     }
 
     @Override
@@ -46,9 +50,9 @@ public abstract class AbstractServerHandler<T> extends SimpleChannelInboundHandl
             }
             log.info("allow {} connect", address);
         }
-        serverContext.getSessionContextGroup().createSession(channel);
-        SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(channel);
-        if (!serverContext.getSessionHandlerGroup().accept(sctx)) {
+        sessionContextGroup.createSession(channel);
+        SessionContext sctx = sessionContextGroup.getSessionByChannel(channel);
+        if (!sessionHandlerGroup.accept(sctx)) {
             log.warn("not accept client {}", sctx);
             ctx.close();
         }
@@ -57,19 +61,19 @@ public abstract class AbstractServerHandler<T> extends SimpleChannelInboundHandl
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
         Channel channel = ctx.channel();
-        SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(channel);
+        SessionContext sctx = sessionContextGroup.getSessionByChannel(channel);
         log.info("added client {}", sctx);
-        serverContext.getSessionHandlerGroup().added(sctx);
+        sessionHandlerGroup.added(sctx);
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
         Channel channel = ctx.channel();
-        SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(channel);
+        SessionContext sctx = sessionContextGroup.getSessionByChannel(channel);
         if (sctx != null) {
             log.info("removed client {}", sctx);
-            serverContext.getSessionHandlerGroup().removed(sctx);
-            serverContext.getSessionContextGroup().destroySession(channel);
+            sessionHandlerGroup.removed(sctx);
+            sessionContextGroup.destroySession(channel);
             RpcClientMgr.get().remove(sctx);
         }
     }
@@ -77,9 +81,9 @@ public abstract class AbstractServerHandler<T> extends SimpleChannelInboundHandl
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         Channel channel = ctx.channel();
-        SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(channel);
+        SessionContext sctx = sessionContextGroup.getSessionByChannel(channel);
         if (cause instanceof TooLongFrameException) {
-            serverContext.getSessionHandlerGroup().lengthTooLongMsg(sctx);
+            sessionHandlerGroup.lengthTooLongMsg(sctx);
         } else {
             log.error(cause.getMessage(), cause);
         }
@@ -121,12 +125,12 @@ public abstract class AbstractServerHandler<T> extends SimpleChannelInboundHandl
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, T t) throws Exception {
         Channel channel = ctx.channel();
-        SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(channel);
+        SessionContext sctx = sessionContextGroup.getSessionByChannel(channel);
         long now = System.currentTimeMillis();
         long last = sctx.getLastRecvTime();
         sctx.setLastRecvTime(now);
         if ((now - last) < serverContext.getConfig().getColdDownMs()) {
-            serverContext.getSessionHandlerGroup().sendTooFastMsg(sctx);
+            sessionHandlerGroup.sendTooFastMsg(sctx);
         }
         recv(ctx.channel(), sctx, t);
     }
@@ -136,7 +140,7 @@ public abstract class AbstractServerHandler<T> extends SimpleChannelInboundHandl
     @Override
     public void channelWritabilityChanged(ChannelHandlerContext ctx) {
         Channel channel = ctx.channel();
-        SessionContext sctx = serverContext.getSessionContextGroup().getSessionByChannel(channel);
+        SessionContext sctx = sessionContextGroup.getSessionByChannel(channel);
         while (ctx.channel().isActive() && ctx.channel().isWritable() && !sctx.getWaitWriteQueue().isEmpty()) {
             ctx.writeAndFlush(sctx.getWaitWriteQueue().poll());
         }

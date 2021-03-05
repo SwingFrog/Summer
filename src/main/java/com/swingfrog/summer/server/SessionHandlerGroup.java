@@ -119,4 +119,18 @@ public class SessionHandlerGroup implements SessionHandler {
 		}
 	}
 
+	@Override
+	public void handleReady(SessionContext ctx, SessionRequest request) {
+		for (SessionHandler sessionHandler : sessionHandlerList) {
+			sessionHandler.handleReady(ctx, request);
+		}
+	}
+
+	@Override
+	public void handleReady(SessionContext ctx, ProtobufRequest request) {
+		for (SessionHandler sessionHandler : sessionHandlerList) {
+			sessionHandler.handleReady(ctx, request);
+		}
+	}
+
 }

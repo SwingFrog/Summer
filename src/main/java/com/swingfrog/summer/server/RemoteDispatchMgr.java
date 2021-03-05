@@ -11,6 +11,7 @@ import com.swingfrog.summer.annotation.Remote;
 import com.swingfrog.summer.server.async.AsyncResponse;
 import com.swingfrog.summer.server.async.ProcessResult;
 import com.swingfrog.summer.server.exception.RemoteRuntimeException;
+import com.swingfrog.summer.server.handler.RemoteHandler;
 import com.swingfrog.summer.struct.AutowireParam;
 import com.swingfrog.summer.util.JSONConvertUtil;
 import com.swingfrog.summer.util.ProtobufUtil;
@@ -102,7 +103,8 @@ public class RemoteDispatchMgr {
 		return remoteMethodMap.containsKey(remoteMethod);
 	}
 	
-	private Object invoke(ServerContext serverContext, String remote, String method, JSONObject data, AutowireParam autowireParam) throws Throwable {
+	private Object invoke(ServerContext serverContext, SessionRequest req, SessionContext sctx,
+						  String remote, String method, JSONObject data, AutowireParam autowireParam) throws Throwable {
 		Map<Class<?>, Object> objForTypes = autowireParam.getTypes();
 		Map<String, Object> objForNames = autowireParam.getNames();
 		RemoteMethod remoteMethod = remoteMethodMap.get(mergeRemoteMethod(remote, method));
@@ -114,6 +116,10 @@ public class RemoteDispatchMgr {
 			throw new CodeException(SessionException.REMOTE_WAS_PROTECTED);
 		}
 		Object remoteObj = ContainerMgr.get().getDeclaredComponent(remoteClass.getClazz());
+
+		if (remoteObj instanceof RemoteHandler)
+			((RemoteHandler) remoteObj).handleReady(sctx, req);
+
 		Method remoteMod = remoteMethod.getMethod();
 		String[] params = remoteMethod.getParams();
 		Parameter[] parameters = remoteMethod.getParameters();
@@ -179,7 +185,7 @@ public class RemoteDispatchMgr {
 		Map<Class<?>, Object> objForTypes = autowireParam.getTypes();
 		objForTypes.putIfAbsent(SessionContext.class, sctx);
 		objForTypes.putIfAbsent(SessionRequest.class, req);
-		Object result = invoke(serverContext, remote, method, data, autowireParam);
+		Object result = invoke(serverContext, req, sctx, remote, method, data, autowireParam);
 		if (result instanceof AsyncResponse) {
 			return new ProcessResult<>(true, null);
 		}
@@ -198,7 +204,7 @@ public class RemoteDispatchMgr {
 		for (String key : req.getFileUploadMap().keySet()) {
 			objForNames.putIfAbsent(key, req.getFileUploadMap().get(key));
 		}
-		Object result = invoke(serverContext, remote, method, data, autowireParam);
+		Object result = invoke(serverContext, req, sctx, remote, method, data, autowireParam);
 		if (result instanceof AsyncResponse) {
 			return new ProcessResult<>(true, null);
 		}
