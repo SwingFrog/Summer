@@ -14,6 +14,7 @@ import com.swingfrog.summer.server.exception.RemoteRuntimeException;
 import com.swingfrog.summer.server.handler.RemoteHandler;
 import com.swingfrog.summer.struct.AutowireParam;
 import com.swingfrog.summer.util.JSONConvertUtil;
+import com.swingfrog.summer.util.MethodUtil;
 import com.swingfrog.summer.util.ProtobufUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,7 +60,9 @@ public class RemoteDispatchMgr {
 			Method[] methods = clazz.getDeclaredMethods();
 			MethodParameterName mpn = new MethodParameterName(clazz);
 			for (Method method : methods) {
-				if (method.getModifiers() != Modifier.PUBLIC || ProtobufUtil.hasProtobufParam(method)) {
+				if (method.getModifiers() != Modifier.PUBLIC
+						|| ProtobufUtil.hasProtobufParam(method)
+						|| MethodUtil.contains(RemoteHandler.class, method)) {
 					continue;
 				}
 				RequestMapping requestMapping = method.getAnnotation(RequestMapping.class);

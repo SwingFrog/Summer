@@ -5,6 +5,7 @@ import com.swingfrog.summer.app.Summer;
 import com.swingfrog.summer.protocol.SessionRequest;
 import com.swingfrog.summer.server.SessionContext;
 import com.swingfrog.summer.server.async.AsyncResponse;
+import com.swingfrog.summer.server.handler.RemoteHandler;
 import com.swingfrog.summer.test.web.model.TestModel;
 import com.swingfrog.summer.test.web.service.TestService;
 import com.swingfrog.summer.web.WebFileUpload;
@@ -14,7 +15,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @Remote
-public class TestRemote {
+public class TestRemote implements RemoteHandler {
 
     @Autowired
     private TestService testService;
@@ -73,4 +74,8 @@ public class TestRemote {
         sctx.clearToken();
     }
 
+    @Override
+    public void handleReady(SessionContext ctx, SessionRequest request) {
+        System.out.println("TestRemote.handleReady " + request);
+    }
 }

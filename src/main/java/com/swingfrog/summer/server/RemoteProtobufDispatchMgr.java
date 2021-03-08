@@ -17,6 +17,7 @@ import com.swingfrog.summer.server.exception.RemoteRuntimeException;
 import com.swingfrog.summer.server.exception.SessionException;
 import com.swingfrog.summer.server.handler.RemoteProtobufHandler;
 import com.swingfrog.summer.struct.AutowireParam;
+import com.swingfrog.summer.util.MethodUtil;
 import com.swingfrog.summer.util.ProtobufUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,7 +54,9 @@ public class RemoteProtobufDispatchMgr {
             Method[] methods = clazz.getDeclaredMethods();
             MethodParameterName mpn = new MethodParameterName(clazz);
             for (Method method : methods) {
-                if (method.getModifiers() != Modifier.PUBLIC || !ProtobufUtil.hasProtobufParam(method)) {
+                if (method.getModifiers() != Modifier.PUBLIC
+                        || !ProtobufUtil.hasProtobufParam(method)
+                        || MethodUtil.contains(RemoteProtobufHandler.class, method)) {
                     continue;
                 }
                 RemoteMethod remoteMethod = new RemoteMethod(remoteClass, method, mpn);
