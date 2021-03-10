@@ -182,7 +182,10 @@ public abstract class RepositoryDao<T, K> extends BaseDao<T> implements Reposito
 
     @Override
     public List<T> list(String field, Object value, Predicate<T> filter) {
-        return list(field, value).stream().filter(filter).collect(Collectors.toList());
+        List<T> list = list(field, value);
+        if (filter == null)
+            return list;
+        return list.stream().filter(filter).collect(Collectors.toList());
     }
 
     @Override
@@ -195,12 +198,23 @@ public abstract class RepositoryDao<T, K> extends BaseDao<T> implements Reposito
 
     @Override
     public List<T> list(Map<String, Object> optional, Predicate<T> filter) {
-        return list(optional).stream().filter(filter).collect(Collectors.toList());
+        List<T> list = list(optional);
+        if (filter == null)
+            return list;
+        return list.stream().filter(filter).collect(Collectors.toList());
     }
 
     @Override
-    public List<T> list() {
+    public List<T> listAll() {
         return list(selectAllSql);
+    }
+
+    @Override
+    public List<T> listAll(Predicate<T> filter) {
+        List<T> list = listAll();
+        if (filter == null)
+            return list;
+        return list.stream().filter(filter).collect(Collectors.toList());
     }
 
     @Override
@@ -213,6 +227,11 @@ public abstract class RepositoryDao<T, K> extends BaseDao<T> implements Reposito
         List<String> fields = TableValueBuilder.listValidFieldByOptional(tableMeta, optional);
         String sql = SqlBuilder.getSelectField(tableMeta, fields);
         return list(sql, TableValueBuilder.listValidValueByOptional(tableMeta, optional, fields));
+    }
+
+    @Override
+    public List<T> listSingleCache(Object value, Predicate<T> filter) {
+        return listSingleCache(value).stream().filter(filter).collect(Collectors.toList());
     }
 
     private T get(String sql, Object... args) {

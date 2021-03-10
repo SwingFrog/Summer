@@ -21,11 +21,13 @@ public interface Repository<T, K> {
     List<T> list(String field, Object value, Predicate<T> filter);
     List<T> list(Map<String, Object> optional);
     List<T> list(Map<String, Object> optional, Predicate<T> filter);
-    List<T> list();
-    default List<T> listAll() {
-        return list();
+    default List<T> list() {
+        return listAll();
     }
+    List<T> listAll();
+    List<T> listAll(Predicate<T> filter);
     List<T> listSingleCache(Object value);
+    List<T> listSingleCache(Object value, Predicate<T> filter);
     Class<T> getEntityClass();
 
 }

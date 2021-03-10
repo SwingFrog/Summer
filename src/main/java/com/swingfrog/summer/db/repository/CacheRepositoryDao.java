@@ -250,21 +250,34 @@ public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
     }
 
     @Override
-    public List<T> list() {
+    public List<T> listAll() {
+        return listAll(null);
+    }
+
+    @Override
+    public List<T> listAll(Predicate<T> filter) {
         long time = System.currentTimeMillis();
         if (time - expireTime >= findAllTime.getAndSet(time)) {
             listPrimaryKey().forEach(this::get);
         }
-        return cache.asMap().keySet().stream()
+        Stream<T> stream = cache.asMap().keySet().stream()
                 .map(this::get)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+                .filter(Objects::nonNull);
+        if (filter != null)
+            stream = stream.filter(filter);
+        return stream.collect(Collectors.toList());
     }
 
     @Override
     public List<T> listSingleCache(Object value) {
         Objects.requireNonNull(value);
         return list(getSingeCacheField(), value);
+    }
+
+    @Override
+    public List<T> listSingleCache(Object value, Predicate<T> filter) {
+        Objects.requireNonNull(value);
+        return list(getSingeCacheField(), value, filter);
     }
 
     protected Set<K> listPrimaryValueByCacheKey(String column, Object cacheValue) {
