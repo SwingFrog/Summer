@@ -181,11 +181,21 @@ public abstract class RepositoryDao<T, K> extends BaseDao<T> implements Reposito
     }
 
     @Override
+    public List<T> list(String field, Object value, Predicate<T> filter) {
+        return list(field, value).stream().filter(filter).collect(Collectors.toList());
+    }
+
+    @Override
     public List<T> list(Map<String, Object> optional) {
         Objects.requireNonNull(optional);
         List<String> fields = TableValueBuilder.listValidFieldByOptional(tableMeta, optional);
         String sql = SqlBuilder.getSelectField(tableMeta, fields);
         return list(sql, TableValueBuilder.listValidValueByOptional(tableMeta, optional, fields));
+    }
+
+    @Override
+    public List<T> list(Map<String, Object> optional, Predicate<T> filter) {
+        return list(optional).stream().filter(filter).collect(Collectors.toList());
     }
 
     @Override

@@ -26,6 +26,7 @@
 ### 2021.03.xx
 1. SessionHandler新增方法handleReady，在处理请求前触发此回调，与receive的不同之处是在此方法内可抛出异常，且在会话队列中执行。
 2. 新增接口RemoteHandler、RemoteProtobufHandler，其中RemoteProtobufHandler仅用于protobuf协议。在使用注解@Remote的类上实现此接口。即可进行一些拦截或其他业务处理。与SessionHandler.handleReady的区别是，触发范围缩小，仅会对进入此类寻求处理方法的协议进行触发。
+3. Repository新增支持过滤的list方法。
 
 ### 2021.02.28
 1. 新增注解@ParamPacking，当接口的参数过多时，可使用一个类包装起来，并在参数前加上此注解。（建议对外开放的接口，不要传递JSON格式的数据）

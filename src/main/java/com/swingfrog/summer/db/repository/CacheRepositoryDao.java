@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -185,16 +186,26 @@ public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
 
     @Override
     public List<T> list(String field, Object value) {
+        return list(field, value, null);
+    }
+
+    @Override
+    public List<T> list(String field, Object value, Predicate<T> filter) {
         Objects.requireNonNull(field);
         Objects.requireNonNull(value);
         if (getTableMeta().getCacheKeys().contains(getTableMeta().getColumnMetaMap().get(field))) {
             return listPrimaryValueByCacheKey(field, value).stream().map(this::get).filter(Objects::nonNull).collect(Collectors.toList());
         }
-        return list(ImmutableMap.of(field, value));
+        return list(ImmutableMap.of(field, value), filter);
     }
 
     @Override
     public List<T> list(Map<String, Object> optional) {
+        return list(optional, null);
+    }
+
+    @Override
+    public List<T> list(Map<String, Object> optional, Predicate<T> filter) {
         Objects.requireNonNull(optional);
         LinkedList<Set<K>> pkList = null;
         Map<String, Object> normal = null;
@@ -233,6 +244,8 @@ public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
                                 TableValueBuilder.isEqualsColumnValue(
                                         getTableMeta().getColumnMetaMap().get(entry.getKey()), obj, entry.getValue())));
         }
+        if (filter != null)
+            stream = stream.filter(filter);
         return stream.collect(Collectors.toList());
     }
 
