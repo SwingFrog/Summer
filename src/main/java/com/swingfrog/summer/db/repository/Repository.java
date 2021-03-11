@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 public interface Repository<T, K> {
 
@@ -29,5 +30,10 @@ public interface Repository<T, K> {
     List<T> listSingleCache(Object value);
     List<T> listSingleCache(Object value, Predicate<T> filter);
     Class<T> getEntityClass();
+
+    Stream<T> stream(String field, Object value);
+    Stream<T> stream(Map<String, Object> optional);
+    Stream<T> streamSingleCache(Object value);
+    Stream<T> streamAll();
 
 }

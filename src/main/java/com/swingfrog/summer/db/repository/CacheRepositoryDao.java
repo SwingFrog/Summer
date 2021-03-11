@@ -191,11 +191,6 @@ public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
 
     @Override
     public List<T> list(String field, Object value, Predicate<T> filter) {
-        Objects.requireNonNull(field);
-        Objects.requireNonNull(value);
-        if (getTableMeta().getCacheKeys().contains(getTableMeta().getColumnMetaMap().get(field))) {
-            return listPrimaryValueByCacheKey(field, value).stream().map(this::get).filter(Objects::nonNull).collect(Collectors.toList());
-        }
         return list(ImmutableMap.of(field, value), filter);
     }
 
@@ -206,44 +201,7 @@ public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
 
     @Override
     public List<T> list(Map<String, Object> optional, Predicate<T> filter) {
-        Objects.requireNonNull(optional);
-        LinkedList<Set<K>> pkList = null;
-        Map<String, Object> normal = null;
-        for (Map.Entry<String, Object> entry : optional.entrySet()) {
-            String key = entry.getKey();
-            Object value = entry.getValue();
-            if (getTableMeta().getCacheKeys().contains(getTableMeta().getColumnMetaMap().get(key))) {
-                if (pkList == null)
-                    pkList = Lists.newLinkedList();
-                pkList.add(listPrimaryValueByCacheKey(key, value));
-            } else {
-                if (normal == null)
-                    normal = Maps.newHashMap();
-                normal.put(key, value);
-            }
-        }
-        Stream<T> stream;
-        if (pkList == null || pkList.isEmpty()) {
-            super.listPrimaryKey(optional).forEach(this::get);
-            stream = cache.asMap().values().stream().filter(obj -> obj != EMPTY);
-        } else {
-            if (pkList.size() == 1) {
-                stream = pkList.getFirst().stream().map(this::get).filter(Objects::nonNull);
-            } else {
-                Set<K> first = Sets.newHashSet(pkList.removeFirst());
-                LinkedList<Set<K>> finalPkList = pkList;
-                first.removeIf(obj -> finalPkList.stream().anyMatch(pk -> !pk.contains(obj)));
-                stream = first.stream().map(this::get).filter(Objects::nonNull);
-            }
-        }
-        if (normal != null && !normal.isEmpty()) {
-            Map<String, Object> finalNormal = normal;
-            stream = stream.filter(obj ->
-                finalNormal.entrySet().stream()
-                        .allMatch(entry ->
-                                TableValueBuilder.isEqualsColumnValue(
-                                        getTableMeta().getColumnMetaMap().get(entry.getKey()), obj, entry.getValue())));
-        }
+        Stream<T> stream = stream(optional);
         if (filter != null)
             stream = stream.filter(filter);
         return stream.collect(Collectors.toList());
@@ -256,13 +214,7 @@ public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
 
     @Override
     public List<T> listAll(Predicate<T> filter) {
-        long time = System.currentTimeMillis();
-        if (time - expireTime >= findAllTime.getAndSet(time)) {
-            listPrimaryKey().forEach(this::get);
-        }
-        Stream<T> stream = cache.asMap().keySet().stream()
-                .map(this::get)
-                .filter(Objects::nonNull);
+        Stream<T> stream = streamAll();
         if (filter != null)
             stream = stream.filter(filter);
         return stream.collect(Collectors.toList());
@@ -270,13 +222,11 @@ public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
 
     @Override
     public List<T> listSingleCache(Object value) {
-        Objects.requireNonNull(value);
         return list(getSingeCacheField(), value);
     }
 
     @Override
     public List<T> listSingleCache(Object value, Predicate<T> filter) {
-        Objects.requireNonNull(value);
         return list(getSingeCacheField(), value, filter);
     }
 
@@ -392,6 +342,76 @@ public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
 
     protected void removeAllNotRemoveCache() {
         super.removeAll();
+    }
+
+    @Override
+    public Stream<T> stream(String field, Object value) {
+        Objects.requireNonNull(field);
+        Objects.requireNonNull(value);
+        if (getTableMeta().getCacheKeys().contains(getTableMeta().getColumnMetaMap().get(field))) {
+            return listPrimaryValueByCacheKey(field, value).stream().map(this::get).filter(Objects::nonNull);
+        }
+        return stream(ImmutableMap.of(field, value));
+    }
+
+    @Override
+    public Stream<T> stream(Map<String, Object> optional) {
+        Objects.requireNonNull(optional);
+        LinkedList<Set<K>> pkList = null;
+        Map<String, Object> normal = null;
+        for (Map.Entry<String, Object> entry : optional.entrySet()) {
+            String key = entry.getKey();
+            Object value = entry.getValue();
+            if (getTableMeta().getCacheKeys().contains(getTableMeta().getColumnMetaMap().get(key))) {
+                if (pkList == null)
+                    pkList = Lists.newLinkedList();
+                pkList.add(listPrimaryValueByCacheKey(key, value));
+            } else {
+                if (normal == null)
+                    normal = Maps.newHashMap();
+                normal.put(key, value);
+            }
+        }
+        Stream<T> stream;
+        if (pkList == null || pkList.isEmpty()) {
+            super.listPrimaryKey(optional).forEach(this::get);
+            stream = cache.asMap().values().stream().filter(obj -> obj != EMPTY);
+        } else {
+            if (pkList.size() == 1) {
+                stream = pkList.getFirst().stream().map(this::get).filter(Objects::nonNull);
+            } else {
+                Set<K> first = Sets.newHashSet(pkList.removeFirst());
+                LinkedList<Set<K>> finalPkList = pkList;
+                first.removeIf(obj -> finalPkList.stream().anyMatch(pk -> !pk.contains(obj)));
+                stream = first.stream().map(this::get).filter(Objects::nonNull);
+            }
+        }
+        if (normal != null && !normal.isEmpty()) {
+            Map<String, Object> finalNormal = normal;
+            stream = stream.filter(obj ->
+                    finalNormal.entrySet().stream()
+                            .allMatch(entry ->
+                                    TableValueBuilder.isEqualsColumnValue(
+                                            getTableMeta().getColumnMetaMap().get(entry.getKey()), obj, entry.getValue())));
+        }
+        return stream;
+    }
+
+    @Override
+    public Stream<T> streamSingleCache(Object value) {
+        Objects.requireNonNull(value);
+        return stream(getSingeCacheField(), value);
+    }
+
+    @Override
+    public Stream<T> streamAll() {
+        long time = System.currentTimeMillis();
+        if (time - expireTime >= findAllTime.getAndSet(time)) {
+            listPrimaryKey().forEach(this::get);
+        }
+        return cache.asMap().keySet().stream()
+                .map(this::get)
+                .filter(Objects::nonNull);
     }
 
 }

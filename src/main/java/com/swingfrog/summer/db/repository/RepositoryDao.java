@@ -17,6 +17,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public abstract class RepositoryDao<T, K> extends BaseDao<T> implements Repository<T, K> {
 
@@ -291,6 +292,26 @@ public abstract class RepositoryDao<T, K> extends BaseDao<T> implements Reposito
     @Override
     public Class<T> getEntityClass() {
         return super.getEntityClass();
+    }
+
+    @Override
+    public Stream<T> stream(String field, Object value) {
+        return list(field, value).stream();
+    }
+
+    @Override
+    public Stream<T> stream(Map<String, Object> optional) {
+        return list(optional).stream();
+    }
+
+    @Override
+    public Stream<T> streamSingleCache(Object value) {
+        return listSingleCache(value).stream();
+    }
+
+    @Override
+    public Stream<T> streamAll() {
+        return listAll().stream();
     }
 
 }
