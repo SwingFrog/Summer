@@ -23,12 +23,12 @@
 
 ## 更新说明
 
-### 2021.03.xx
+### [1.1.7](https://mvnrepository.com/artifact/com.swingfrog.summer/summer/1.1.7) - 2021-03-31
 1. SessionHandler新增方法handleReady，在处理请求前触发此回调，与receive的不同之处是在此方法内可抛出异常，且在会话队列中执行。
 2. 新增接口RemoteHandler、RemoteProtobufHandler，其中RemoteProtobufHandler仅用于protobuf协议。在使用注解@Remote的类上实现此接口。即可进行一些拦截或其他业务处理。与SessionHandler.handleReady的区别是，触发范围缩小，仅会对进入此类寻求处理方法的协议进行触发。
 3. Repository新增支持过滤的list方法，新增stream方法获取数据。
 
-### 2021.02.28
+### [1.1.6](https://mvnrepository.com/artifact/com.swingfrog.summer/summer/1.1.6) - 2021-02-28
 1. 新增注解@ParamPacking，当接口的参数过多时，可使用一个类包装起来，并在参数前加上此注解。（建议对外开放的接口，不要传递JSON格式的数据）
 2. 新增WebTokenHandler，在http协议下可自定义token的生成和解析方式。
 3. 修复Web模式下，设置ErrorView无法渲染的问题。
@@ -37,17 +37,17 @@
 6. 修复仓库模式，当字段设置为readOnly时，在某些情况下会构建出错误的sql语句的问题。
 7. AsyncCacheRepositoryDao新增showDelaySaveInfo方法，可用于关闭延迟保存数据信息的输出。
 
-### 2021.01.31
+### [1.1.5](https://mvnrepository.com/artifact/com.swingfrog.summer/summer/1.1.5) - 2021-01-31
 1. 修复在程序关闭时，异步事件中有推送异步消息的操作导致异常的问题。
 2. 优化ServerPush，新增简单的调用接口。
 3. 优化CacheRepositoryDao.list(Map<String, Object> optional)，在筛选数据的过程中改用stream，在最后才进行collect操作。
 4. 新增默认配置，在未明确指定配置文件路径的时候，并且默认路径下的配置文件不存在，则会启用默认配置。例如，在项目中引入summer依赖，无需本地配置文件，即可直接使用Summer.hot启动。
 5. 通过Summer.hot启动时，未明确指定libPath时将不再通过默认路径"lib"去扫描加载jar。(mvn打包时可通过配置插件自动拷贝依赖以及在程序启动时加载指定依赖)
 
-### 2020.12.31
+### [1.1.4](https://mvnrepository.com/artifact/com.swingfrog.summer/summer/1.1.4) - 2020-12-31
 1. 修复异步响应Summer.asyncResponse无法发送错误码。
 
-### 2020.11.30
+### [1.1.3](https://mvnrepository.com/artifact/com.swingfrog.summer/summer/1.1.3) - 2020-11-30
 1. Repository中add操作不再执行insertSql语句，修改为replaceSql语句。
 2. Repository增加listSingleCache方法，当实体只包含一个cacheKey时，可直接调用此方法查询数据。
 3. Repository采用原子性、自旋等方式替换掉原有的同步锁。
@@ -57,7 +57,7 @@
 7. EventBus新增订阅和派送方式，使用注解@AcceptEvent，无需设定事件名称，该注解下的方法只允许一个参数，并且该参数的类型将作为"事件名称"用于事件派送，详细请看test中的例子。
 8. 修复RPC在一个Cluster下多个不同serverName时出现的BUG。感谢 [kingo132](https://github.com/kingo132) 大佬指出问题。
 
-### 2020.10.31
+### [1.1.2](https://mvnrepository.com/artifact/com.swingfrog.summer/summer/1.1.2) - 2020-10-31
 1. 异步请求远程接口增加RemoteCallbackQuick接口，可用于接收响应的数据。
 2. 新增meter包，可用于编写压测程序。
 3. 新增promise包，可用于异步有序执行。
@@ -67,16 +67,16 @@
 7. 优化RPC，在底层确保接口幂等性，所有client共用worker、event线程池。
 8. CodeMsg、CodeException中的code由long调整为int。
 
-### 2020.09.19
+### [1.1.1](https://mvnrepository.com/artifact/com.swingfrog.summer/summer/1.1.1) - 2020-09-19
 1. 新增协议，支持protobuf。
 2. 新增标准的WebSocket协议，与原来的区别是去掉了包头的四个字节。
 3. remote中的方法限定符如果不是public将不对远程开放。
 
-### 2020.09.13
+### [1.0.18](https://mvnrepository.com/artifact/com.swingfrog.summer/summer/1.0.18) - 2020-09-13
 1. 心跳机制优化。
 2. 用户请求默认在用户队列中进行处理，@SessionQueue废弃。
 
-### 2020.09.08
+### [1.0.17](https://mvnrepository.com/artifact/com.swingfrog.summer/summer/1.0.17) - 2020-09-08
 1. SessionContext调整，新增属性token，token可以在用户登录以后手动设置为用户ID，以此作为用户的唯一标识。
 2. SessionQueueMgr、SingleQueueMgr优化。SessionQueueMgr，不再使用直接使用SessionContext分配队列，改为使用SessionContext中的token分配队列，当token未设置时使用sessionId。
 3. http协议下，sessionId不再作为用户的唯一标识，sessionId仅作为链路标识。当用户请求接口携带的cookie数据中不存在token时，响应时会下发通过UUID生成的32位字符串作为token，用户下一次请求时就会携带有token。通过sessionContext.getToken()获取token，通过sessionContext.clearToken()清空token。
@@ -84,85 +84,84 @@
 5. 修正SessionHandler中的accept拼写错误
 6. test例子取消lombok依赖。
 
-### 2020.05.18
+### [1.0.14](https://mvnrepository.com/artifact/com.swingfrog.summer/summer/1.0.14) - 2020-05-18
 1. 缓存仓库调整，当PrimaryKey为非自增模式时，使用CacheKey查询经历过remove，add的相同PrimaryKey的实体时，尽管实体中的CacheKey与查询的值不同也依旧能命中缓存，现将其进行修复。当主动remove时，会将存有对应PrimaryKey的CacheKey缓存清除。
 
-### 2020.05.09
+### [1.0.13](https://mvnrepository.com/artifact/com.swingfrog.summer/summer/1.0.13) - 2020-05-09
 1. ServerBootstrap启动参数中的ChannelOption.SO_BACKLOG改为读取配置表，并将ChannelOption.ALLOCATOR设为PooledByteBufAllocator.DEFAULT
 2. 仓库调整，增加getOrCreate方法。
 3. 当项目未能在预期情况下运行时（例如端口被占用），及时终止进程。
 
-### 2020.04.28
+### [1.0.10](https://mvnrepository.com/artifact/com.swingfrog.summer/summer/1.0.10) - 2020-04-28
 1. 当使用仓库时，实体的某个字段的类型如果为Array、Collection(List Set Queue)、Map、以及自定义的类时，需设定length。当length<=255，使用CHAR类型；当length<=16383，使用VARCHAR类型；当length>16383，使用TEXT类型。
 2. SessionContext中的address分为directAddress和realAddress，其中directAddress为链路IP，realAddress通过Head中的"X-Forwarded-For"获取客户端真实IP，仅在HTTP、WEBSOCKET协议且在使用反向代理的情况下生效。
 3. AsyncResponseMgr新增process方法可用于捕获异常以及自动发送响应。
 
-### 2020.01.17
+### [1.0.3](https://mvnrepository.com/artifact/com.swingfrog.summer/summer/1.0.3) - 2020-01-17
 1. 日志调整，由原来的log4j改为logback，并且移除直接调用log4j的所有代码，完成了日志解耦，可自由替换成slf4j的其他实现。
 2. 由于不再强制加载日志配置文件，Summer.hot移除了日志配置文件路径的参数。
 3. Remote新增异步响应请求，可参考test中的例子。
 
-### 2019.12.27
+### [1.0.0](https://mvnrepository.com/artifact/com.swingfrog.summer/summer/1.0.0) - 2019-12-27
 使用mvn重构项目
 
-### 2019.12.26
+### 0.9.1 - 2019-12-26
 1. 异步缓存仓库调整，修复了异步add、异步remove在一起使用时，可能导致remove失败的问题，并进行了一定的优化，对同一对象先后进行add、remove，当发生在定时器同一执行期内，其操作相互抵消，不再进行数据库操作
 2. Http协议下，抛出CodeException异常时，日志输出级别由error改为warn
 
-### 2019.12.05
+### 0.9.0 - 2019-12-05
 1. 缓存仓库调整，移除查询列表时按主键的hash code排序，以此提高性能。如果有业务需求，可以考虑在前端进行排序，分散后端压力。
 
-### 2019.11.07
+### 0.8.0 - 2019-11-07
 1. 异步缓存仓库调整，当有一个持久化对象，对它进行add、remove、add、remove操作时不能达到预期效果，因为id在第二次add时就发生变动，由于是同一个对象，所以当定时器触发写库时，第一个add的id已经变成了第二个add时的id，第一个remove的id也发生了变化。正确的用法是clone对象后再进行第二次add、remove，但考虑到有些场景是可以复用对象的，于是对异步缓存仓库层进行了调整，add或remove时会记录当时的id，再进行操作。
 
-### 2019.10.25
+### 0.7.3 - 2019-10-25
 1. 修复某些情况下请求接口时会出现参数错误的问题
 
-### 2019.10.17
+### 0.7.2 - 2019-10-17
 1. 修复部分线程池不能优雅关闭
 2. EventMgr改名为EventBusMgr
 3. 修改了业务线程池和推送线程池
 
-### 2019.10.16
+### 0.7.1 - 2019-10-16
 1. 修复持久化层仓库模式，list无法正确返回数据，并进行优化，当多次list之间的间隔时间小于缓存过期时间时，可直接命中缓存。
 2. 从端口minor新增配置useMainServerThreadPool，默认为false，当置为true时，从端口将使用主端口的线程池 (监听线程池, 读写线程池, 业务线程池)。
 
-### 2019.10.14
+### 0.7.0 - 2019-10-14
 1. http协议下，实现了cookie机制，sessionId是识别唯一用户的标志，而sessionContext只是链路。当用户请求接口携带的cookie数据中不存在sessionId时，响应时会下发通过UUID生成的32位字符串作为sessionId，用户下一次请求时就会携带有sessionId。通过sessionContext.getSessionId()获取sessionId，通过sessionContext.clearSessionId()清空sessionId。
 2. 新增一个用于统计接口调用情况的静态类RemoteStatistics。
 3. 修复持久化层仓库模式，无法解析Date的问题。
 
-### 2019.08.30
+### 0.6.0 - 2019-08-30
 1. 移除之前实现的简单持久化层(2019.06.22的第三点)
 2. 新增SessionContent.getWaitWriteQueueSize，可获得待写队列的长度
 3. 接口SessionHandler新增抽象方法sending(SessionContext ctx)，当尝试数据写入时会回调此方法，可配合第二点当待写队列长度过大时关闭会话
 4. 新增持久化层，采用仓库模式(com.swingfrog.summer.db.repository)，实体上使用仓库相关的注解，以及dao继承RepositoryDao，即可实现仓库模式，自动建表，无需手动写SQL语句。除了基础的仓库功能还有缓存仓库CacheRepositoryDao、异步缓存仓库AsyncCacheRepositoryDao，推荐使用异步缓存仓库，支持异步/同步插入、更新、删除，以及同步查询。
 
-### 2019.06.22
+### 0.5.1 - 2019-06-22
 1. 新增接口Lifecycle，当组件实现此接口后，即可在服务器启动时触发start方法，在服务器关闭时触发stop方法。
 2. 新增方法<T> Set<T> Summer.listDeclaredComponent(Class<T> clazz)，可用于采集容器内的组件，例如第一点正是使用此方法采集所有实现Lifecycle的组件。
 3. 实现了一个简单的持久化层，支持缓存和异步写入，但对于结构有特定要求。使用时将实体继承AbstractDelayCacheEntity，dao继承DelayCacheDao，即可直接使用并自动建表。
 
-### 2019.06.12
+### 0.5.0 - 2019-06-12
 1. 支持一个进程启动多个服务端口，仅需对配置进行修改，详细请见下方服务器配置文件。在使用@ServerHandler时，默认监听主端口，若需要监听其他端口，可使用@ServerHandler(serverName)指定服务器名。
 
-
-### 2019.05.22
+### 0.4.0 - 2019-05-22
 1. 修复了http协议下请求资源css、js等，content-type错误的问题。
 2. 注解@SingleQueue(key)，新增通配符${arg}，arg为Remote上的参数。
 3. 修复注解@Synchronized不生效的问题。
 
-### 2019.02.20
+### 0.3.1 - 2019-02-20
 1. 新增Summer.getServerEventLoopGroup，用于获取服务器业务线程池
 2. 新增Summer.getSessionQueueSize，用于获取会话队列长度
 3. 优化SessionQueue、SingleQueue队列，不再分配新线程，将以队列的形式逐个提交到服务器业务线程中（在此特别感谢一位大哥的支持与协助）
 
-### 2019.02.17
+### 0.3.0 - 2019-02-17
 1. ClientRemote类，新增rsyncRemote方法，调用接口超时将自动重试直到成功为止。
 2. ClientRemote类，新增getServerName方法，用于获取连接其他服务器的节点名称。
 3. 新增Summer.getRemoteInvokeObjectWithRetry、Summer.getRandomRemoteInvokeObjectWithRetry，用于获取连接其他服务器的远程调用接口代理对象，超时将自动重试直到成功为止。
 
-### 2019.01.28
+### 0.2.0 - 2019-01-28
 1. 修复了，服务器之间远程调用可能出现丢包的问题，原因是消息id不能正确的递增，解决办法是修改了消息id的判断。
 2. 当作为web服务器时，若接口返回的类型不是WebView，则将返数据序列化成Json，并返回TextView。
 
@@ -179,7 +178,7 @@ Redis 5.0 (仅供参考)<br/>
     <dependency>
         <groupId>com.swingfrog.summer</groupId>
         <artifactId>summer</artifactId>
-        <version>1.1.6</version>
+        <version>1.1.7</version>
     </dependency>
 ```
 
