@@ -25,7 +25,7 @@ public class AsyncCacheRepositoryMgr {
 
     private volatile ScheduledExecutorService scheduledExecutor;
     private final AsyncCacheConfig config = new AsyncCacheConfig();
-    private final List<Runnable> hooks = Lists.newLinkedList();
+    private final List<Runnable> hooks = Lists.newArrayList();
 
     private static class SingleCase {
         public static final AsyncCacheRepositoryMgr INSTANCE = new AsyncCacheRepositoryMgr();

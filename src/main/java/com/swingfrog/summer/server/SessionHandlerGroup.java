@@ -13,7 +13,7 @@ public class SessionHandlerGroup implements SessionHandler {
 	private final List<SessionHandler> sessionHandlerList;
 	
 	public SessionHandlerGroup() {
-		sessionHandlerList = Lists.newLinkedList();
+		sessionHandlerList = Lists.newArrayList();
 	}
 	
 	public void addSessionHandler(SessionHandler sessionHandler) {

@@ -357,14 +357,14 @@ public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
     @Override
     public Stream<T> stream(Map<String, Object> optional) {
         Objects.requireNonNull(optional);
-        LinkedList<Set<K>> pkList = null;
+        List<Set<K>> pkList = null;
         Map<String, Object> normal = null;
         for (Map.Entry<String, Object> entry : optional.entrySet()) {
             String key = entry.getKey();
             Object value = entry.getValue();
             if (getTableMeta().getCacheKeys().contains(getTableMeta().getColumnMetaMap().get(key))) {
                 if (pkList == null)
-                    pkList = Lists.newLinkedList();
+                    pkList = Lists.newArrayList();
                 pkList.add(listPrimaryValueByCacheKey(key, value));
             } else {
                 if (normal == null)
@@ -378,11 +378,12 @@ public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
             stream = cache.asMap().values().stream().filter(obj -> obj != EMPTY);
         } else {
             if (pkList.size() == 1) {
-                stream = pkList.getFirst().stream().map(this::get).filter(Objects::nonNull);
+                stream = pkList.get(0).stream().map(this::get).filter(Objects::nonNull);
             } else {
-                Set<K> first = Sets.newHashSet(pkList.removeFirst());
-                LinkedList<Set<K>> finalPkList = pkList;
-                first.removeIf(obj -> finalPkList.stream().anyMatch(pk -> !pk.contains(obj)));
+                Set<K> first = Sets.newHashSet(pkList.get(0));
+                pkList.set(0, null);
+                List<Set<K>> finalPkList = pkList;
+                first.removeIf(obj -> finalPkList.stream().filter(Objects::nonNull).anyMatch(pk -> !pk.contains(obj)));
                 stream = first.stream().map(this::get).filter(Objects::nonNull);
             }
         }

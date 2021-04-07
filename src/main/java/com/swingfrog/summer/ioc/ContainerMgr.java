@@ -34,18 +34,18 @@ public class ContainerMgr {
 	private static final Logger log = LoggerFactory.getLogger(ContainerMgr.class);
 	
 	private final Map<Class<?>, Object> map = Maps.newHashMap();
-	private final List<Class<?>> autowiredList = Lists.newLinkedList();
+	private final List<Class<?>> autowiredList = Lists.newArrayList();
 	private final Set<Class<?>> componentSet = Sets.newHashSet();
 	private final Set<Method> transactionSet = Sets.newHashSet();
 	private final Set<Class<?>> parameterSet = Sets.newHashSet();
-	private final List<Class<?>> remoteList = Lists.newLinkedList();
-	private final List<Class<?>> pushList = Lists.newLinkedList();
-	private final List<Class<?>> handlerList = Lists.newLinkedList();
+	private final List<Class<?>> remoteList = Lists.newArrayList();
+	private final List<Class<?>> pushList = Lists.newArrayList();
+	private final List<Class<?>> handlerList = Lists.newArrayList();
 	private final Map<String, List<Class<?>>> handlerMap = Maps.newHashMap();
 	private final Map<Method, MatchGroupKey> singleQueueMap = Maps.newHashMap();
 	private final Map<Method, String> synchronizedMap = Maps.newHashMap();
-	private final List<TaskTrigger> taskList = Lists.newLinkedList();
-	private final List<Class<?>> eventList = Lists.newLinkedList();
+	private final List<TaskTrigger> taskList = Lists.newArrayList();
+	private final List<Class<?>> eventList = Lists.newArrayList();
 	
 	private static class SingleCase {
 		public static final ContainerMgr INSTANCE = new ContainerMgr();
@@ -96,7 +96,7 @@ public class ContainerMgr {
 			if (sh == null || sh.value().isEmpty()) {
 				handlerList.add(clazz);
 			} else {
-				List<Class<?>> list = handlerMap.computeIfAbsent(sh.value(), k -> Lists.newLinkedList());
+				List<Class<?>> list = handlerMap.computeIfAbsent(sh.value(), k -> Lists.newArrayList());
 				list.add(clazz);
 			}
 			analysis(clazz, ServerHandler.class);

@@ -15,7 +15,7 @@ public class ClientCluster {
 	
 	public ClientCluster() {
 		next = new AtomicInteger();
-		clientGroupList = Lists.newLinkedList();
+		clientGroupList = Lists.newArrayList();
 		nameToClientGroup = Maps.newHashMap();
 	}
 	
@@ -43,7 +43,7 @@ public class ClientCluster {
 	}
 	
 	public List<Client> listClients() {
-		List<Client> list = Lists.newLinkedList();
+		List<Client> list = Lists.newArrayList();
 		for (ClientGroup clientGroup : clientGroupList) {
 			list.addAll(clientGroup.listClients());
 		}

@@ -1,7 +1,6 @@
 package com.swingfrog.summer.event;
 
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
@@ -51,7 +50,7 @@ public class EventBusMgr {
 				if (bindEvent != null) {
 					if (eventNameMap == null)
 						eventNameMap = Maps.newHashMap();
-					List<EventMethod> eventList = eventNameMap.computeIfAbsent(bindEvent.value(), k -> Lists.newLinkedList());
+					List<EventMethod> eventList = eventNameMap.computeIfAbsent(bindEvent.value(), k -> Lists.newArrayList());
 					eventList.add(new EventMethod(clazz, method, bindEvent.index()));
 					continue;
 				}
@@ -65,7 +64,7 @@ public class EventBusMgr {
 				if (eventClassMap == null)
 					eventClassMap = Maps.newHashMap();
 				Class<?> parameterType = parameterTypes[0];
-				List<EventMethod> eventList = eventClassMap.computeIfAbsent(parameterType, k -> Lists.newLinkedList());
+				List<EventMethod> eventList = eventClassMap.computeIfAbsent(parameterType, k -> Lists.newArrayList());
 				eventList.add(new EventMethod(clazz, method, acceptEvent.index()));
 			}
 		}

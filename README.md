@@ -23,6 +23,9 @@
 
 ## 更新说明
 
+### 1.1.8 - 2021-04-xx
+1. 将框架中用到的LinkedList替换为ArrayList。[ArrayList与LinkedList对比](https://stackoverflow.com/questions/322715/when-to-use-linkedlist-over-arraylist-in-java/322742#322742)
+
 ### [1.1.7](https://mvnrepository.com/artifact/com.swingfrog.summer/summer/1.1.7) - 2021-03-31
 1. SessionHandler新增方法handleReady，在处理请求前触发此回调，与receive的不同之处是在此方法内可抛出异常，且在会话队列中执行。
 2. 新增接口RemoteHandler、RemoteProtobufHandler，其中RemoteProtobufHandler仅用于protobuf协议。在使用注解@Remote的类上实现此接口。即可进行一些拦截或其他业务处理。与SessionHandler.handleReady的区别是，触发范围缩小，仅会对进入此类寻求处理方法的协议进行触发。

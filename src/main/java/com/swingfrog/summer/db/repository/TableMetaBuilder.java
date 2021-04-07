@@ -31,10 +31,10 @@ public class TableMetaBuilder {
             }
         }
         tableMeta.setComment(table.comment());
-        tableMeta.setColumns(Lists.newLinkedList());
+        tableMeta.setColumns(Lists.newArrayList());
         tableMeta.setIndexKeys(Sets.newHashSet());
         tableMeta.setCacheKeys(Sets.newHashSet());
-        List<Field> fields = Lists.newLinkedList();
+        List<Field> fields = Lists.newArrayList();
         collectField(fields, clazz);
         for (Field field : fields) {
             Column column = field.getAnnotation(Column.class);
