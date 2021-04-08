@@ -1,6 +1,8 @@
 package com.swingfrog.summer.test.ecsgameserver.module.player.team;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Queues;
 import com.google.common.collect.Sets;
 import com.swingfrog.summer.annotation.Autowired;
 import com.swingfrog.summer.annotation.Remote;
@@ -17,6 +19,7 @@ import com.swingfrog.summer.test.ecsgameserver.module.team.TeamData;
 import com.swingfrog.summer.test.ecsgameserver.module.team.TeamManager;
 
 import java.util.List;
+import java.util.concurrent.ConcurrentMap;
 
 @Remote
 public class PlayerTeamRemote {
@@ -86,8 +89,8 @@ public class PlayerTeamRemote {
         int RESULT = 0;
         promiseManager.createPlayerPromise(player, ctx, req)
                 .then(teamManager.promiseEntity(teamId, (context, team) -> {
-                    List<String> list = Lists.newArrayList();
-                    context.put(RESULT, list);
+                    ConcurrentMap<Long, String> map = Maps.newConcurrentMap();
+                    context.put(RESULT, map);
                     TeamData teamData = team.getBean();
                     if (teamData == null)
                         return;
@@ -95,14 +98,14 @@ public class PlayerTeamRemote {
                     Promise member = promiseManager.createPromise();
                     teamData.getMemberPlayerIds().forEach(memberPlayerId ->
                             member.then(playerManager.promiseEntity(memberPlayerId, memberPlayer ->
-                                    list.add(memberPlayer.getName()))));
+                                    map.put(memberPlayerId, memberPlayer.getName()))));
                     member.then(context::successFuture)
                             .setCatch(context::failureFuture)
                             .start();
                 }))
                 .then(context -> {
-                    List<String> list = context.get(RESULT);
-                    Summer.asyncResponse(ctx, req, list);
+                    ConcurrentMap<Long, String> map = context.get(RESULT);
+                    Summer.asyncResponse(ctx, req, map.values());
                 })
                 .start();
         return AsyncResponse.of();

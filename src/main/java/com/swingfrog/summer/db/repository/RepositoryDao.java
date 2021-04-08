@@ -94,12 +94,14 @@ public abstract class RepositoryDao<T, K> extends BaseDao<T> implements Reposito
     }
 
     protected T addNotAutoIncrement(T obj) {
+        onSaveBefore(obj);
         if (update(replaceSql, TableValueBuilder.listInsertValue(tableMeta, obj)) > 0)
             return obj;
         return null;
     }
 
     protected T addByPrimaryKey(T obj, K primaryKey) {
+        onSaveBefore(obj);
         if (update(replaceSql, TableValueBuilder.listInsertValue(tableMeta, obj, primaryKey)) > 0)
             return obj;
         return null;
@@ -138,18 +140,23 @@ public abstract class RepositoryDao<T, K> extends BaseDao<T> implements Reposito
     @Override
     public boolean save(T obj) {
         Objects.requireNonNull(obj);
+        onSaveBefore(obj);
         return update(updateSql, TableValueBuilder.listUpdateValue(tableMeta, obj)) > 0;
     }
 
     @Override
     public void save(Collection<T> objs) {
         Objects.requireNonNull(objs);
-        objs.forEach(obj -> update(updateSql, TableValueBuilder.listUpdateValue(tableMeta, obj)));
+        objs.forEach(obj -> {
+            onSaveBefore(obj);
+            update(updateSql, TableValueBuilder.listUpdateValue(tableMeta, obj));
+        });
     }
 
     @Override
     public void forceSave(T obj) {
         Objects.requireNonNull(obj);
+        onSaveBefore(obj);
         update(updateSql, TableValueBuilder.listUpdateValue(tableMeta, obj));
     }
 
@@ -257,6 +264,7 @@ public abstract class RepositoryDao<T, K> extends BaseDao<T> implements Reposito
                     }
                 })
                 .forEach(columnMeta -> TableValueBuilder.jsonConvertJavaBean(columnMeta.getField(), obj));
+        onLoadAfter(obj);
         return obj;
     }
 
@@ -313,5 +321,8 @@ public abstract class RepositoryDao<T, K> extends BaseDao<T> implements Reposito
     public Stream<T> streamAll() {
         return listAll().stream();
     }
+
+    protected void onLoadAfter(T obj) {}
+    protected void onSaveBefore(T obj) {}
 
 }

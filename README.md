@@ -25,6 +25,7 @@
 
 ### 1.1.8 - 2021-04-xx
 1. 将框架中用到的LinkedList替换为ArrayList。[ArrayList与LinkedList对比](https://stackoverflow.com/questions/322715/when-to-use-linkedlist-over-arraylist-in-java/322742#322742)
+2. RepositoryDao新增onLoadAfter、onSaveBefore方法，当对象从数据库加载后调用onLoadAfter，当对象在数据库写入前调用onSaveBefore。
 
 ### [1.1.7](https://mvnrepository.com/artifact/com.swingfrog.summer/summer/1.1.7) - 2021-03-31
 1. SessionHandler新增方法handleReady，在处理请求前触发此回调，与receive的不同之处是在此方法内可抛出异常，且在会话队列中执行。
