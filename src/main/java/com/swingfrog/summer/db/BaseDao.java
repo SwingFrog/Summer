@@ -98,7 +98,7 @@ public abstract class BaseDao<T> {
 		}
 	}
 	
-	protected Long insertAndGetGeneratedKeys(String sql, Object... args) {
+	protected Object insertAndGetGeneratedKeys(String sql, Object... args) {
 		if (log.isDebugEnabled())
 			log.debug("{}  {}", sql, args);
 		try {
