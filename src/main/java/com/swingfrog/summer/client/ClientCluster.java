@@ -2,6 +2,8 @@ package com.swingfrog.summer.client;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.swingfrog.summer.server.rpc.RpcClientGroup;
+import com.swingfrog.summer.util.PollingUtil;
 
 import java.util.List;
 import java.util.Map;
@@ -29,17 +31,11 @@ public class ClientCluster {
 	}
 	
 	public Client getClientWithNext() {
-		int size = clientGroupList.size();
-		if (size == 0) {
+		ClientGroup clientGroup = PollingUtil.getNext(next, clientGroupList, ClientGroup::hasAnyActive);
+		if (clientGroup == null) {
 			return null;
 		}
-		if (size == 1) {
-			return clientGroupList.get(0).getClientWithNext();
-		}
-		int n = next.getAndIncrement();
-		n = Math.abs(n);
-		n = n % size;
-		return clientGroupList.get(n).getClientWithNext();
+		return clientGroup.getClientWithNext();
 	}
 	
 	public List<Client> listClients() {

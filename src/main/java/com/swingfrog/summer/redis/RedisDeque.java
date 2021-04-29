@@ -1,6 +1,7 @@
 package com.swingfrog.summer.redis;
 
-import java.util.ArrayList;
+import com.google.common.collect.Lists;
+
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
@@ -169,7 +170,7 @@ public class RedisDeque extends RedisCollection implements Deque<String> {
 	@Override
 	public Iterator<String> descendingIterator() {
 		List<String> list = RedisUtil.lrange(sourceKey, 0, -1);
-		List<String> res = new ArrayList<>(list.size());
+		List<String> res = Lists.newArrayListWithCapacity(list.size());
 		for (int i = list.size() - 1; i > 0; i--) {
 			res.add(list.get(i));
 		}

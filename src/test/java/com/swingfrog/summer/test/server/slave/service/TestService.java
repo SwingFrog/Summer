@@ -34,7 +34,7 @@ public class TestService implements Lifecycle {
             public void failure(long code, String msg) {
                 log.error(msg);
             }
-        }, 1, TimeUnit.MILLISECONDS);
+        }, 100, TimeUnit.MILLISECONDS);
     }
 
     @Override

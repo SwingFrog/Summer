@@ -1,18 +1,18 @@
 package com.swingfrog.summer.task;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
 
+import com.google.common.collect.Maps;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.Trigger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TaskMethodJob implements Job{
+public class TaskMethodJob implements Job {
 
 	private static final Logger log = LoggerFactory.getLogger(TaskMethodJob.class);
-	private static final Map<Trigger, MethodInvoke> triggerMap = new HashMap<>();
+	private static final ConcurrentMap<Trigger, MethodInvoke> triggerMap = Maps.newConcurrentMap();
 	
 	public static void bindTriggerWithMethod(Trigger trigger, MethodInvoke methodInvoke) {
 		triggerMap.put(trigger, methodInvoke);

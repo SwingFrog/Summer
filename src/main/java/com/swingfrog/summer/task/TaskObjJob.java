@@ -1,15 +1,15 @@
 package com.swingfrog.summer.task;
 
+import com.google.common.collect.Maps;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.Trigger;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
 
-public class TaskObjJob implements Job{
+public class TaskObjJob implements Job {
 
-	private static final Map<Trigger, TaskJob> triggerMap = new HashMap<>();
+	private static final ConcurrentMap<Trigger, TaskJob> triggerMap = Maps.newConcurrentMap();
 	
 	public static void bindTriggerWithObj(Trigger trigger, TaskJob taskJob) {
 		triggerMap.put(trigger, taskJob);

@@ -1,9 +1,9 @@
 package com.swingfrog.summer.web;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import com.alibaba.fastjson.JSONObject;
+import com.google.common.collect.Maps;
 import com.swingfrog.summer.protocol.SessionRequest;
 
 import com.swingfrog.summer.server.RemoteDispatchMgr;
@@ -62,7 +62,7 @@ public class WebRequest extends SessionRequest {
 			}
 		}
 		webRequest.setData(data);
-		webRequest.setFileUploadMap(new HashMap<>());
+		webRequest.setFileUploadMap(Maps.newHashMap());
 		return webRequest;
 	}
 	

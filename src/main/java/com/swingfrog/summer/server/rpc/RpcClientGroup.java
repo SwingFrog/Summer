@@ -1,17 +1,20 @@
 package com.swingfrog.summer.server.rpc;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import com.google.common.collect.Lists;
 import com.swingfrog.summer.server.SessionContext;
+import com.swingfrog.summer.util.PollingUtil;
 
 public class RpcClientGroup {
 
-	private int next = -1;
+	private final AtomicInteger next;
 	private final List<SessionContext> clientList;
 	
 	public RpcClientGroup() {
-		clientList = new ArrayList<>();
+		next = new AtomicInteger();
+		clientList = Lists.newArrayList();
 	}
 	
 	public void addClient(SessionContext client) {
@@ -19,16 +22,7 @@ public class RpcClientGroup {
 	}
 	
 	public SessionContext getClientWithNext() {
-		int size = clientList.size();
-		if (size > 0) {
-			if (size == 1) {
-				return clientList.get(0);
-			}
-			next ++;
-			next = next % size;
-			return clientList.get(next % size);
-		}
-		return null;
+		return PollingUtil.getNext(next, clientList, SessionContext::isActive);
 	}
 	
 	public List<SessionContext> listClients() {
@@ -37,6 +31,14 @@ public class RpcClientGroup {
 	
 	public void removeClient(SessionContext sctx) {
 		clientList.remove(sctx);
+	}
+
+	public boolean hasAnyActive() {
+		for (SessionContext sessionContext : clientList) {
+			if (sessionContext.isActive())
+				return true;
+		}
+		return false;
 	}
 	
 }

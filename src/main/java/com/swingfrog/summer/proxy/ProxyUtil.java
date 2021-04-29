@@ -1,10 +1,10 @@
 package com.swingfrog.summer.proxy;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import com.google.common.collect.Maps;
 import com.swingfrog.summer.client.ClientMgr;
 import com.swingfrog.summer.client.ClientRemote;
 import com.swingfrog.summer.client.exception.CreateRemoteFailException;
@@ -90,7 +90,7 @@ public class ProxyUtil {
 	@SuppressWarnings("unchecked")
 	public static <T> T getProxyClientRemote(T remote, String cluster, String name) {
 		Object obj = ProxyFactory.getProxyInstance(remote, (obj1, method, args) -> {
-			Map<String, Object> map = new HashMap<>();
+			Map<String, Object> map = Maps.newHashMap();
 			MethodParameterName mpn = new MethodParameterName(obj1.getClass());
 			String[] params = mpn.getParameterNameByMethod(method);
 			for (int i = 0; i < params.length; i ++) {
@@ -108,7 +108,7 @@ public class ProxyUtil {
 	@SuppressWarnings("unchecked")
 	public static <T> T getProxyClientRemoteWithRetry(T remote, String cluster, String name) {
 		Object obj = ProxyFactory.getProxyInstance(remote, (obj1, method, args) -> {
-			Map<String, Object> map = new HashMap<>();
+			Map<String, Object> map = Maps.newHashMap();
 			MethodParameterName mpn = new MethodParameterName(obj1.getClass());
 			String[] params = mpn.getParameterNameByMethod(method);
 			for (int i = 0; i < params.length; i ++) {
@@ -126,7 +126,7 @@ public class ProxyUtil {
 	@SuppressWarnings("unchecked")
 	public static <T> T getProxyRandomClientRemote(T remote, String cluster) {
 		Object obj = ProxyFactory.getProxyInstance(remote, (obj1, method, args) -> {
-			Map<String, Object> map = new HashMap<>();
+			Map<String, Object> map = Maps.newHashMap();
 			MethodParameterName mpn = new MethodParameterName(obj1.getClass());
 			String[] params = mpn.getParameterNameByMethod(method);
 			for (int i = 0; i < params.length; i ++) {
@@ -144,7 +144,7 @@ public class ProxyUtil {
 	@SuppressWarnings("unchecked")
 	public static <T> T getProxyRandomClientRemoteWithRetry(T remote, String cluster) {
 		Object obj = ProxyFactory.getProxyInstance(remote, (obj1, method, args) -> {
-			Map<String, Object> map = new HashMap<>();
+			Map<String, Object> map = Maps.newHashMap();
 			MethodParameterName mpn = new MethodParameterName(obj1.getClass());
 			String[] params = mpn.getParameterNameByMethod(method);
 			for (int i = 0; i < params.length; i ++) {

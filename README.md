@@ -32,6 +32,7 @@
 ### 1.1.8 - 2021-04-xx
 1. 将框架中用到的LinkedList替换为ArrayList。[ArrayList与LinkedList对比](https://stackoverflow.com/questions/322715/when-to-use-linkedlist-over-arraylist-in-java/322742#322742)
 2. RepositoryDao新增onLoadAfter、onSaveBefore方法，当对象从数据库加载后调用onLoadAfter，当对象在数据库写入前调用onSaveBefore。
+3. Rpc轮询机制调整，优先使用可用的client。
 
 ### [1.1.7](https://mvnrepository.com/artifact/com.swingfrog.summer/summer/1.1.7) - 2021-03-31
 1. SessionHandler新增方法handleReady，在处理请求前触发此回调，与receive的不同之处是在此方法内可抛出异常，且在会话队列中执行。
@@ -1561,17 +1562,18 @@ public class WebFileUpload {
 #### 负载均衡
 随机远程调用和随机推送都是通过轮询实现
 ```java
-    public Client getClientWithNext() {
-        int size = clientGroupList.size();
-        if (size > 0) {
-            if (size == 1) {
-                return clientGroupList.get(0).getClientWithNext();
-            }
-            next ++;
-            next = next % size;
-            return clientGroupList.get(next % size).getClientWithNext();
-        }
-        return null;
+	public Client getClientWithNext() {
+		int size = clientList.size();
+		if (size == 0) {
+			return null;
+		}
+		if (size == 1) {
+			return clientList.get(0);
+		}
+		int n = next.getAndIncrement();
+		n = Math.abs(n);
+		n = n % size;
+		return clientList.get(n);
 	}
 ```
 

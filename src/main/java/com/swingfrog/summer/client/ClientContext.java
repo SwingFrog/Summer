@@ -47,4 +47,8 @@ public class ClientContext {
 	public ConcurrentLinkedQueue<SessionRequest> getRequestQueue() {
 		return requestQueue;
 	}
+	public boolean isChannelActive() {
+		ChannelHandlerContext channelHandlerContext = channel.get();
+		return channelHandlerContext != null && channelHandlerContext.channel().isActive();
+	}
 }

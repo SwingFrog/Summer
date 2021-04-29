@@ -120,4 +120,8 @@ public class Client {
 		return active;
 	}
 
+	public ClientContext getClientContext() {
+		return clientContext;
+	}
+
 }

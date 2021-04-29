@@ -151,4 +151,8 @@ public class SessionContext {
 		data.clear();
 	}
 
+	public boolean isActive() {
+		return channel.isActive();
+	}
+
 }

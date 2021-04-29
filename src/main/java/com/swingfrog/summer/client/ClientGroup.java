@@ -1,6 +1,8 @@
 package com.swingfrog.summer.client;
 
-import java.util.ArrayList;
+import com.google.common.collect.Lists;
+import com.swingfrog.summer.util.PollingUtil;
+
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -11,7 +13,7 @@ public class ClientGroup {
 	
 	public ClientGroup() {
 		next = new AtomicInteger();
-		clientList = new ArrayList<>();
+		clientList = Lists.newArrayList();
 	}
 	
 	public void addClient(Client client) {
@@ -19,20 +21,19 @@ public class ClientGroup {
 	}
 	
 	public Client getClientWithNext() {
-		int size = clientList.size();
-		if (size == 0) {
-			return null;
-		}
-		if (size == 1) {
-			return clientList.get(0);
-		}
-		int n = next.getAndIncrement();
-		n = Math.abs(n);
-		n = n % size;
-		return clientList.get(n);
+		return PollingUtil.getNext(next, clientList, client -> true);
 	}
 	
 	public List<Client> listClients() {
 		return clientList;
 	}
+
+	public boolean hasAnyActive() {
+		for (Client client : clientList) {
+			if (client.isActive() && client.getClientContext().isChannelActive())
+				return true;
+		}
+		return true;
+	}
+
 }

@@ -1,21 +1,24 @@
 package com.swingfrog.summer.server.rpc;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.swingfrog.summer.server.SessionContext;
+import com.swingfrog.summer.util.PollingUtil;
 
 public class RpcClientCluster {
 
-	private int next = -1;
+	private final AtomicInteger next;
 	private final List<RpcClientGroup> clientGroupList;
 	private final Map<String, RpcClientGroup> nameToClientGroup;
 	
 	public RpcClientCluster() {
-		clientGroupList = new ArrayList<>();
-		nameToClientGroup = new HashMap<>();
+		next = new AtomicInteger();
+		clientGroupList = Lists.newArrayList();
+		nameToClientGroup = Maps.newHashMap();
 	}
 	
 	public void addClient(String name, RpcClientGroup clientGroup) {
@@ -38,20 +41,15 @@ public class RpcClientCluster {
 	}
 	
 	public SessionContext getClientWithNext() {
-		int size = clientGroupList.size();
-		if (size > 0) {
-			if (size == 1) {
-				return clientGroupList.get(0).getClientWithNext();
-			}
-			next ++;
-			next = next % size;
-			return clientGroupList.get(next % size).getClientWithNext();
+		RpcClientGroup rpcClientGroup = PollingUtil.getNext(next, clientGroupList, RpcClientGroup::hasAnyActive);
+		if (rpcClientGroup == null) {
+			return null;
 		}
-		return null;
+		return rpcClientGroup.getClientWithNext();
 	}
 	
 	public List<SessionContext> listAllClients() {
-		List<SessionContext> list = new ArrayList<>();
+		List<SessionContext> list = Lists.newArrayList();
 		for (RpcClientGroup rpcClientGroup : clientGroupList) {
 			list.addAll(rpcClientGroup.listClients());
 		}
@@ -59,7 +57,7 @@ public class RpcClientCluster {
 	}
 	
 	public List<SessionContext> listOneClients() {
-		List<SessionContext> list = new ArrayList<>();
+		List<SessionContext> list = Lists.newArrayList();
 		for (RpcClientGroup rpcClientGroup : clientGroupList) {
 			list.add(rpcClientGroup.getClientWithNext());
 		}

@@ -1,7 +1,6 @@
 package com.swingfrog.summer.client;
 
 import java.lang.reflect.*;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -186,7 +185,7 @@ public class PushDispatchMgr {
 	
 	private static class PushClass {
 		private final Class<?> clazz;
-		private final Map<String, PushMethod> pushMethodMap = new HashMap<>();
+		private final Map<String, PushMethod> pushMethodMap = Maps.newHashMap();
 		public PushClass(Class<?> clazz) throws NotFoundException {
 			this.clazz = clazz;
 			Method[] methods = clazz.getDeclaredMethods();

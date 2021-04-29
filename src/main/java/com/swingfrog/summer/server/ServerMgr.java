@@ -1,11 +1,11 @@
 package com.swingfrog.summer.server;
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ExecutorService;
 
+import com.google.common.collect.Maps;
 import com.swingfrog.summer.protocol.ProtocolConst;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +25,7 @@ public class ServerMgr {
 	}
 	
 	private ServerMgr() {
-		serverMap = new HashMap<>();
+		serverMap = Maps.newHashMap();
 	}
 	
 	public static ServerMgr get() {

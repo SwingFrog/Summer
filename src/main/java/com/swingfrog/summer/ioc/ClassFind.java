@@ -1,5 +1,8 @@
 package com.swingfrog.summer.ioc;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.JarURLConnection;
@@ -12,6 +15,8 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 public class ClassFind {
+
+	private static final Logger log = LoggerFactory.getLogger(ClassFind.class);
 
 	public static Set<Class<?>> getClasses() {
 		return getClasses("");
@@ -52,18 +57,18 @@ public class ClassFind {
 									try {
 										classes.add(Class.forName(packageName + '.' + className));
 									} catch (ClassNotFoundException e) {
-										e.printStackTrace();
+										log.error(e.getMessage(), e);
 									}
 								}
 							}
 						}
 					} catch (IOException e) {
-						e.printStackTrace();
+						log.error(e.getMessage(), e);
 					}
 				}
 			}
 		} catch (IOException e) {
-			e.printStackTrace();
+			log.error(e.getMessage(), e);
 		}
 
 		return classes;
@@ -89,7 +94,7 @@ public class ClassFind {
 				try {
 					classes.add(Thread.currentThread().getContextClassLoader().loadClass(packageName + className));
 				} catch (ClassNotFoundException e) {
-					e.printStackTrace();
+					log.error(e.getMessage(), e);
 				}
 			}
 		}
