@@ -1,7 +1,6 @@
 package com.swingfrog.summer.util;
 
-import com.google.common.collect.Lists;
-
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
@@ -9,10 +8,14 @@ import java.util.function.Predicate;
 public class PollingUtil {
 
     public static <T> T getNext(AtomicInteger next, List<T> list, Predicate<T> priority) {
-        if (list.isEmpty()) {
+        int listSize = list.size();
+        if (listSize == 0) {
             return null;
         }
-        List<T> temp = Lists.newArrayListWithCapacity(list.size());
+        if (listSize == 1) {
+            return list.get(0);
+        }
+        List<T> temp = new ArrayList<>(list.size());
         for (T t : list) {
             if (priority.test(t)) {
                 temp.add(t);
@@ -21,16 +24,16 @@ public class PollingUtil {
         if (temp.isEmpty()) {
             temp = list;
         }
-        int size = temp.size();
-        if (size == 0) {
+        int tempSize = temp.size();
+        if (tempSize == 0) {
             return null;
         }
-        if (size == 1) {
+        if (tempSize == 1) {
             return temp.get(0);
         }
         int n = next.getAndIncrement();
         n = Math.abs(n);
-        n = n % size;
+        n = n % tempSize;
         return temp.get(n);
     }
 
