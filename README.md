@@ -29,6 +29,9 @@
 
 ## 更新说明
 
+### 1.1.9 - 2021-05-15
+1. 修复SessionHandler.handleReady在http协议下不生效的问题。
+
 ### [1.1.8](https://mvnrepository.com/artifact/com.swingfrog.summer/summer/1.1.8) - 2021-04-30
 1. 将框架中用到的LinkedList替换为ArrayList。[ArrayList与LinkedList对比](https://stackoverflow.com/questions/322715/when-to-use-linkedlist-over-arraylist-in-java/322742#322742)
 2. RepositoryDao新增onLoadAfter、onSaveBefore方法，当对象从数据库加载后调用onLoadAfter，当对象在数据库写入前调用onSaveBefore。

@@ -192,7 +192,14 @@ public class WebRequestHandler extends AbstractServerHandler<HttpObject> {
 
 		RemoteStatistics.start(sctx, request, 0);
 		Runnable runnable = () -> {
+			if (!channel.isActive()) {
+				RemoteStatistics.discard(sctx, request);
+				return;
+			}
+
 			try {
+				sessionHandlerGroup.handleReady(sctx, request);
+
 				ProcessResult<WebView> processResult = RemoteDispatchMgr.get().webProcess(serverContext, request, sctx, autowireParam);
 				if (processResult.isAsync()) {
 					return;
