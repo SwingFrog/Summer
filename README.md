@@ -29,7 +29,7 @@
 
 ## 更新说明
 
-### 1.1.9 - 2021-05-15
+### [1.1.9](https://mvnrepository.com/artifact/com.swingfrog.summer/summer/1.1.9) - 2021-05-31
 1. 修复SessionHandler.handleReady在http协议下不生效的问题。
 
 ### [1.1.8](https://mvnrepository.com/artifact/com.swingfrog.summer/summer/1.1.8) - 2021-04-30
