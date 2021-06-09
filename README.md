@@ -29,6 +29,9 @@
 
 ## 更新说明
 
+### 1.1.10 - 2021-06-09
+1. Lifecycle新增destroy，触发时机为在EventBus关闭后，在Repository关闭前执行，所以destroy中不应该再抛出事件。
+
 ### [1.1.9](https://mvnrepository.com/artifact/com.swingfrog.summer/summer/1.1.9) - 2021-05-31
 1. 修复SessionHandler.handleReady在http协议下不生效的问题。
 

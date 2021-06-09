@@ -8,6 +8,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import com.google.protobuf.Message;
 import com.swingfrog.summer.concurrent.SessionTokenQueueMgr;
@@ -142,44 +143,58 @@ public class Summer {
 			ClientMgr.get().connectAll();
 			TaskMgr.get().startAll();
 			app.start();
-			Runtime.getRuntime().addShutdownHook(new Thread(()-> {
-				log.info("summer shutdown...");
-
-				if (hasClient)
-					ClientMgr.get().shutdown();
-
-				ServerMgr.get().shutdown();
-				try {
-					TaskMgr.get().shutdownAll();
-				} catch (SchedulerException e) {
-					log.error(e.getMessage(), e);
-				}
-				app.stop();
-				ContainerMgr.get().listDeclaredComponent(Lifecycle.class).stream()
-						.filter(l -> l.getInfo() != null)
-						.sorted(Comparator.comparingInt(l -> l.getInfo().getPriority()))
-						.forEach(l -> {
-							log.info("lifecycle [{}] stop", l.getInfo().getName());
-							l.stop();
-						});
-				SessionQueueMgr.get().shutdown();
-				SessionTokenQueueMgr.get().shutdown();
-				SingleQueueMgr.get().shutdown();
-
-				if (hasClient)
-					ClientMgr.get().shutdownEvent();
-
-				ServerMgr.get().shutdownEvent();
-				EventBusMgr.get().shutdown();
-				AsyncCacheRepositoryMgr.get().shutdown();
-				RemoteStatistics.print();
-				log.info("bye.");
-			}, "shutdown"));
+			Runtime.getRuntime().addShutdownHook(new Thread(shutdownHook(app, hasClient), "shutdown"));
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 			log.error("summer cooled");
 			System.exit(-1);
 		}
+	}
+
+	private static Runnable shutdownHook(SummerApp app, boolean hasClient) {
+		return () -> {
+			log.info("summer shutdown...");
+
+			if (hasClient)
+				ClientMgr.get().shutdown();
+
+			ServerMgr.get().shutdown();
+			try {
+				TaskMgr.get().shutdownAll();
+			} catch (SchedulerException e) {
+				log.error(e.getMessage(), e);
+			}
+			app.stop();
+
+			List<Lifecycle> lifecycles = ContainerMgr.get().listDeclaredComponent(Lifecycle.class).stream()
+					.filter(l -> l.getInfo() != null)
+					.sorted(Comparator.comparingInt(l -> l.getInfo().getPriority()))
+					.collect(Collectors.toList());
+
+			for (Lifecycle lifecycle : lifecycles) {
+				log.info("lifecycle [{}] stop", lifecycle.getInfo().getName());
+				lifecycle.stop();
+			}
+
+			SessionQueueMgr.get().shutdown();
+			SessionTokenQueueMgr.get().shutdown();
+			SingleQueueMgr.get().shutdown();
+
+			if (hasClient)
+				ClientMgr.get().shutdownEvent();
+
+			ServerMgr.get().shutdownEvent();
+			EventBusMgr.get().shutdown();
+
+			for (Lifecycle lifecycle : lifecycles) {
+				log.info("lifecycle [{}] destroy", lifecycle.getInfo().getName());
+				lifecycle.destroy();
+			}
+
+			AsyncCacheRepositoryMgr.get().shutdown();
+			RemoteStatistics.print();
+			log.info("bye.");
+		};
 	}
 	
 	public static void sync(String key, Runnable runnable) {
