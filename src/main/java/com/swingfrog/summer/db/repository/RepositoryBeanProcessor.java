@@ -7,12 +7,20 @@ import org.apache.commons.dbutils.ColumnHandler;
 import java.lang.reflect.Type;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.ServiceLoader;
 
 public class RepositoryBeanProcessor extends BeanProcessor {
 
-    private static final ServiceLoader<ColumnHandler> columnHandlers = ServiceLoader.load(ColumnHandler.class);
+    private static final List<ColumnHandler> columnHandlers = new ArrayList<>();
+    static {
+        ServiceLoader<ColumnHandler> serviceLoader = ServiceLoader.load(ColumnHandler.class);
+        for (ColumnHandler columnHandler : serviceLoader) {
+            columnHandlers.add(columnHandler);
+        }
+    }
 
     @Override
     protected Object processColumn(ResultSet rs, int index, Class<?> propType) throws SQLException {
