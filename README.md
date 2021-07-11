@@ -29,6 +29,9 @@
 
 ## 更新说明
 
+### 1.1.11 - 2021-07-11
+1. 新增网络 协议
+
 ### [1.1.10](https://mvnrepository.com/artifact/com.swingfrog.summer/summer/1.1.10) - 2021-06-30
 1. Lifecycle新增destroy，触发时机为在EventBus关闭后，在Repository关闭前执行，所以destroy中不应该再抛出事件。
 2. RepositoryBeanProcessor在极端条件下遍历columnHandlers可能出现并发问题，原因是DBUtils的ServiceLoader的遍历操作不是线程安全的，所以现调整为在类加载时先遍历一次ServiceLoader并存入ArrayList，此后只遍历ArrayList。

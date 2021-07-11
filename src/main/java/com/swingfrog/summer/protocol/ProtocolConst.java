@@ -2,14 +2,24 @@ package com.swingfrog.summer.protocol;
 
 public class ProtocolConst {
 
-	public static final String SERVER_PROTOCOL_STRING_LINE = "StringLine";
-	public static final String SERVER_PROTOCOL_WEB_SOCKET = "WebSocket";
-	public static final String SERVER_PROTOCOL_LENGTH_FIELD = "LengthField";
+	// Web
 	public static final String SERVER_PROTOCOL_HTTP = "Http";
-	public static final String SERVER_PROTOCOL_WEB_SOCKET_PROTOBUF = "WebSocket-Protobuf";
-	public static final String SERVER_PROTOCOL_LENGTH_FIELD_PROTOBUF = "LengthField-Protobuf";
+
+	// JSON
+	public static final String SERVER_PROTOCOL_STRING_LINE = "StringLine";
+	public static final String SERVER_PROTOCOL_LENGTH_FIELD = "LengthField";
+	public static final String SERVER_PROTOCOL_WEB_SOCKET = "WebSocket";
 	public static final String SERVER_PROTOCOL_WEB_SOCKET_STANDARD = "WebSocket-Standard"; // non head length 4 bytes.
+
+	// Protobuf
+	public static final String SERVER_PROTOCOL_LENGTH_FIELD_PROTOBUF = "LengthField-Protobuf";
+	public static final String SERVER_PROTOCOL_WEB_SOCKET_PROTOBUF = "WebSocket-Protobuf";
 	public static final String SERVER_PROTOCOL_WEB_SOCKET_PROTOBUF_STANDARD = "WebSocket-Protobuf-Standard"; // non head length 4 bytes.
+
+	// Tiny JSON
+	public static final String SERVER_PROTOCOL_LENGTH_FIELD_TINY = "LengthField-Tiny";
+	public static final String SERVER_PROTOCOL_WEB_SOCKET_TINY = "WebSocket-Tiny";
+	public static final String SERVER_PROTOCOL_WEB_SOCKET_TINY_STANDARD = "WebSocket-Tiny-Standard"; // non head length 4 bytes.
 
 	public static final String PING = "ping";
 	public static final String PONG = "pong";
