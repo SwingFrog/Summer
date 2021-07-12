@@ -10,6 +10,7 @@ import java.util.stream.Stream;
 import com.google.protobuf.Message;
 import com.swingfrog.summer.protocol.protobuf.Protobuf;
 import com.swingfrog.summer.protocol.protobuf.RespProtobufMgr;
+import com.swingfrog.summer.protocol.tiny.msg.TinyPush;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -87,7 +88,7 @@ public class ServerPush {
 			log.debug("server push executor shutdown");
 			return;
 		}
-		String msg = SessionResponse.buildPush(remote, method, data).toJSONString();
+		Object msg = buildPush(remote, method, data);
 		pushExecutor.execute(() -> {
 			log.debug("server push to {} {}", sessionContext, msg);
 			write(sessionContext, msg);
@@ -95,7 +96,7 @@ public class ServerPush {
 	}
 
 	public void syncPushToSessionContext(SessionContext sessionContext, String remote, String method, Object data) {
-		String msg = SessionResponse.buildPush(remote, method, data).toJSONString();
+		Object msg = buildPush(remote, method, data);
 		log.debug("server push to {} {}", sessionContext, msg);
 		write(sessionContext, msg);
 	}
@@ -106,7 +107,7 @@ public class ServerPush {
 			log.debug("server push executor shutdown");
 			return;
 		}
-		String msg = SessionResponse.buildPush(remote, method, data).toJSONString();
+		Object msg = buildPush(remote, method, data);
 		pushExecutor.execute(() -> {
 			log.debug("server push to {} {}", sessionContexts, msg);
 			for (SessionContext sessionContext : sessionContexts) {
@@ -116,7 +117,7 @@ public class ServerPush {
 	}
 
 	public void syncPushToSessionContexts(Collection<SessionContext> sessionContexts, String remote, String method, Object data) {
-		String msg = SessionResponse.buildPush(remote, method, data).toJSONString();
+		Object msg = buildPush(remote, method, data);
 		log.debug("server push to {} {}", sessionContexts, msg);
 		for (SessionContext sessionContext : sessionContexts) {
 			write(sessionContext, msg);
@@ -130,7 +131,7 @@ public class ServerPush {
 			return;
 		}
 		List<SessionContext> sessionContexts = sctxStream.collect(Collectors.toList());
-		String msg = SessionResponse.buildPush(remote, method, data).toJSONString();
+		Object msg = buildPush(remote, method, data);
 		pushExecutor.execute(() -> {
 			log.debug("server push to part {}", msg);
 			for (SessionContext sessionContext : sessionContexts) {
@@ -140,7 +141,7 @@ public class ServerPush {
 	}
 
 	public void syncPushToSessionContexts(Stream<SessionContext> sctxStream, String remote, String method, Object data) {
-		String msg = SessionResponse.buildPush(remote, method, data).toJSONString();
+		Object msg = buildPush(remote, method, data);
 		log.debug("server push to part {}", msg);
 		sctxStream.forEach(sessionContext -> write(sessionContext, msg));
 	}
@@ -152,7 +153,7 @@ public class ServerPush {
 			return;
 		}
 		SessionContextGroup group = serverContext.getSessionContextGroup();
-		String msg = SessionResponse.buildPush(remote, method, data).toJSONString();
+		Object msg = buildPush(remote, method, data);
 		pushExecutor.execute(() -> {
 			log.debug("server push to all {}", msg);
 			Iterator<SessionContext> ite = group.iteratorSession();
@@ -165,13 +166,24 @@ public class ServerPush {
 
 	public void syncPushToAll(String remote, String method, Object data) {
 		SessionContextGroup group = serverContext.getSessionContextGroup();
-		String msg = SessionResponse.buildPush(remote, method, data).toJSONString();
+		Object msg = buildPush(remote, method, data);
 		log.debug("server push to all {}", msg);
 		Iterator<SessionContext> ite = group.iteratorSession();
 		while (ite.hasNext()) {
 			SessionContext sctx = ite.next();
 			write(sctx, msg);
 		}
+	}
+
+	private Object buildPush(String remote, String method, Object data) {
+		if (serverContext.isTiny()) {
+			if (data instanceof TinyPush) {
+				return data;
+			}
+			int msgId = RemoteTinyDispatchMgr.get().getMsgId(remote, method);
+			return TinyPush.ofJSON(msgId, data);
+		}
+		return SessionResponse.buildPush(remote, method, data).toJSONString();
 	}
 
 	// protobuf
@@ -309,17 +321,9 @@ public class ServerPush {
 		}
 	}
 
-	private void write(SessionContext sctx, String response) {
+	private void write(SessionContext sctx, Object response) {
 		ServerWriteHelper.write(serverContext, sctx, response);
 	}
-
-	private void write(SessionContext sctx, Protobuf protobuf) {
-		ServerWriteHelper.write(serverContext, sctx, protobuf);
-	}
-
-
-
-
 
 	// simple push
 

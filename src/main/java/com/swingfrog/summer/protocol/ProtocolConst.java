@@ -37,4 +37,8 @@ public class ProtocolConst {
 		return protocol.contains("Protobuf");
 	}
 
+	public static boolean isTiny(String protocol) {
+		return protocol.contains("Tiny");
+	}
+
 }

@@ -16,6 +16,7 @@ import com.swingfrog.summer.struct.AutowireParam;
 import com.swingfrog.summer.util.JSONConvertUtil;
 import com.swingfrog.summer.util.MethodUtil;
 import com.swingfrog.summer.util.ProtobufUtil;
+import com.swingfrog.summer.util.RemoteUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,7 +71,7 @@ public class RemoteDispatchMgr {
 				if (requestMapping != null) {
 					remoteMethod = requestMapping.value();
 				} else {
-					remoteMethod = mergeRemoteMethod(clazz.getSimpleName(), method.getName());
+					remoteMethod = RemoteUtil.mergeRemoteMethod(clazz.getSimpleName(), method.getName());
 				}
 				if (remoteMethodMap.putIfAbsent(remoteMethod, new RemoteMethod(remoteClass, method, mpn)) == null) {
 					if (requestMapping != null) {
@@ -85,18 +86,10 @@ public class RemoteDispatchMgr {
 		}
 	}
 
-	private String mergeRemoteMethod(String remote, String method) {
-		if (method == null || method.isEmpty())
-			return remote;
-		if (remote == null || remote.isEmpty())
-			return method;
-		return remote + "." + method;
-	}
-	
 	public Method getMethod(SessionRequest req) {
 		String remote = req.getRemote();
 		String method = req.getMethod();
-		RemoteMethod remoteMethod = remoteMethodMap.get(mergeRemoteMethod(remote, method));
+		RemoteMethod remoteMethod = remoteMethodMap.get(RemoteUtil.mergeRemoteMethod(remote, method));
 		if (remoteMethod == null)
 			return null;
 		return remoteMethod.getMethod();
@@ -106,11 +99,11 @@ public class RemoteDispatchMgr {
 		return remoteMethodMap.containsKey(remoteMethod);
 	}
 	
-	private Object invoke(ServerContext serverContext, SessionRequest req, SessionContext sctx,
+	public Object invoke(ServerContext serverContext, SessionRequest req, SessionContext sctx,
 						  String remote, String method, JSONObject data, AutowireParam autowireParam) throws Throwable {
 		Map<Class<?>, Object> objForTypes = autowireParam.getTypes();
 		Map<String, Object> objForNames = autowireParam.getNames();
-		RemoteMethod remoteMethod = remoteMethodMap.get(mergeRemoteMethod(remote, method));
+		RemoteMethod remoteMethod = remoteMethodMap.get(RemoteUtil.mergeRemoteMethod(remote, method));
 		if (remoteMethod == null) {
 			throw new CodeException(SessionException.METHOD_NOT_EXIST);
 		}

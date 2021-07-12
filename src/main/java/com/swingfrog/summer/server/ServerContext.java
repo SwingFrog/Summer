@@ -14,6 +14,7 @@ public class ServerContext {
 	private final ExecutorService pushExecutor;
 	private final boolean http;
 	private final boolean protobuf;
+	private final boolean tiny;
 	
 	public ServerContext(ServerConfig config,
 						 SessionHandlerGroup sessionHandlerGroup,
@@ -28,6 +29,7 @@ public class ServerContext {
 		String protocol = config.getProtocol();
 		http = ProtocolConst.isHttp(protocol);
 		protobuf = ProtocolConst.isProtobuf(protocol);
+		tiny = ProtocolConst.isTiny(protocol);
 	}
 	public ServerConfig getConfig() {
 		return config;
@@ -49,5 +51,8 @@ public class ServerContext {
 	}
 	public boolean isProtobuf() {
 		return protobuf;
+	}
+	public boolean isTiny() {
+		return tiny;
 	}
 }

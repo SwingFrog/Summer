@@ -5,6 +5,7 @@ import com.swingfrog.summer.protocol.SessionRequest;
 import com.swingfrog.summer.protocol.protobuf.ReqProtobufMgr;
 import com.swingfrog.summer.protocol.protobuf.ProtobufRequest;
 import com.swingfrog.summer.server.SessionContext;
+import com.swingfrog.summer.util.RemoteUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,7 +83,7 @@ public class RemoteStatistics {
             return;
         }
         int consumeMs = (int) (System.currentTimeMillis() - req.time);
-        statistics(String.join(".", request.getRemote(), request.getMethod()).intern(), consumeMs, req.size, respSize);
+        statistics(RemoteUtil.mergeRemoteMethod(request.getRemote(), request.getMethod()), consumeMs, req.size, respSize);
     }
 
     private void add(SessionContext sctx, ProtobufRequest request, int reqSize) {
