@@ -180,7 +180,7 @@ public class ServerPush {
 			if (data instanceof TinyPush) {
 				return data;
 			}
-			int msgId = RemoteTinyDispatchMgr.get().getMsgId(remote, method);
+			short msgId = RemoteTinyDispatchMgr.get().getMsgId(remote, method);
 			return TinyPush.ofJSON(msgId, data);
 		}
 		return SessionResponse.buildPush(remote, method, data).toJSONString();

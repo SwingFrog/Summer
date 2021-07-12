@@ -2,10 +2,7 @@ package com.swingfrog.summer.server;
 
 import com.alibaba.fastjson.JSON;
 import com.swingfrog.summer.protocol.SessionRequest;
-import com.swingfrog.summer.protocol.tiny.msg.Tiny;
-import com.swingfrog.summer.protocol.tiny.msg.TinyError;
-import com.swingfrog.summer.protocol.tiny.msg.TinyReq;
-import com.swingfrog.summer.protocol.tiny.msg.TinyResp;
+import com.swingfrog.summer.protocol.tiny.msg.*;
 import com.swingfrog.summer.server.async.ProcessResult;
 import com.swingfrog.summer.server.exception.CodeException;
 import com.swingfrog.summer.server.exception.SessionException;
@@ -25,10 +22,14 @@ public class ServerTinyHandler extends AbstractServerHandler<TinyReq> {
 
     @Override
     protected void recv(Channel channel, SessionContext sctx, TinyReq req) {
+        short id = req.getId();
+        if (id == TinyConst.ID_PING) {
+            channel.writeAndFlush(TinyPong.of());
+            return;
+        }
+        String msg = req.getMsg();
         String charset = serverContext.getConfig().getCharset();
         try {
-            int id = req.getId();
-            String msg = req.getMsg();
             RemoteTinyDispatchMgr.RemoteMethod remoteMethod = RemoteTinyDispatchMgr.get().getRemote(id);
             SessionRequest request = new SessionRequest();
             request.setRemote(remoteMethod.getRemote());

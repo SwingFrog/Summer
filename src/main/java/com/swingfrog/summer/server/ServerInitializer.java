@@ -8,6 +8,8 @@ import com.swingfrog.summer.protocol.protobuf.ProtobufDecoder;
 import com.swingfrog.summer.protocol.protobuf.ProtobufEncoder;
 import com.swingfrog.summer.protocol.stringline.StringPasswordLineDecoder;
 import com.swingfrog.summer.protocol.stringline.StringPasswordLineEncoder;
+import com.swingfrog.summer.protocol.tiny.TinyDecoder;
+import com.swingfrog.summer.protocol.tiny.TinyEncoder;
 import com.swingfrog.summer.protocol.websocket.WebSocketDecoder;
 import com.swingfrog.summer.protocol.websocket.WebSocketEncoder;
 import com.swingfrog.summer.protocol.websocket.WebSocketUriFilter;
@@ -118,6 +120,39 @@ public class ServerInitializer extends ChannelInitializer<SocketChannel> {
                 pipeline.addLast(new ProtobufEncoder());
                 pipeline.addLast(new ServerProtobufHandler(serverContext));
                 break;
+            case ProtocolConst.SERVER_PROTOCOL_LENGTH_FIELD_TINY:
+                pipeline.addLast(new LengthFieldBasedFrameDecoder(config.getMsgLength(), 0, 4, 0, 4));
+                pipeline.addLast(new LengthFieldPrepender(4));
+                pipeline.addLast(new TinyDecoder(config.getCharset()));
+                pipeline.addLast(new TinyEncoder(config.getCharset()));
+                pipeline.addLast(new ServerTinyHandler(serverContext));
+                break;
+            case ProtocolConst.SERVER_PROTOCOL_WEB_SOCKET_TINY:
+                pipeline.addLast(new HttpServerCodec());
+                pipeline.addLast(new HttpObjectAggregator(config.getMsgLength()));
+                pipeline.addLast(new ChunkedWriteHandler());
+                pipeline.addLast(new WebSocketUriFilter(serverContext));
+                pipeline.addLast(new WebSocketServerProtocolHandler("/" + config.getServerName()));
+                pipeline.addLast(new WebSocketDecoder());
+                pipeline.addLast(new WebSocketEncoder());
+                pipeline.addLast(new LengthFieldBasedFrameDecoder(config.getMsgLength(), 0, 4, 0, 4));
+                pipeline.addLast(new LengthFieldPrepender(4));
+                pipeline.addLast(new TinyDecoder(config.getCharset()));
+                pipeline.addLast(new TinyEncoder(config.getCharset()));
+                pipeline.addLast(new ServerTinyHandler(serverContext));
+                break;
+            case ProtocolConst.SERVER_PROTOCOL_WEB_SOCKET_TINY_STANDARD:
+                pipeline.addLast(new HttpServerCodec());
+                pipeline.addLast(new HttpObjectAggregator(config.getMsgLength()));
+                pipeline.addLast(new ChunkedWriteHandler());
+                pipeline.addLast(new WebSocketUriFilter(serverContext));
+                pipeline.addLast(new WebSocketServerProtocolHandler("/" + config.getServerName()));
+                pipeline.addLast(new WebSocketDecoder());
+                pipeline.addLast(new WebSocketEncoder());
+                pipeline.addLast(new TinyDecoder(config.getCharset()));
+                pipeline.addLast(new TinyEncoder(config.getCharset()));
+                pipeline.addLast(new ServerTinyHandler(serverContext));
+                break;
             default:
                 throw new NotFoundProtocolException(config.getProtocol());
         }
@@ -134,6 +169,9 @@ public class ServerInitializer extends ChannelInitializer<SocketChannel> {
             case ProtocolConst.SERVER_PROTOCOL_LENGTH_FIELD_PROTOBUF:
             case ProtocolConst.SERVER_PROTOCOL_WEB_SOCKET_STANDARD:
             case ProtocolConst.SERVER_PROTOCOL_WEB_SOCKET_PROTOBUF_STANDARD:
+            case ProtocolConst.SERVER_PROTOCOL_LENGTH_FIELD_TINY:
+            case ProtocolConst.SERVER_PROTOCOL_WEB_SOCKET_TINY:
+            case ProtocolConst.SERVER_PROTOCOL_WEB_SOCKET_TINY_STANDARD:
                 return true;
         }
         return false;

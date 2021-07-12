@@ -18,7 +18,7 @@ public class TinyDecoder extends MessageToMessageDecoder<ByteBuf> {
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> out) throws UnsupportedEncodingException {
-        int id = msg.readInt();
+        short id = msg.readShort();
         byte[] bytes = new byte[msg.readableBytes()];
         msg.readBytes(bytes);
         String text = new String(bytes, charset);

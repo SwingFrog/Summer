@@ -2,7 +2,7 @@ package com.swingfrog.summer.protocol.tiny.msg;
 
 public interface TinyConst {
 
-    int ID_PING = 0;
+    short ID_PING = 0;
 
     byte ORDER_PONG = 0;
     byte ORDER_ERROR = 1;

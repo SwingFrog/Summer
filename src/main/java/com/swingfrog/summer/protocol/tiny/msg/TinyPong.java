@@ -7,6 +7,10 @@ public class TinyPong extends AbstractTiny  {
 
     private final long time;
 
+    public static TinyPong of() {
+        return new TinyPong(System.currentTimeMillis());
+    }
+
     public TinyPong(long time) {
         this.time = time;
     }

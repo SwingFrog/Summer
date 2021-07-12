@@ -2,15 +2,15 @@ package com.swingfrog.summer.protocol.tiny.msg;
 
 public class TinyReq {
 
-    private final int id;
+    private final short id;
     private final String msg;
 
-    public TinyReq(int id, String msg) {
+    public TinyReq(short id, String msg) {
         this.id = id;
         this.msg = msg;
     }
 
-    public int getId() {
+    public short getId() {
         return id;
     }
 

@@ -46,7 +46,8 @@ public class TinyError extends AbstractTiny {
     @Override
     public ByteBuf toByteBuf(String charset) throws Exception {
         byte[] bytes = msg.getBytes(charset);
-        ByteBuf buf = Unpooled.buffer(4 + bytes.length);
+        ByteBuf buf = Unpooled.buffer(5 + bytes.length);
+        buf.writeByte(TinyConst.ORDER_ERROR);
         buf.writeInt(code);
         buf.writeBytes(bytes);
         return buf;

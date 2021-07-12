@@ -7,19 +7,19 @@ import io.netty.buffer.Unpooled;
 
 public class TinyPush extends AbstractTiny {
 
-    private final int id;
+    private final short id;
     private final String msg;
 
-    public static TinyPush ofJSON(int id, Object obj) {
+    public static TinyPush ofJSON(short id, Object obj) {
         return new TinyPush(id, JSON.toJSONString(obj));
     }
 
-    public TinyPush(int id, String msg) {
+    public TinyPush(short id, String msg) {
         this.id = id;
         this.msg = msg;
     }
 
-    public int getId() {
+    public short getId() {
         return id;
     }
 
@@ -40,15 +40,15 @@ public class TinyPush extends AbstractTiny {
         byte[] bytes = msg.getBytes(charset);
         byte[] zip = ZipUtil.zip(TinyConst.ZIP, bytes);
         if (zip.length < bytes.length) {
-            toByteBuf(TinyConst.ORDER_PUSH_ZIP, zip);
+            return toByteBuf(TinyConst.ORDER_PUSH_ZIP, zip);
         }
         return toByteBuf(TinyConst.ORDER_PUSH_JSON, bytes);
     }
 
     private ByteBuf toByteBuf(byte order, byte[] bytes) {
-        ByteBuf buf = Unpooled.buffer(5 + bytes.length);
+        ByteBuf buf = Unpooled.buffer(3 + bytes.length);
         buf.writeByte(order);
-        buf.writeInt(id);
+        buf.writeShort(id);
         buf.writeBytes(bytes);
         return buf;
     }

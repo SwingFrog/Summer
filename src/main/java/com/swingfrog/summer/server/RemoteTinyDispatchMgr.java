@@ -19,8 +19,8 @@ public class RemoteTinyDispatchMgr {
 
     private static final Logger log = LoggerFactory.getLogger(RemoteTinyDispatchMgr.class);
 
-    private final Map<Integer, RemoteMethod> idToRemotes = Maps.newHashMap();
-    private final Table<String, String, Integer> remoteToIds = HashBasedTable.create();
+    private final Map<Short, RemoteMethod> idToRemotes = Maps.newHashMap();
+    private final Table<String, String, Short> remoteToIds = HashBasedTable.create();
 
     private static class SingleCase {
         public static final RemoteTinyDispatchMgr INSTANCE = new RemoteTinyDispatchMgr();
@@ -33,7 +33,7 @@ public class RemoteTinyDispatchMgr {
         return RemoteTinyDispatchMgr.SingleCase.INSTANCE;
     }
 
-    public void addRemote(int id, String remote, String method) {
+    public void addRemote(short id, String remote, String method) {
         RemoteMethod oldRemote = idToRemotes.putIfAbsent(id, new RemoteMethod(remote, method));
         if (oldRemote != null) {
             throw new RemoteRuntimeException("RemoteTiny id[?] remote[?] duplication", id, remote);
@@ -42,12 +42,12 @@ public class RemoteTinyDispatchMgr {
         log.info("tiny remote {}.{} bind msgId[{}]", remote, method, id);
     }
 
-    public RemoteMethod getRemote(int id) {
+    public RemoteMethod getRemote(short id) {
         return idToRemotes.get(id);
     }
 
-    public int getMsgId(String remote, String method) {
-        Integer id = remoteToIds.get(remote, method);
+    public short getMsgId(String remote, String method) {
+        Short id = remoteToIds.get(remote, method);
         if (id == null) {
             throw new RemoteRuntimeException("RemoteTiny remote[?] method[?] not found id", remote, method);
         }

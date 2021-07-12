@@ -33,7 +33,7 @@ public class TinyResp extends AbstractTiny {
         byte[] bytes = msg.getBytes(charset);
         byte[] zip = ZipUtil.zip(TinyConst.ZIP, bytes);
         if (zip.length < bytes.length) {
-            toByteBuf(TinyConst.ORDER_RESP_ZIP, zip);
+            return toByteBuf(TinyConst.ORDER_RESP_ZIP, zip);
         }
         return toByteBuf(TinyConst.ORDER_RESP_JSON, bytes);
     }
