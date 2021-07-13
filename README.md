@@ -31,6 +31,7 @@
 
 ### 1.1.11 - 2021-07-11
 1. 新增网络协议，Tiny JSON。
+2. 修复RemoteDispatchMgr.invoke解析方法参数，AutowireParam无效的问题。
 
 ### [1.1.10](https://mvnrepository.com/artifact/com.swingfrog.summer/summer/1.1.10) - 2021-06-30
 1. Lifecycle新增destroy，触发时机为在EventBus关闭后，在Repository关闭前执行，所以destroy中不应该再抛出事件。

@@ -126,42 +126,41 @@ public class RemoteDispatchMgr {
 				String param = params[i];
 				Parameter parameter = parameters[i];
 				Type type = parameter.getParameterizedType();
-				if (JSONConvertUtil.containsType(type)) {
-					obj[i] = JSONConvertUtil.convert(type, data, param);
-				} else if (parameter.isAnnotationPresent(ParamPacking.class)) {
-					obj[i] = processParamPacking(parameter.getType(), data);
-				} else {
-					if (data.containsKey(param)) {
-						try {
-							obj[i] = JSON.parseObject(data.getString(param), type);
-						} catch (Exception e) {
-							log.error(e.getMessage(), e);
-						}
+				Class<?> typeClazz = parameter.getType();
+				Object value = null;
+				if (auto) {
+					if (objForTypes != null && objForTypes.containsKey(typeClazz)) {
+						value = objForTypes.get(typeClazz);
+					} else if (objForNames != null && objForNames.containsKey(param)) {
+						value = objForNames.get(param);
+					}
+				}
+
+				if (value == null) {
+					if (JSONConvertUtil.containsType(type) && data.containsKey(param)) {
+						value = JSONConvertUtil.convert(type, data, param);
+					} else if (parameter.isAnnotationPresent(ParamPacking.class)) {
+						value = processParamPacking(parameter.getType(), data);
 					} else {
 						if (auto) {
-							Class<?> typeClazz = parameter.getType();
-							if (objForTypes != null && objForTypes.containsKey(typeClazz)) {
-								obj[i] = objForTypes.get(typeClazz);
-							} else if (objForNames != null && objForNames.containsKey(param)) {
-								obj[i] = objForNames.get(param);
-							} else {
-								obj[i] = ContainerMgr.get().getComponent(typeClazz);
-								if (obj[i] == null) {
-									try {
-										obj[i] = ((Class<?>) type).newInstance();
-									} catch (Exception e) {
-										log.error(e.getMessage(), e);
-									}
+							value = ContainerMgr.get().getComponent(typeClazz);
+							if (value == null) {
+								try {
+									value = ((Class<?>) type).newInstance();
+								} catch (Exception e) {
+									log.error(e.getMessage(), e);
 								}
 							}
 						}
 					}
 				}
-				if (obj[i] == null) {
+
+				if (value == null) {
 					if (!parameter.isAnnotationPresent(Optional.class)) {
 						throw new CodeException(SessionException.PARAMETER_ERROR);
 					}
 				}
+				obj[i] = value;
 			}
 		} catch (Exception e) {
 			throw new CodeException(SessionException.PARAMETER_ERROR);
