@@ -4,7 +4,6 @@ import com.swingfrog.summer.protocol.tiny.msg.Tiny;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageEncoder;
 
-import java.io.UnsupportedEncodingException;
 import java.util.List;
 
 public class TinyEncoder extends MessageToMessageEncoder<Tiny> {

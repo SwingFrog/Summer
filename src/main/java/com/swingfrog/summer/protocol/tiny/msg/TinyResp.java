@@ -31,9 +31,12 @@ public class TinyResp extends AbstractTiny {
     @Override
     public ByteBuf toByteBuf(String charset) throws Exception {
         byte[] bytes = msg.getBytes(charset);
-        byte[] zip = ZipUtil.zip(TinyConst.ZIP, bytes);
-        if (zip.length < bytes.length) {
-            return toByteBuf(TinyConst.ORDER_RESP_ZIP, zip);
+        int length = bytes.length;
+        if (length > TinyConst.ZIP_USE_THRESHOLD) {
+            byte[] zip = ZipUtil.zip(TinyConst.ZIP_ENTRY_NAME, bytes);
+            if (zip.length < length) {
+                return toByteBuf(TinyConst.ORDER_RESP_ZIP, zip);
+            }
         }
         return toByteBuf(TinyConst.ORDER_RESP_JSON, bytes);
     }
