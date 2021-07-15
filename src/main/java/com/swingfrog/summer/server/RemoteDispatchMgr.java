@@ -142,13 +142,21 @@ public class RemoteDispatchMgr {
 					} else if (parameter.isAnnotationPresent(ParamPacking.class)) {
 						value = processParamPacking(parameter.getType(), data);
 					} else {
-						if (auto) {
-							value = ContainerMgr.get().getComponent(typeClazz);
-							if (value == null) {
-								try {
-									value = ((Class<?>) type).newInstance();
-								} catch (Exception e) {
-									log.error(e.getMessage(), e);
+						if (data.containsKey(param)) {
+							try {
+								value = JSON.parseObject(data.getString(param), type);
+							} catch (Exception e) {
+								log.error(e.getMessage(), e);
+							}
+						} else {
+							if (auto) {
+								value = ContainerMgr.get().getComponent(typeClazz);
+								if (value == null) {
+									try {
+										value = ((Class<?>) type).newInstance();
+									} catch (Exception e) {
+										log.error(e.getMessage(), e);
+									}
 								}
 							}
 						}
