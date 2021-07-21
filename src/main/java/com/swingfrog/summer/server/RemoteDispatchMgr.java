@@ -10,6 +10,7 @@ import com.swingfrog.summer.annotation.RequestMapping;
 import com.swingfrog.summer.annotation.Remote;
 import com.swingfrog.summer.server.async.AsyncResponse;
 import com.swingfrog.summer.server.async.ProcessResult;
+import com.swingfrog.summer.server.exception.CodeMsg;
 import com.swingfrog.summer.server.exception.RemoteRuntimeException;
 import com.swingfrog.summer.server.handler.RemoteHandler;
 import com.swingfrog.summer.struct.AutowireParam;
@@ -137,19 +138,21 @@ public class RemoteDispatchMgr {
 				}
 
 				if (value == null) {
-					if (JSONConvertUtil.containsType(type) && data.containsKey(param)) {
+					boolean isBaseType = JSONConvertUtil.containsType(type);
+					boolean isContainsKey = data.containsKey(param);
+					if (isBaseType && isContainsKey) {
 						value = JSONConvertUtil.convert(type, data, param);
 					} else if (parameter.isAnnotationPresent(ParamPacking.class)) {
 						value = processParamPacking(parameter.getType(), data);
 					} else {
-						if (data.containsKey(param)) {
+						if (isContainsKey) {
 							try {
 								value = JSON.parseObject(data.getString(param), type);
 							} catch (Exception e) {
 								log.error(e.getMessage(), e);
 							}
 						} else {
-							if (auto) {
+							if (auto && !isBaseType) {
 								value = ContainerMgr.get().getComponent(typeClazz);
 								if (value == null) {
 									try {
@@ -165,12 +168,16 @@ public class RemoteDispatchMgr {
 
 				if (value == null) {
 					if (!parameter.isAnnotationPresent(Optional.class)) {
-						throw new CodeException(SessionException.PARAMETER_ERROR);
+						CodeMsg codeMsg = SessionException.PARAMETER_ERROR;
+						throw new CodeException(codeMsg.getCode(), String.format("%s, param [%s] not found", codeMsg.getMsg(), param));
 					}
 				}
 				obj[i] = value;
 			}
+		} catch (CodeException e) {
+			throw e;
 		} catch (Exception e) {
+			log.error(e.getMessage(), e);
 			throw new CodeException(SessionException.PARAMETER_ERROR);
 		}
 		try {
