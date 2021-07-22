@@ -300,4 +300,8 @@ public class RemoteDispatchMgr {
 		}
 	}
 
+	public Map<String, RemoteMethod> getRemoteMethodMap() {
+		return remoteMethodMap;
+	}
+
 }
