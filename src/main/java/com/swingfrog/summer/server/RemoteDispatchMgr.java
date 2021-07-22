@@ -74,7 +74,7 @@ public class RemoteDispatchMgr {
 				} else {
 					remoteMethod = RemoteUtil.mergeRemoteMethod(clazz.getSimpleName(), method.getName());
 				}
-				if (remoteMethodMap.putIfAbsent(remoteMethod, new RemoteMethod(remoteClass, method, mpn)) == null) {
+				if (remoteMethodMap.putIfAbsent(remoteMethod, new RemoteMethod(remoteMethod, remoteClass, method, mpn)) == null) {
 					if (requestMapping != null) {
 						log.info("remote register {}.{} -> {}", clazz.getSimpleName(), method.getName(), remoteMethod);
 					} else {
@@ -256,15 +256,20 @@ public class RemoteDispatchMgr {
 	}
 
 	public static class RemoteMethod {
+		private final String api;
 		private final RemoteClass remoteClass;
 		private final Method method;
 		private final String[] params;
 		private final Parameter[] parameters;
-		public RemoteMethod(RemoteClass remoteClass, Method method, MethodParameterName mpn) throws NotFoundException {
+		public RemoteMethod(String api, RemoteClass remoteClass, Method method, MethodParameterName mpn) throws NotFoundException {
+			this.api = api;
 			this.remoteClass = remoteClass;
 			this.method = method;
 			params = mpn.getParameterNameByMethod(method);
 			parameters = method.getParameters();
+		}
+		public String getApi() {
+			return api;
 		}
 		public RemoteClass getRemoteClass() {
 			return remoteClass;
