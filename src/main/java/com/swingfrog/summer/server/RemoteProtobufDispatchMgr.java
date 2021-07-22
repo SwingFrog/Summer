@@ -161,7 +161,7 @@ public class RemoteProtobufDispatchMgr {
         return ProtobufUtil.parseMessage(messageTemplate, data.getBytes());
     }
 
-    private static class RemoteMethod {
+    public static class RemoteMethod {
         private final RemoteClass remoteClass;
         private final Method method;
         private final String[] params;
@@ -207,7 +207,7 @@ public class RemoteProtobufDispatchMgr {
         }
     }
 
-    private static class RemoteClass {
+    public static class RemoteClass {
         private final boolean filter;
         private final String serverName;
         private final Class<?> clazz;
