@@ -110,8 +110,15 @@ public class ServerPush {
 		Object msg = buildPush(remote, method, data);
 		pushExecutor.execute(() -> {
 			log.debug("server push to {} {}", sessionContexts, msg);
-			for (SessionContext sessionContext : sessionContexts) {
-				write(sessionContext, msg);
+			if (msg instanceof TinyPush) {
+				TinyPush tinyPush = (TinyPush) msg;
+				for (SessionContext sessionContext : sessionContexts) {
+					write(sessionContext, tinyPush.copy());
+				}
+			} else {
+				for (SessionContext sessionContext : sessionContexts) {
+					write(sessionContext, msg);
+				}
 			}
 		});
 	}
@@ -119,8 +126,15 @@ public class ServerPush {
 	public void syncPushToSessionContexts(Collection<SessionContext> sessionContexts, String remote, String method, Object data) {
 		Object msg = buildPush(remote, method, data);
 		log.debug("server push to {} {}", sessionContexts, msg);
-		for (SessionContext sessionContext : sessionContexts) {
-			write(sessionContext, msg);
+		if (msg instanceof TinyPush) {
+			TinyPush tinyPush = (TinyPush) msg;
+			for (SessionContext sessionContext : sessionContexts) {
+				write(sessionContext, tinyPush.copy());
+			}
+		} else {
+			for (SessionContext sessionContext : sessionContexts) {
+				write(sessionContext, msg);
+			}
 		}
 	}
 
@@ -134,8 +148,15 @@ public class ServerPush {
 		Object msg = buildPush(remote, method, data);
 		pushExecutor.execute(() -> {
 			log.debug("server push to part {}", msg);
-			for (SessionContext sessionContext : sessionContexts) {
-				write(sessionContext, msg);
+			if (msg instanceof TinyPush) {
+				TinyPush tinyPush = (TinyPush) msg;
+				for (SessionContext sessionContext : sessionContexts) {
+					write(sessionContext, tinyPush.copy());
+				}
+			} else {
+				for (SessionContext sessionContext : sessionContexts) {
+					write(sessionContext, msg);
+				}
 			}
 		});
 	}
@@ -143,7 +164,12 @@ public class ServerPush {
 	public void syncPushToSessionContexts(Stream<SessionContext> sctxStream, String remote, String method, Object data) {
 		Object msg = buildPush(remote, method, data);
 		log.debug("server push to part {}", msg);
-		sctxStream.forEach(sessionContext -> write(sessionContext, msg));
+		if (msg instanceof TinyPush) {
+			TinyPush tinyPush = (TinyPush) msg;
+			sctxStream.forEach(sessionContext -> write(sessionContext, tinyPush.copy()));
+		} else {
+			sctxStream.forEach(sessionContext -> write(sessionContext, msg));
+		}
 	}
 
 	public void asyncPushToAll(String remote, String method, Object data) {

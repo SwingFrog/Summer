@@ -56,4 +56,8 @@ public class TinyPush extends AbstractTiny {
         return buf;
     }
 
+    public TinyPush copy() {
+        return new TinyPush(id, msg);
+    }
+
 }
