@@ -28,6 +28,7 @@ public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
     private final Map<String, Cache<Object, Boolean>> cachePkFinishMap = Maps.newHashMap();
     private final AtomicLong findAllTime = new AtomicLong(0);
     long expireTime;
+    volatile boolean waitRemoveAll;
 
     // never expire if value less then zero
     protected abstract long expireTime();
@@ -132,8 +133,10 @@ public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
 
     @Override
     public void removeAll() {
+        waitRemoveAll = true;
         super.removeAll();
         removeAllCache();
+        waitRemoveAll = false;
     }
 
     @Override
@@ -160,6 +163,9 @@ public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
         Objects.requireNonNull(primaryKey);
         T obj = cache.getIfPresent(primaryKey);
         if (obj == null) {
+            if (waitRemoveAll) {
+                return null;
+            }
             obj = super.get(primaryKey);
             obj = obj != null ? obj : EMPTY;
             T old = addCacheIfAbsent(primaryKey, obj);

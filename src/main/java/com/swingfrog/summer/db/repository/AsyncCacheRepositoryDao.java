@@ -90,6 +90,7 @@ public abstract class AsyncCacheRepositoryDao<T, K> extends CacheRepositoryDao<T
 
     private void delayRemoveAll() {
         super.removeAllNotRemoveCache();
+        waitRemoveAll = false;
     }
 
     private void delaySave(boolean force) {
@@ -142,6 +143,7 @@ public abstract class AsyncCacheRepositoryDao<T, K> extends CacheRepositoryDao<T
 
     @Override
     public void removeAll() {
+        waitRemoveAll = true;
         waitAdd.clear();
         waitRemove.clear();
         waitChange.clear();
