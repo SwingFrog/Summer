@@ -29,7 +29,7 @@
 
 ## 更新说明
 
-### 1.1.11 - 2021-07-11
+### [1.1.11](https://mvnrepository.com/artifact/com.swingfrog.summer/summer/1.1.11) - 2021-07-31
 1. 新增网络协议，Tiny JSON。
 2. 修复RemoteDispatchMgr.invoke解析方法参数，AutowireParam无效的问题。
 3. 修复AsyncCacheRepository的removeAll不能达到期望效果的问题。在数据库还有旧数据时，刚启动程序先执行removeAll，再执行get或者list等查询操作，依旧可以查询到数据。由于removeAll是异步操作，所以会出现此问题，目前解决方案就是当执行removeAll时，任何查询操作只在缓存中查找不从数据库加载，只有removeAll执行完毕才恢复。
@@ -201,7 +201,7 @@ Redis 5.0 (仅供参考)<br/>
     <dependency>
         <groupId>com.swingfrog.summer</groupId>
         <artifactId>summer</artifactId>
-        <version>1.1.10</version>
+        <version>1.1.11</version>
     </dependency>
 ```
 
