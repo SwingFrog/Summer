@@ -11,6 +11,7 @@ public class SummerConfig {
     private String taskProperties;
     private Long sessionQueueExpireTimeMs;
     private Long singleQueueExpireTimeMs;
+    private boolean enableServiceRemoteProxy;
 
     public SummerApp getApp() {
         return app;
@@ -88,6 +89,14 @@ public class SummerConfig {
         this.singleQueueExpireTimeMs = singleQueueExpireTimeMs;
     }
 
+    public boolean isEnableServiceRemoteProxy() {
+        return enableServiceRemoteProxy;
+    }
+
+    public void setEnableServiceRemoteProxy(boolean enableServiceRemoteProxy) {
+        this.enableServiceRemoteProxy = enableServiceRemoteProxy;
+    }
+
     public static final class Builder {
         private SummerApp app;
         private String projectPackage;
@@ -98,11 +107,12 @@ public class SummerConfig {
         private String taskProperties;
         private Long sessionQueueExpireTimeMs;
         private Long singleQueueExpireTimeMs;
+        private boolean enableServiceRemoteProxy;
 
         private Builder() {
         }
 
-        public static Builder builder() {
+        public static Builder aSummerConfig() {
             return new Builder();
         }
 
@@ -151,6 +161,11 @@ public class SummerConfig {
             return this;
         }
 
+        public Builder enableServiceRemoteProxy(boolean enableServiceRemoteProxy) {
+            this.enableServiceRemoteProxy = enableServiceRemoteProxy;
+            return this;
+        }
+
         public SummerConfig build() {
             SummerConfig summerConfig = new SummerConfig();
             summerConfig.setApp(app);
@@ -162,6 +177,7 @@ public class SummerConfig {
             summerConfig.setTaskProperties(taskProperties);
             summerConfig.setSessionQueueExpireTimeMs(sessionQueueExpireTimeMs);
             summerConfig.setSingleQueueExpireTimeMs(singleQueueExpireTimeMs);
+            summerConfig.setEnableServiceRemoteProxy(enableServiceRemoteProxy);
             return summerConfig;
         }
     }

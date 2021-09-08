@@ -37,6 +37,7 @@ public class TestService implements Lifecycle {
         testDao.add(new Test(5, 0, "new"));
         System.out.println(testDao.list("type", 5));
         testDao.removeAll();
+        testDao.print();
     }
 
     @Override

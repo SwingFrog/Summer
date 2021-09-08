@@ -219,14 +219,16 @@ public class ContainerMgr {
 	
 	public void proxyObj() {
 		for (Class<?> clazz : map.keySet()) {
-			log.info("proxy object {}", clazz.getSimpleName());
 			if (clazz.isAnnotationPresent(Service.class)) {
+				log.info("proxy object {}", clazz.getSimpleName());
 				map.put(clazz, ProxyUtil.getProxyService(map.get(clazz)));
 			}
 			if (clazz.isAnnotationPresent(Remote.class)) {
+				log.info("proxy object {}", clazz.getSimpleName());
 				map.put(clazz, ProxyUtil.getProxyRemote(map.get(clazz)));
 			}
 			if (clazz.isAnnotationPresent(EventHandler.class)) {
+				log.info("proxy object {}", clazz.getSimpleName());
 				map.put(clazz, ProxyUtil.getProxyRemote(map.get(clazz)));
 			}
 		}

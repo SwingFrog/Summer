@@ -88,21 +88,40 @@ public class Summer {
 	}
 
 	public static void hot(SummerConfig config) {
-		hot(config.getApp(),
-				config.getProjectPackage() == null ? config.getApp().getClass().getPackage().getName() : config.getProjectPackage(),
-				config.getLibPath(),
-				config.getServerProperties() == null ? ConfigMgr.DEFAULT_CONFIG_PATH : config.getServerProperties(),
-				config.getRedisProperties() == null ? RedisMgr.DEFAULT_CONFIG_PATH : config.getRedisProperties(),
-				config.getDbProperties() == null ? DataBaseMgr.DEFAULT_CONFIG_PATH : config.getDbProperties(),
-				config.getTaskProperties() == null ? TaskMgr.DEFAULT_CONFIG_PATH : config.getTaskProperties(),
-				config.getSessionQueueExpireTimeMs() == null ? TimeUnit.MINUTES.toMillis(10) : config.getSessionQueueExpireTimeMs(),
-				config.getSingleQueueExpireTimeMs() == null ? TimeUnit.MINUTES.toMillis(10) : config.getSingleQueueExpireTimeMs()
+		SummerApp app = config.getApp();
+		String projectPackage = config.getProjectPackage();
+		String libPath = config.getLibPath();
+		String serverProperties = config.getServerProperties();
+		String redisProperties = config.getRedisProperties();
+		String dbProperties = config.getDbProperties();
+		String taskProperties = config.getTaskProperties();
+		Long sessionQueueExpireTimeMs = config.getSessionQueueExpireTimeMs();
+		Long singleQueueExpireTimeMs = config.getSingleQueueExpireTimeMs();
+		boolean enableServiceRemoteProxy = config.isEnableServiceRemoteProxy();
+
+		hot(app,
+				projectPackage == null ? app.getClass().getPackage().getName() : projectPackage,
+				libPath,
+				serverProperties == null ? ConfigMgr.DEFAULT_CONFIG_PATH : serverProperties,
+				redisProperties == null ? RedisMgr.DEFAULT_CONFIG_PATH : redisProperties,
+				dbProperties == null ? DataBaseMgr.DEFAULT_CONFIG_PATH : dbProperties,
+				taskProperties == null ? TaskMgr.DEFAULT_CONFIG_PATH : taskProperties,
+				sessionQueueExpireTimeMs == null ? TimeUnit.MINUTES.toMillis(10) : sessionQueueExpireTimeMs,
+				singleQueueExpireTimeMs == null ? TimeUnit.MINUTES.toMillis(10) : singleQueueExpireTimeMs,
+				enableServiceRemoteProxy
 		);
 	}
 
-	public static void hot(SummerApp app, String projectPackage, String libPath,
-			String serverProperties, String redisProperties, String dbProperties, String taskProperties,
-						   long sessionQueueExpireTimeMs, long singleQueueExpireTimeMs) {
+	public static void hot(SummerApp app,
+						   String projectPackage,
+						   String libPath,
+						   String serverProperties,
+						   String redisProperties,
+						   String dbProperties,
+						   String taskProperties,
+						   long sessionQueueExpireTimeMs,
+						   long singleQueueExpireTimeMs,
+						   boolean enableServiceRemoteProxy) {
 		try {
 			logo();
 			log.info("summer init...");
@@ -127,7 +146,11 @@ public class Summer {
 			SessionTokenQueueMgr.get().init(ServerMgr.get().getEventExecutor(), sessionQueueExpireTimeMs);
 			SingleQueueMgr.get().init(ServerMgr.get().getEventExecutor(), singleQueueExpireTimeMs);
 			ContainerMgr.get().autowired();
-			ContainerMgr.get().proxyObj();
+
+			if (enableServiceRemoteProxy) {
+				ContainerMgr.get().proxyObj();
+			}
+
 			app.init();
 			RepositoryMgr.get().init();
 			log.info("summer launch...");
