@@ -12,7 +12,9 @@ import com.swingfrog.summer.statistics.RemoteStatistics;
 import com.swingfrog.summer.struct.AutowireParam;
 import com.swingfrog.summer.util.ForwardedAddressUtil;
 import com.swingfrog.summer.web.token.WebTokenHandler;
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
+import io.netty.handler.stream.ChunkedInput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -227,19 +229,19 @@ public class WebRequestHandler extends AbstractServerHandler<HttpObject> {
 
 	private void writeResponse(Channel channel, SessionContext sctx, WebRequest request, WebView webView) {
 		log.debug("server response {} status[{}] from {}", webView, webView.getStatus(), sctx);
-		write(channel, sctx, request, webView);
+		write(serverContext, channel, sctx, request, webView);
 	}
 
-	public static void write(Channel channel, SessionContext sctx, WebRequest request, WebView webView) {
+	public static void write(ServerContext serverContext, Channel channel, SessionContext sctx, WebRequest request, WebView webView) {
 		try {
-			webView.ready();
+			ChunkedInput<ByteBuf> render = webView.onRender(serverContext, sctx, request);
 			DefaultHttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, 
 					HttpResponseStatus.valueOf(webView.getStatus()));
 			if (HttpUtil.isKeepAlive(request.getHttpRequest())) {
 				response.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
 			}
 			response.headers().set(HttpHeaderNames.CONTENT_TYPE, webView.getContentType());
-			response.headers().set(HttpHeaderNames.CONTENT_LENGTH, webView.getLength());
+			response.headers().set(HttpHeaderNames.CONTENT_LENGTH, render.length());
 			response.headers().set(HttpHeaderNames.SERVER, Summer.NAME);
 			response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
 			if (sctx.getToken() == null) {
@@ -249,7 +251,7 @@ public class WebRequestHandler extends AbstractServerHandler<HttpObject> {
 				webView.getHeaders().forEach((key, value) -> response.headers().set(key, value));
 			}
 			channel.write(response);
-			channel.write(webView.getChunkedInput());
+			channel.write(render);
 			channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);

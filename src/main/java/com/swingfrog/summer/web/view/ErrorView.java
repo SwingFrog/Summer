@@ -2,7 +2,7 @@ package com.swingfrog.summer.web.view;
 
 public class ErrorView extends TextView {
 	
-	private final int status;
+	protected final int status;
 
 	public static ErrorView of(int status, long code, String msg) {
 		return new ErrorView(status, code, msg);

@@ -106,7 +106,7 @@ public class AsyncResponseMgr {
             if (data == null) {
                 webView = WebMgr.get().getInteriorViewFactory().createBlankView();
                 log.debug("server async response {} status[{}] from {}", webView, webView.getStatus(), sctx);
-                WebRequestHandler.write(channel, sctx, (WebRequest) request, webView);
+                WebRequestHandler.write(serverContext, channel, sctx, (WebRequest) request, webView);
                 return;
             }
             if (data instanceof WebView) {
@@ -116,7 +116,7 @@ public class AsyncResponseMgr {
             }
             log.debug("server async response {} status[{}] from {}", webView, webView.getStatus(), sctx);
             try {
-                WebRequestHandler.write(channel, sctx, (WebRequest) request, webView);
+                WebRequestHandler.write(serverContext, channel, sctx, (WebRequest) request, webView);
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
             }

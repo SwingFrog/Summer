@@ -3,19 +3,19 @@ package com.swingfrog.summer.web.view;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.util.Map;
 
-import com.google.common.collect.Maps;
+import com.swingfrog.summer.server.ServerContext;
+import com.swingfrog.summer.server.SessionContext;
 import com.swingfrog.summer.web.WebContentTypes;
+import com.swingfrog.summer.web.WebRequest;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.stream.ChunkedFile;
 import io.netty.handler.stream.ChunkedInput;
 
-public class FileView implements WebView {
+public class FileView extends AbstractView {
 
-	private RandomAccessFile file;
+	private final RandomAccessFile file;
 	private String contentType;
-	private volatile Map<String, String> headers;
 
 	public static FileView of(String fileName) throws IOException {
 		return new FileView(fileName);
@@ -29,15 +29,10 @@ public class FileView implements WebView {
 			contentType = "application/octet-stream";
 		}
 	}
-	
-	@Override
-	public void ready() {
 
-	}
-	
 	@Override
-	public int getStatus() {
-		return 200;
+	public ChunkedInput<ByteBuf> onRender(ServerContext serverContext, SessionContext sctx, WebRequest request) throws Exception {
+		return new ChunkedFile(file);
 	}
 
 	@Override
@@ -46,34 +41,8 @@ public class FileView implements WebView {
 	}
 
 	@Override
-	public long getLength() throws IOException {
-		return file.length();
-	}
-
-	@Override
-	public ChunkedInput<ByteBuf> getChunkedInput() throws IOException {
-		return new ChunkedFile(file);
-	}
-	
-	@Override
 	public String toString() {
 		return "FileView";
-	}
-
-	public void addHeader(String key, String value) {
-		if (headers == null) {
-			synchronized (this) {
-				if (headers == null) {
-					headers = Maps.newConcurrentMap();
-				}
-			}
-		}
-		headers.put(key, value);
-	}
-
-	@Override
-	public Map<String, String> getHeaders() {
-		return headers;
 	}
 
 }

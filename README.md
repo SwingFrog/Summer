@@ -26,9 +26,10 @@
 
 
 ## 更新说明
-### 1.1.12 - 2021-09-08
+### 1.1.12 - 2021-09-13
 1. SummerConfig中新增字段enableServiceRemoteProxy，用以控制Summer启动时是否启用service和remote的代理。增强后的service、remote对于现在项目来说不一定有帮助，例如remote中的数据库事务处理操作，在异步仓库的环境下用处不大。故默认设置为不开启，如需启用请将此字段设置为true。
 2. 新增@Dao注解下的类可使用@Autowired注解注入对象，为了使用起来更方便。之前的设计是从remote->service->dao，在业务不复杂的情况下，可以忽略service，直接remote->dao。
+3. 对WebView进行简单的抽象。
 
 ### [1.1.11](https://mvnrepository.com/artifact/com.swingfrog.summer/summer/1.1.11) - 2021-07-31
 1. 新增网络协议，Tiny JSON。

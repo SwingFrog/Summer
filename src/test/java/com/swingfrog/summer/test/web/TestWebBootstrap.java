@@ -93,6 +93,7 @@ public class TestWebBootstrap implements SummerApp {
         // http://127.0.0.1:8080/TestRemote_paramPacking?id=123&name=abc
         // http://127.0.0.1:8080/TestRemote_getToken
         // http://127.0.0.1:8080/TestRemote_clearToken
+        // http://127.0.0.1:8080/TestRemote_getCommonResp
     }
 
 }

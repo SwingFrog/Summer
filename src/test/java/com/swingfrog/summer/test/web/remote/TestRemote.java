@@ -6,6 +6,7 @@ import com.swingfrog.summer.protocol.SessionRequest;
 import com.swingfrog.summer.server.SessionContext;
 import com.swingfrog.summer.server.async.AsyncResponse;
 import com.swingfrog.summer.server.handler.RemoteHandler;
+import com.swingfrog.summer.test.web.model.CommonResp;
 import com.swingfrog.summer.test.web.model.TestModel;
 import com.swingfrog.summer.test.web.service.TestService;
 import com.swingfrog.summer.web.WebFileUpload;
@@ -72,6 +73,10 @@ public class TestRemote implements RemoteHandler {
 
     public void clearToken(SessionContext sctx) {
         sctx.clearToken();
+    }
+
+    public CommonResp getCommonResp() {
+        return new CommonResp();
     }
 
     @Override
