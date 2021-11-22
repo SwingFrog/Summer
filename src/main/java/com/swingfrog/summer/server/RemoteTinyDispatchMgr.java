@@ -36,7 +36,7 @@ public class RemoteTinyDispatchMgr {
     public void addRemote(short id, String remote, String method) {
         RemoteMethod oldRemote = idToRemotes.putIfAbsent(id, new RemoteMethod(remote, method));
         if (oldRemote != null) {
-            throw new RemoteRuntimeException("RemoteTiny id[?] remote[?] duplication", id, remote);
+            throw new RemoteRuntimeException("RemoteTiny id[%s] remote[%s] method[%s] duplication", id, remote, method);
         }
         remoteToIds.put(remote, method, id);
         log.info("tiny remote {}.{} bind msgId[{}]", remote, method, id);
@@ -49,7 +49,7 @@ public class RemoteTinyDispatchMgr {
     public short getMsgId(String remote, String method) {
         Short id = remoteToIds.get(remote, method);
         if (id == null) {
-            throw new RemoteRuntimeException("RemoteTiny remote[?] method[?] not found id", remote, method);
+            throw new RemoteRuntimeException("RemoteTiny remote[%s] method[%s] not found id", remote, method);
         }
         return id;
     }
