@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.Queue;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 public abstract class AsyncCacheRepositoryDao<T, K> extends CacheRepositoryDao<T, K> {
 
     private static final Logger log = LoggerFactory.getLogger(AsyncCacheRepositoryDao.class);
-    private final ConcurrentLinkedQueue<Change<T, K>> waitChange = Queues.newConcurrentLinkedQueue();
+    private final Queue<Change<T, K>> waitChange = Queues.newConcurrentLinkedQueue();
     private final ConcurrentMap<K, Save<T, K>> waitSave = Maps.newConcurrentMap();
     private final ConcurrentMap<K, Long> waitAdd = Maps.newConcurrentMap();
     private final ConcurrentMap<K, Long> waitRemove = Maps.newConcurrentMap();
@@ -49,18 +49,19 @@ public abstract class AsyncCacheRepositoryDao<T, K> extends CacheRepositoryDao<T
 
     private synchronized void delay(boolean force) {
         try {
-            while (!waitChange.isEmpty()) {
-                Change<T, K> change = waitChange.poll();
-                switch (change.flag) {
-                    case ADD:
-                        delayAdd(change.obj, change.pk, change.version);
-                        break;
-                    case REMOVE:
-                        delayRemove(change.pk, change.version);
-                        break;
-                    case REMOVE_ALL:
-                        delayRemoveAll();
-                        break;
+            if (!waitChange.isEmpty()) {
+                for (Change<T, K> change = waitChange.poll(); change != null; change = waitChange.poll()) {
+                    switch (change.flag) {
+                        case ADD:
+                            delayAdd(change.obj, change.pk, change.version);
+                            break;
+                        case REMOVE:
+                            delayRemove(change.pk, change.version);
+                            break;
+                        case REMOVE_ALL:
+                            delayRemoveAll();
+                            break;
+                    }
                 }
             }
             delaySave(force);
