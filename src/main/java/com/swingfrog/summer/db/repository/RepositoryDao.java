@@ -36,8 +36,9 @@ public abstract class RepositoryDao<T, K> extends BaseDao<T> implements Reposito
 
     protected RepositoryDao() {
         super();
-        beanHandler = new BeanHandler<>(getEntityClass(), new BasicRowProcessor(new RepositoryBeanProcessor()));
-        beanListHandler = new BeanListHandler<>(getEntityClass(), new BasicRowProcessor(new RepositoryBeanProcessor()));
+        Class<T> entityClass = getEntityClass();
+        beanHandler = new BeanHandler<>(entityClass, new BasicRowProcessor(new RepositoryBeanProcessor()));
+        beanListHandler = new BeanListHandler<>(entityClass, new BasicRowProcessor(new RepositoryBeanProcessor()));
     }
 
     void init() {
