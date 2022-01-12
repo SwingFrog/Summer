@@ -95,12 +95,12 @@ public class EventBusMgr {
 		if (log.isDebugEnabled())
 			log.debug("dispatch event[{}]", eventName);
 		if (eventNameMap == null) {
-			log.warn("event handler {} not exist", eventName);
+			log.debug("event handler {} not exist", eventName);
 			return;
 		}
 		List<EventMethod> eventList = eventNameMap.get(eventName);
 		if (eventList == null) {
-			log.warn("event handler {} not exist", eventName);
+			log.debug("event handler {} not exist", eventName);
 			return;
 		}
 		for (EventMethod event : eventList) {
@@ -125,12 +125,12 @@ public class EventBusMgr {
 		if (log.isDebugEnabled())
 			log.debug("dispatch event[{}]", eventObj.getClass().getSimpleName());
 		if (eventClassMap == null) {
-			log.warn("event handler {} not exist", eventObj.getClass().getSimpleName());
+			log.debug("event handler {} not exist", eventObj.getClass().getSimpleName());
 			return;
 		}
 		List<EventMethod> eventList = eventClassMap.get(eventObj.getClass());
 		if (eventList == null) {
-			log.warn("event handler {} not exist", eventObj.getClass().getSimpleName());
+			log.debug("event handler {} not exist", eventObj.getClass().getSimpleName());
 			return;
 		}
 		for (EventMethod event : eventList) {
