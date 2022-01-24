@@ -26,7 +26,7 @@
 
 
 ## 更新说明
-### 1.1.13 - 2021-12-20
+### [1.1.13](https://mvnrepository.com/artifact/com.swingfrog.summer/summer/1.1.13) - 2022-01-24
 1. 修复在RemoteTinyDispatchMgr抛出异常RemoteRuntimeException时，参数显示错误的问题。
 2. 新增AsyncAddRepository，可用于日志异步插入。
 3. 新增RepositoryEntity，仓库中的实体类实现此接口，即可直接执行 实体对象.add() 实体对象.save() 实体对象.remove()操作，而不再需要像以前 仓库对象.add(实体对象) 仓库对象.save(实体对象) 仓库对象.remove(实体对象)，在一些场景下或许有助于提高开发速度。
@@ -208,7 +208,7 @@ Redis 5.0 (仅供参考)<br/>
     <dependency>
         <groupId>com.swingfrog.summer</groupId>
         <artifactId>summer</artifactId>
-        <version>1.1.12</version>
+        <version>1.1.13</version>
     </dependency>
 ```
 
