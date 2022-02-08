@@ -82,7 +82,8 @@ public class WebRequestHandler extends AbstractServerHandler<HttpObject> {
 					postRequestDecoder = new HttpPostRequestDecoder(factory, httpRequest);
 					processHttpContent(channel, sctx, (HttpContent) httpObject);
 				} else {
-					log.warn("not found request method[{}]", method.name());
+					log.error("not found request method[{}] {}", method.name(), sctx);
+					channel.close();
 				}
 			} else if (httpObject instanceof HttpContent) {
 				processHttpContent(channel, sctx, (HttpContent) httpObject);

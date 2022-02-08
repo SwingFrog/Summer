@@ -26,6 +26,9 @@
 
 
 ## 更新说明
+### 1.1.14 - 20220-02-08
+1. Http协议下，只能处理get/post方法，其他方法将直接关闭链路。
+
 ### [1.1.13](https://mvnrepository.com/artifact/com.swingfrog.summer/summer/1.1.13) - 2022-01-24
 1. 修复在RemoteTinyDispatchMgr抛出异常RemoteRuntimeException时，参数显示错误的问题。
 2. 新增AsyncAddRepository，可用于日志异步插入。
