@@ -26,7 +26,7 @@
 
 
 ## 更新说明
-### 1.1.14 - 20220-02-08
+### 1.1.14 - 2022-02-08
 1. Http协议下，只能处理get/post方法，其他方法将直接关闭链路。
 
 ### [1.1.13](https://mvnrepository.com/artifact/com.swingfrog.summer/summer/1.1.13) - 2022-01-24
