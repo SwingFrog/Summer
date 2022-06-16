@@ -13,6 +13,7 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.codec.LengthFieldPrepender;
+import io.netty.handler.codec.LineBasedFrameDecoder;
 
 public class ClientInitializer extends ChannelInitializer<SocketChannel> {
 
@@ -32,7 +33,8 @@ public class ClientInitializer extends ChannelInitializer<SocketChannel> {
 		String protocol = config.getProtocol();
 		switch (protocol) {
 			case ProtocolConst.SERVER_PROTOCOL_STRING_LINE:
-				pipeline.addLast(new StringPasswordLineDecoder(config.getMsgLength(), config.getCharset(), config.getPassword()));
+				pipeline.addLast(new LineBasedFrameDecoder(config.getMsgLength()));
+				pipeline.addLast(new StringPasswordLineDecoder(config.getCharset(), config.getPassword()));
 				pipeline.addLast(new StringPasswordLineEncoder(config.getCharset(), config.getPassword()));
 				break;
 			case ProtocolConst.SERVER_PROTOCOL_LENGTH_FIELD:

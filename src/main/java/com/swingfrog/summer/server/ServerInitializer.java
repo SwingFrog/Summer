@@ -21,6 +21,7 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.codec.LengthFieldPrepender;
+import io.netty.handler.codec.LineBasedFrameDecoder;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
@@ -44,7 +45,8 @@ public class ServerInitializer extends ChannelInitializer<SocketChannel> {
         String protocol = config.getProtocol();
         switch (protocol) {
             case ProtocolConst.SERVER_PROTOCOL_STRING_LINE:
-                pipeline.addLast(new StringPasswordLineDecoder(config.getMsgLength(), config.getCharset(), config.getPassword()));
+                pipeline.addLast(new LineBasedFrameDecoder(config.getMsgLength()));
+                pipeline.addLast(new StringPasswordLineDecoder(config.getCharset(), config.getPassword()));
                 pipeline.addLast(new StringPasswordLineEncoder(config.getCharset(), config.getPassword()));
                 pipeline.addLast(new ServerStringHandler(serverContext));
                 break;
