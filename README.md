@@ -26,9 +26,10 @@
 
 
 ## 更新说明
-### 1.1.14 - 2022-02-08
-1. Http协议下，只能处理get/post方法，其他方法将直接关闭链路。
+### [1.1.14](https://mvnrepository.com/artifact/com.swingfrog.summer/summer/1.1.14) - 2022-07-07
+1. Http协议下，只能处理get/post方法，其他方法将直接关闭链路。 - 2022-02-08
 2. 修复StringLine协议下会导致内存泄漏的问题，感谢 [whxlxl](https://github.com/whxlxl) 大佬指出问题。 - 2022-06-16
+3. Http协议下，处理完请求发送响应后自动关闭链路。 - 2022-07-07
 
 ### [1.1.13](https://mvnrepository.com/artifact/com.swingfrog.summer/summer/1.1.13) - 2022-01-24
 1. 修复在RemoteTinyDispatchMgr抛出异常RemoteRuntimeException时，参数显示错误的问题。
@@ -212,7 +213,7 @@ Redis 5.0 (仅供参考)<br/>
     <dependency>
         <groupId>com.swingfrog.summer</groupId>
         <artifactId>summer</artifactId>
-        <version>1.1.13</version>
+        <version>1.1.14</version>
     </dependency>
 ```
 
