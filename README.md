@@ -26,6 +26,9 @@
 
 
 ## 更新说明
+### 1.1.15 - 2022-07-13
+1. 修复Http协议下，数据未发完链路关闭的问题。
+
 ### [1.1.14](https://mvnrepository.com/artifact/com.swingfrog.summer/summer/1.1.14) - 2022-07-07
 1. Http协议下，只能处理get/post方法，其他方法将直接关闭链路。 - 2022-02-08
 2. 修复StringLine协议下会导致内存泄漏的问题，感谢 [whxlxl](https://github.com/whxlxl) 大佬指出问题。 - 2022-06-16

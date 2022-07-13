@@ -14,6 +14,7 @@ import com.swingfrog.summer.util.ForwardedAddressUtil;
 import com.swingfrog.summer.web.token.WebTokenHandler;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.handler.stream.ChunkedInput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -231,7 +232,6 @@ public class WebRequestHandler extends AbstractServerHandler<HttpObject> {
 	private void writeResponse(Channel channel, SessionContext sctx, WebRequest request, WebView webView) {
 		log.debug("server response {} status[{}] from {}", webView, webView.getStatus(), sctx);
 		write(serverContext, channel, sctx, request, webView);
-		channel.close();
 	}
 
 	public static void write(ServerContext serverContext, Channel channel, SessionContext sctx, WebRequest request, WebView webView) {
@@ -254,7 +254,7 @@ public class WebRequestHandler extends AbstractServerHandler<HttpObject> {
 			}
 			channel.write(response);
 			channel.write(render);
-			channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+			channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT).addListener(ChannelFutureListener.CLOSE);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
