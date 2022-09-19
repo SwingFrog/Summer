@@ -8,9 +8,9 @@ import com.swingfrog.summer.server.ServerContext;
 import com.swingfrog.summer.server.SessionContext;
 import com.swingfrog.summer.web.WebContentTypes;
 import com.swingfrog.summer.web.WebRequest;
-import io.netty.buffer.ByteBuf;
-import io.netty.handler.stream.ChunkedFile;
-import io.netty.handler.stream.ChunkedInput;
+import com.swingfrog.summer.web.view.render.DefaultWebViewRender;
+import com.swingfrog.summer.web.view.render.WebViewRender;
+import io.netty.channel.DefaultFileRegion;
 
 public class FileView extends AbstractView {
 
@@ -31,8 +31,8 @@ public class FileView extends AbstractView {
 	}
 
 	@Override
-	public ChunkedInput<ByteBuf> onRender(ServerContext serverContext, SessionContext sctx, WebRequest request) throws Exception {
-		return new ChunkedFile(file);
+	public WebViewRender onRender(ServerContext serverContext, SessionContext sctx, WebRequest request) throws Exception {
+		return new DefaultWebViewRender(new DefaultFileRegion(file.getChannel(), 0, file.length()));
 	}
 
 	@Override

@@ -8,14 +8,13 @@ import java.util.Map;
 import com.google.common.collect.Maps;
 import com.swingfrog.summer.server.ServerContext;
 import com.swingfrog.summer.server.SessionContext;
-import com.swingfrog.summer.util.ChunkedByteBuf;
 import com.swingfrog.summer.web.WebMgr;
 
 import com.swingfrog.summer.web.WebRequest;
+import com.swingfrog.summer.web.view.render.DefaultWebViewRender;
+import com.swingfrog.summer.web.view.render.WebViewRender;
 import freemarker.template.Template;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-import io.netty.handler.stream.ChunkedInput;
 
 public class ModelView extends AbstractView {
 
@@ -46,13 +45,15 @@ public class ModelView extends AbstractView {
 	}
 	
 	@Override
-	public ChunkedInput<ByteBuf> onRender(ServerContext serverContext, SessionContext sctx, WebRequest request) throws Exception {
+	public WebViewRender onRender(ServerContext serverContext, SessionContext sctx, WebRequest request) throws Exception {
 		Template template = WebMgr.get().getTemplate(view);
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		template.process(map, new BufferedWriter(new OutputStreamWriter(out)));
-		ByteBuf byteBuf = Unpooled.wrappedBuffer(out.toByteArray());
+		byte[] bytes = out.toByteArray();
 		out.close();
-		return new ChunkedByteBuf(byteBuf);
+		ByteBuf byteBuf = sctx.alloc().directBuffer(bytes.length);
+		byteBuf.writeBytes(bytes);
+		return new DefaultWebViewRender(byteBuf);
 	}
 
 	@Override

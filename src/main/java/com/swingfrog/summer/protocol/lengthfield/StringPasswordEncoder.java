@@ -5,7 +5,6 @@ import java.util.List;
 
 import com.swingfrog.summer.util.PasswordUtil;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageEncoder;
 
@@ -31,7 +30,7 @@ public class StringPasswordEncoder extends MessageToMessageEncoder<String> {
 		if (pass != null) {
 			PasswordUtil.convert(pass, bytes);
 		}
-		ByteBuf buf = Unpooled.buffer(bytes.length);
+		ByteBuf buf = ctx.alloc().directBuffer(bytes.length);
 		buf.writeBytes(bytes);
 		out.add(buf);
 	}

@@ -100,7 +100,7 @@ public class AsyncResponseMgr {
             }
             log.debug("server async response {} to {}", response, sctx);
             ServerWriteHelper.write(serverContext, sctx, response);
-            RemoteStatistics.finish(sctx, request, response.getLength(serverContext.getConfig().getCharset()));
+            RemoteStatistics.finish(sctx, request, response.getLength());
         } else if (serverContext.isHttp()) {
             WebView webView;
             if (data == null) {
@@ -143,7 +143,7 @@ public class AsyncResponseMgr {
             TinyError response = TinyError.of(code, msg);
             log.debug("server async response error {} to {}", response, sctx);
             ServerWriteHelper.write(serverContext, sctx, response);
-            RemoteStatistics.finish(sctx, request, response.getLength(serverContext.getConfig().getCharset()));
+            RemoteStatistics.finish(sctx, request, response.getLength());
             return;
         } else if (serverContext.isHttp()) {
             log.error("Http protocol can't send error response");

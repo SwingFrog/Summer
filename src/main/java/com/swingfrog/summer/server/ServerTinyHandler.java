@@ -28,7 +28,6 @@ public class ServerTinyHandler extends AbstractServerHandler<TinyReq> {
             return;
         }
         String msg = req.getMsg();
-        String charset = serverContext.getConfig().getCharset();
         try {
             RemoteTinyDispatchMgr.RemoteMethod remoteMethod = RemoteTinyDispatchMgr.get().getRemote(id);
             SessionRequest request = new SessionRequest();
@@ -60,19 +59,19 @@ public class ServerTinyHandler extends AbstractServerHandler<TinyReq> {
                     TinyResp response = processResult.getValue();
                     log.debug("server response {} to {}", response, sctx);
                     writeResponse(sctx, response);
-                    RemoteStatistics.finish(sctx, request, response.getLength(charset));
+                    RemoteStatistics.finish(sctx, request, response.getLength());
                 } catch (CodeException ce) {
                     log.warn(ce.getMessage(), ce);
                     TinyError response = TinyError.of(ce);
                     log.debug("server response error {} to {}", response, sctx);
                     writeResponse(sctx, response);
-                    RemoteStatistics.finish(sctx, request, response.getLength(charset));
+                    RemoteStatistics.finish(sctx, request, response.getLength());
                 } catch (Throwable e) {
                     log.error(e.getMessage(), e);
                     TinyError response = TinyError.of(SessionException.INVOKE_ERROR);
                     log.debug("server response error {} to {}", response, sctx);
                     writeResponse(sctx, response);
-                    RemoteStatistics.finish(sctx, request, response.getLength(charset));
+                    RemoteStatistics.finish(sctx, request, response.getLength());
                 }
             };
             submitRunnable(sctx, request, runnable);

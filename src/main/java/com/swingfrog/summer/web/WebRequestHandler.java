@@ -12,6 +12,7 @@ import com.swingfrog.summer.statistics.RemoteStatistics;
 import com.swingfrog.summer.struct.AutowireParam;
 import com.swingfrog.summer.util.ForwardedAddressUtil;
 import com.swingfrog.summer.web.token.WebTokenHandler;
+import com.swingfrog.summer.web.view.render.WebViewRender;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
@@ -236,14 +237,14 @@ public class WebRequestHandler extends AbstractServerHandler<HttpObject> {
 
 	public static void write(ServerContext serverContext, Channel channel, SessionContext sctx, WebRequest request, WebView webView) {
 		try {
-			ChunkedInput<ByteBuf> render = webView.onRender(serverContext, sctx, request);
+			WebViewRender render = webView.onRender(serverContext, sctx, request);
 			DefaultHttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, 
 					HttpResponseStatus.valueOf(webView.getStatus()));
 			if (HttpUtil.isKeepAlive(request.getHttpRequest())) {
 				response.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
 			}
 			response.headers().set(HttpHeaderNames.CONTENT_TYPE, webView.getContentType());
-			response.headers().set(HttpHeaderNames.CONTENT_LENGTH, render.length());
+			response.headers().set(HttpHeaderNames.CONTENT_LENGTH, render.getSize());
 			response.headers().set(HttpHeaderNames.SERVER, Summer.NAME);
 			response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
 			if (sctx.getToken() == null) {
@@ -253,7 +254,7 @@ public class WebRequestHandler extends AbstractServerHandler<HttpObject> {
 				webView.getHeaders().forEach((key, value) -> response.headers().set(key, value));
 			}
 			channel.write(response);
-			channel.write(render);
+			channel.write(render.getData());
 			channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT).addListener(ChannelFutureListener.CLOSE);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);

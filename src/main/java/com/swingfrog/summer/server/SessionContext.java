@@ -1,6 +1,7 @@
 package com.swingfrog.summer.server;
 
 import com.google.common.collect.Queues;
+import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.Channel;
 
 import java.util.Objects;
@@ -153,6 +154,10 @@ public class SessionContext {
 
 	public boolean isActive() {
 		return channel.isActive();
+	}
+
+	public ByteBufAllocator alloc() {
+		return channel.alloc();
 	}
 
 }

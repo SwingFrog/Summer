@@ -26,8 +26,10 @@
 
 
 ## 更新说明
-### 1.1.15 - 2022-07-13
-1. 修复Http协议下，数据未发完链路关闭的问题。
+### 1.1.15 - 2022-09-19
+1. 修复Http协议下，数据未发完链路关闭的问题。 - 2022-07-13
+2. 将所有网络IO相关的buffer分配，由原来的非池化堆内缓存改为池化堆外缓存。 - 2022-09-19
+3. WebView的onRender返回值调整，由原来的ChunkedInput<ByteBuf>改为WebViewRender，可使用默认实现DefaultWebViewRender。其中FileView，由原来的ChunkedFile改为FileRegion。 - 2022-09-19
 
 ### [1.1.14](https://mvnrepository.com/artifact/com.swingfrog.summer/summer/1.1.14) - 2022-07-07
 1. Http协议下，只能处理get/post方法，其他方法将直接关闭链路。 - 2022-02-08

@@ -1,7 +1,7 @@
 package com.swingfrog.summer.protocol.tiny.msg;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
+import io.netty.buffer.ByteBufAllocator;
 
 public class TinyRespZip extends TinyResp {
 
@@ -13,8 +13,8 @@ public class TinyRespZip extends TinyResp {
     }
 
     @Override
-    public ByteBuf toByteBuf(String charset) {
-        ByteBuf buf = Unpooled.buffer(1 + zipBytes.length);
+    public ByteBuf toByteBuf(ByteBufAllocator alloc, String charset) {
+        ByteBuf buf = alloc.directBuffer(1 + zipBytes.length);
         buf.writeByte(TinyConst.ORDER_RESP_ZIP);
         buf.writeBytes(zipBytes);
         return buf;

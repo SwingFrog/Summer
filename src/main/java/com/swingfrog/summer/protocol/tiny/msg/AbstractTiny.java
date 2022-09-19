@@ -1,6 +1,7 @@
 package com.swingfrog.summer.protocol.tiny.msg;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
 
 public abstract class AbstractTiny implements Tiny {
 
@@ -8,24 +9,19 @@ public abstract class AbstractTiny implements Tiny {
     private int length = -1;
 
     @Override
-    public ByteBuf getByteBuf(String charset) throws Exception {
+    public ByteBuf getByteBuf(ByteBufAllocator alloc, String charset) throws Exception {
         if (byteBuf == null) {
-            byteBuf = toByteBuf(charset);
+            byteBuf = toByteBuf(alloc, charset);
             length = byteBuf.readableBytes();
         }
         return byteBuf;
     }
 
     @Override
-    public int getLength(String charset) {
-        if (byteBuf == null) {
-            try {
-                getByteBuf(charset);
-            } catch (Exception ignored) {}
-        }
+    public int getLength() {
         return length;
     }
 
-    protected abstract ByteBuf toByteBuf(String charset) throws Exception;
+    protected abstract ByteBuf toByteBuf(ByteBufAllocator alloc, String charset) throws Exception;
 
 }

@@ -3,7 +3,7 @@ package com.swingfrog.summer.protocol.tiny.msg;
 import com.swingfrog.summer.server.exception.CodeException;
 import com.swingfrog.summer.server.exception.CodeMsg;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
+import io.netty.buffer.ByteBufAllocator;
 
 public class TinyError extends AbstractTiny {
 
@@ -44,9 +44,9 @@ public class TinyError extends AbstractTiny {
     }
 
     @Override
-    public ByteBuf toByteBuf(String charset) throws Exception {
+    public ByteBuf toByteBuf(ByteBufAllocator alloc, String charset) throws Exception {
         byte[] bytes = msg.getBytes(charset);
-        ByteBuf buf = Unpooled.buffer(5 + bytes.length);
+        ByteBuf buf = alloc.directBuffer(5 + bytes.length);
         buf.writeByte(TinyConst.ORDER_ERROR);
         buf.writeInt(code);
         buf.writeBytes(bytes);

@@ -16,7 +16,7 @@ public class TinyEncoder extends MessageToMessageEncoder<Tiny> {
 
     @Override
     protected void encode(ChannelHandlerContext ctx, Tiny msg, List<Object> out) throws Exception {
-        out.add(msg.getByteBuf(charset));
+        out.add(msg.getByteBuf(ctx.alloc(), charset));
     }
 
 }

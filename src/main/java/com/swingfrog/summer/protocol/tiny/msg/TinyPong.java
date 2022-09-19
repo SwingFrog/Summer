@@ -1,7 +1,7 @@
 package com.swingfrog.summer.protocol.tiny.msg;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
+import io.netty.buffer.ByteBufAllocator;
 
 public class TinyPong extends AbstractTiny  {
 
@@ -27,8 +27,8 @@ public class TinyPong extends AbstractTiny  {
     }
 
     @Override
-    public ByteBuf toByteBuf(String charset) {
-        ByteBuf buf = Unpooled.buffer(8);
+    public ByteBuf toByteBuf(ByteBufAllocator alloc, String charset) {
+        ByteBuf buf = alloc.directBuffer(8);
         buf.writeLong(time);
         return buf;
     }

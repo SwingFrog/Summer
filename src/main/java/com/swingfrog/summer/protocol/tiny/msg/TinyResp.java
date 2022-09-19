@@ -3,7 +3,7 @@ package com.swingfrog.summer.protocol.tiny.msg;
 import com.alibaba.fastjson.JSON;
 import com.swingfrog.summer.util.ZipUtil;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
+import io.netty.buffer.ByteBufAllocator;
 
 public class TinyResp extends AbstractTiny {
 
@@ -29,20 +29,20 @@ public class TinyResp extends AbstractTiny {
     }
 
     @Override
-    public ByteBuf toByteBuf(String charset) throws Exception {
+    public ByteBuf toByteBuf(ByteBufAllocator alloc, String charset) throws Exception {
         byte[] bytes = msg.getBytes(charset);
         int length = bytes.length;
         if (length > TinyConst.ZIP_USE_THRESHOLD) {
             byte[] zip = ZipUtil.zip(TinyConst.ZIP_ENTRY_NAME, bytes);
             if (zip.length < length) {
-                return toByteBuf(TinyConst.ORDER_RESP_ZIP, zip);
+                return toByteBuf(alloc, TinyConst.ORDER_RESP_ZIP, zip);
             }
         }
-        return toByteBuf(TinyConst.ORDER_RESP_JSON, bytes);
+        return toByteBuf(alloc, TinyConst.ORDER_RESP_JSON, bytes);
     }
 
-    private ByteBuf toByteBuf(byte order, byte[] bytes) {
-        ByteBuf buf = Unpooled.buffer(1 + bytes.length);
+    private ByteBuf toByteBuf(ByteBufAllocator alloc, byte order, byte[] bytes) {
+        ByteBuf buf = alloc.directBuffer(1 + bytes.length);
         buf.writeByte(order);
         buf.writeBytes(bytes);
         return buf;
