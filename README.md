@@ -26,7 +26,7 @@
 
 
 ## 更新说明
-### 1.1.15 - 2022-09-19
+### [1.1.15](https://mvnrepository.com/artifact/com.swingfrog.summer/summer/1.1.15) - 2022-09-19
 1. 修复Http协议下，数据未发完链路关闭的问题。 - 2022-07-13
 2. 将所有网络IO相关的buffer分配，由原来的非池化堆内缓存改为池化堆外缓存。 - 2022-09-19
 3. WebView的onRender返回值调整，由原来的ChunkedInput<ByteBuf>改为WebViewRender，可使用默认实现DefaultWebViewRender。其中FileView，由原来的ChunkedFile改为FileRegion。 - 2022-09-19
@@ -218,7 +218,7 @@ Redis 5.0 (仅供参考)<br/>
     <dependency>
         <groupId>com.swingfrog.summer</groupId>
         <artifactId>summer</artifactId>
-        <version>1.1.14</version>
+        <version>1.1.15</version>
     </dependency>
 ```
 
