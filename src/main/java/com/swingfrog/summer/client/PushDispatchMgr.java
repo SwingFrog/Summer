@@ -10,6 +10,7 @@ import java.util.concurrent.ScheduledFuture;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.swingfrog.summer.util.JSONConvertUtil;
+import com.swingfrog.summer.util.ParamUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -103,7 +104,10 @@ public class PushDispatchMgr {
 				}
 			}
 			if (obj[i] == null) {
-				if (!parameter.isAnnotationPresent(Optional.class)) {
+				Optional optional = parameter.getAnnotation(Optional.class);
+				if (optional != null) {
+					obj[i] = ParamUtil.convert(type, optional.value());
+				} else {
 					log.error("client push[{}] method[{}] parameter[{}] error", push, method, data);
 					return;
 				}

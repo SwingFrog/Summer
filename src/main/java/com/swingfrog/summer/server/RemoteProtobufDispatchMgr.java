@@ -18,6 +18,7 @@ import com.swingfrog.summer.server.exception.SessionException;
 import com.swingfrog.summer.server.handler.RemoteProtobufHandler;
 import com.swingfrog.summer.struct.AutowireParam;
 import com.swingfrog.summer.util.MethodUtil;
+import com.swingfrog.summer.util.ParamUtil;
 import com.swingfrog.summer.util.ProtobufUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -122,7 +123,10 @@ public class RemoteProtobufDispatchMgr {
                     }
                 }
                 if (obj[i] == null) {
-                    if (!parameter.isAnnotationPresent(Optional.class)) {
+                    Optional optional = parameter.getAnnotation(Optional.class);
+                    if (optional != null) {
+                        obj[i] = ParamUtil.convert(parameter.getType(), optional.value());
+                    } else {
                         throw new CodeException(SessionException.PARAMETER_ERROR);
                     }
                 }

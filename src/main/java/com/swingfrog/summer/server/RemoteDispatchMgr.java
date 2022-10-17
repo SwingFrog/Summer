@@ -14,10 +14,7 @@ import com.swingfrog.summer.server.exception.CodeMsg;
 import com.swingfrog.summer.server.exception.RemoteRuntimeException;
 import com.swingfrog.summer.server.handler.RemoteHandler;
 import com.swingfrog.summer.struct.AutowireParam;
-import com.swingfrog.summer.util.JSONConvertUtil;
-import com.swingfrog.summer.util.MethodUtil;
-import com.swingfrog.summer.util.ProtobufUtil;
-import com.swingfrog.summer.util.RemoteUtil;
+import com.swingfrog.summer.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -167,7 +164,10 @@ public class RemoteDispatchMgr {
 				}
 
 				if (value == null) {
-					if (!parameter.isAnnotationPresent(Optional.class)) {
+					Optional optional = parameter.getAnnotation(Optional.class);
+					if (optional != null) {
+						value = ParamUtil.convert(type, optional.value());
+					} else {
 						CodeMsg codeMsg = SessionException.PARAMETER_ERROR;
 						throw new CodeException(codeMsg.getCode(), String.format("%s, param [%s] not found", codeMsg.getMsg(), param));
 					}
@@ -234,10 +234,10 @@ public class RemoteDispatchMgr {
 			Class<?> type = field.getType();
 			String param = field.getName();
 			Object fieldObj = null;
-			if (JSONConvertUtil.containsType(type)) {
-				fieldObj = JSONConvertUtil.convert(type, data, param);
-			} else {
-				if (data.containsKey(param)) {
+			if (data.containsKey(param)) {
+				if (JSONConvertUtil.containsType(type)) {
+					fieldObj = JSONConvertUtil.convert(type, data, param);
+				} else {
 					try {
 						fieldObj = JSON.parseObject(data.getString(param), type);
 					} catch (Exception e) {
@@ -246,8 +246,12 @@ public class RemoteDispatchMgr {
 				}
 			}
 			if (fieldObj == null) {
-				if (!field.isAnnotationPresent(Optional.class)) {
-					throw new CodeException(SessionException.PARAMETER_ERROR);
+				Optional optional = field.getAnnotation(Optional.class);
+				if (optional != null) {
+					fieldObj = ParamUtil.convert(type, optional.value());
+				} else {
+					CodeMsg codeMsg = SessionException.PARAMETER_ERROR;
+					throw new CodeException(codeMsg.getCode(), String.format("%s, param [%s] not found", codeMsg.getMsg(), param));
 				}
 			}
 			field.set(obj, fieldObj);

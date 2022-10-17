@@ -27,8 +27,8 @@ public class TestRemote implements RemoteHandler {
         return "hello world!";
     }
 
-    public int add(int a, @Optional Integer b) {
-        return testService.add(a, b == null ? 0 : b);
+    public int add(int a, @Optional("2") int b) {
+        return testService.add(a, b);
     }
 
     public String say(SessionContext sctx, String msg) {
