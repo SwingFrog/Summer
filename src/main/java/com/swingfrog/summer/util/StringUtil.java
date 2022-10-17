@@ -7,11 +7,12 @@ public class StringUtil {
 	
 	public static String getString(Object ...args) {
 		StringBuilder b = new StringBuilder();
-		for (int i = 0; i < args.length - 1; i++) {
+		int len = args.length - 1;
+		for (int i = 0; i < len; i++) {
 			b.append(args[i]);
 			b.append("-");
 		}
-		b.append(args[args.length - 1]);
+		b.append(args[len]);
 		return b.toString().intern();
 	}
 
