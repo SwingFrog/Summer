@@ -8,9 +8,11 @@ import java.lang.annotation.Target;
 import com.swingfrog.summer.annotation.base.AutowiredManager;
 import com.swingfrog.summer.annotation.base.ComponentManager;
 import com.swingfrog.summer.annotation.base.SynchronizedManager;
+import com.swingfrog.summer.annotation.base.TransactionManager;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
+@TransactionManager
 @ComponentManager
 @AutowiredManager
 @SynchronizedManager

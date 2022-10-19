@@ -46,6 +46,8 @@ public class ContainerMgr {
 	private final Map<Method, String> synchronizedMap = Maps.newHashMap();
 	private final List<TaskTrigger> taskList = Lists.newArrayList();
 	private final List<Class<?>> eventList = Lists.newArrayList();
+
+	private boolean enableProxy;
 	
 	private static class SingleCase {
 		public static final ContainerMgr INSTANCE = new ContainerMgr();
@@ -58,9 +60,19 @@ public class ContainerMgr {
 	public static ContainerMgr get() {
 		return SingleCase.INSTANCE;
 	}
-	
+
 	public void init(String projectPackage) throws InstantiationException, IllegalAccessException {
+		init(projectPackage, false);
+	}
+
+	public void init(String projectPackage, boolean enableProxy) throws InstantiationException, IllegalAccessException {
 		log.info("container init...");
+		if (enableProxy) {
+			log.info("container proxy enable, @Remote @Service @EventHandler @Task");
+		} else {
+			log.info("container proxy disable");
+		}
+		this.enableProxy = enableProxy;
 		Set<Class<?>> classSet = ClassFind.getClasses(projectPackage);
 		for (Class<?> clazz : classSet) {
 			if (!clazz.isAnonymousClass() && 
@@ -126,14 +138,14 @@ public class ContainerMgr {
 				CronTask cronTask = method.getDeclaredAnnotation(CronTask.class);
 				if (cronTask != null) {
 					log.info("register cron[{}] task {}.{}", cronTask.value(), clazz.getSimpleName(), method.getName());
-					MethodInvoke methodInvoke = ProxyUtil.getProxyRemote(new MethodInvoke());
+					MethodInvoke methodInvoke = enableProxy ? ProxyUtil.getProxyRemote(new MethodInvoke()) : new MethodInvoke();
 					methodInvoke.init(obj, method);
 					taskList.add(TaskUtil.getCronTask(cronTask.value(), methodInvoke));
 				} else {
 					IntervalTask intervalTask = method.getDeclaredAnnotation(IntervalTask.class);
 					if (intervalTask != null) {
 						log.info("register interval[{}] task {}.{}", intervalTask.value(), clazz.getSimpleName(), method.getName());
-						MethodInvoke methodInvoke = ProxyUtil.getProxyRemote(new MethodInvoke());
+						MethodInvoke methodInvoke = enableProxy ? ProxyUtil.getProxyRemote(new MethodInvoke()) : new MethodInvoke();
 						methodInvoke.init(obj, method);
 						taskList.add(TaskUtil.getIntervalTask(intervalTask.value(), intervalTask.delay(), methodInvoke));
 					}
@@ -218,6 +230,9 @@ public class ContainerMgr {
 	}
 	
 	public void proxyObj() {
+		if (!enableProxy) {
+			return;
+		}
 		for (Class<?> clazz : map.keySet()) {
 			if (clazz.isAnnotationPresent(Service.class)) {
 				log.info("proxy object {}", clazz.getSimpleName());

@@ -70,7 +70,7 @@ public abstract class BaseDao<T> {
 			throw new DaoRuntimeException("dao update failure, %s", getEntityClass().getName());
 		} finally {
 			 try {
-				DataBaseMgr.get().discardConnectionFromDao();
+				DataBaseMgr.get().discardConnection(null);
 			} catch (Exception e) {
 				log.error(e.getMessage(), e);
 			}
@@ -91,7 +91,7 @@ public abstract class BaseDao<T> {
 			throw new DaoRuntimeException("dao batch update failure, %s", getEntityClass().getName());
 		} finally {
 			try {
-				DataBaseMgr.get().discardConnectionFromDao();
+				DataBaseMgr.get().discardConnection(null);
 			} catch (Exception e) {
 				log.error(e.getMessage(), e);
 			}
@@ -108,7 +108,7 @@ public abstract class BaseDao<T> {
 			throw new DaoRuntimeException("dao insert failure, %s", getEntityClass().getName());
 		} finally {
 			 try {
-				DataBaseMgr.get().discardConnectionFromDao();
+				 DataBaseMgr.get().discardConnection(null);
 			} catch (Exception e) {
 				log.error(e.getMessage(), e);
 			}
@@ -129,7 +129,7 @@ public abstract class BaseDao<T> {
 			throw new DaoRuntimeException("dao get bean failure, %s", getEntityClass().getName());
 		} finally {
 			try {
-				DataBaseMgr.get().discardConnectionFromDao();
+				DataBaseMgr.get().discardConnection(null);
 			} catch (Exception e) {
 				log.error(e.getMessage(), e);
 			}
@@ -150,7 +150,7 @@ public abstract class BaseDao<T> {
 			throw new DaoRuntimeException("dao list bean failure, %s", getEntityClass().getName());
 		} finally {
 			try {
-				DataBaseMgr.get().discardConnectionFromDao();
+				DataBaseMgr.get().discardConnection(null);
 			} catch (Exception e) {
 				log.error(e.getMessage(), e);
 			}
@@ -167,7 +167,7 @@ public abstract class BaseDao<T> {
 			throw new DaoRuntimeException("dao get value failure, %s", getEntityClass().getName());
 		} finally {
 			try {
-				DataBaseMgr.get().discardConnectionFromDao();
+				DataBaseMgr.get().discardConnection(null);
 			} catch (Exception e) {
 				log.error(e.getMessage(), e);
 			}
@@ -184,7 +184,7 @@ public abstract class BaseDao<T> {
 			throw new DaoRuntimeException("dao list value failure, %s", getEntityClass().getName());
 		} finally {
 			try {
-				DataBaseMgr.get().discardConnectionFromDao();
+				DataBaseMgr.get().discardConnection(null);
 			} catch (Exception e) {
 				log.error(e.getMessage(), e);
 			}
@@ -201,7 +201,7 @@ public abstract class BaseDao<T> {
 			throw new DaoRuntimeException("dao get map failure, %s", getEntityClass().getName());
 		} finally {
 			try {
-				DataBaseMgr.get().discardConnectionFromDao();
+				DataBaseMgr.get().discardConnection(null);
 			} catch (Exception e) {
 				log.error(e.getMessage(), e);
 			}
@@ -218,7 +218,7 @@ public abstract class BaseDao<T> {
 			throw new DaoRuntimeException("dao list map failure, %s", getEntityClass().getName());
 		} finally {
 			try {
-				DataBaseMgr.get().discardConnectionFromDao();
+				DataBaseMgr.get().discardConnection(null);
 			} catch (Exception e) {
 				log.error(e.getMessage(), e);
 			}
@@ -235,7 +235,7 @@ public abstract class BaseDao<T> {
 			throw new DaoRuntimeException("dao get bean by class failure, %s", getEntityClass().getName());
 		} finally {
 			try {
-				DataBaseMgr.get().discardConnectionFromDao();
+				DataBaseMgr.get().discardConnection(null);
 			} catch (Exception e) {
 				log.error(e.getMessage(), e);
 			}
@@ -252,7 +252,7 @@ public abstract class BaseDao<T> {
 			throw new DaoRuntimeException("dao list bean by class failure, %s", getEntityClass().getName());
 		} finally {
 			try {
-				DataBaseMgr.get().discardConnectionFromDao();
+				DataBaseMgr.get().discardConnection(null);
 			} catch (Exception e) {
 				log.error(e.getMessage(), e);
 			}

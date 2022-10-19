@@ -18,7 +18,7 @@ public class RedisUtil {
 		try {
 			RedisMgr.get().getConnection().flushAll();
 		} finally {
-			RedisMgr.get().discardConnectionFromRedis();
+			RedisMgr.get().discardConnection(null);
 		}
 	}
 	
@@ -27,7 +27,7 @@ public class RedisUtil {
 		try {
 			return RedisMgr.get().getConnection().exists(key);
 		} finally {
-			RedisMgr.get().discardConnectionFromRedis();
+			RedisMgr.get().discardConnection(null);
 		}
 	}
 	
@@ -36,7 +36,7 @@ public class RedisUtil {
 		try {
 			return RedisMgr.get().getConnection().keys("*");
 		} finally {
-			RedisMgr.get().discardConnectionFromRedis();
+			RedisMgr.get().discardConnection(null);
 		}
 	}
 	
@@ -45,7 +45,7 @@ public class RedisUtil {
 		try {
 			return RedisMgr.get().getConnection().keys(pattern);
 		} finally {
-			RedisMgr.get().discardConnectionFromRedis();
+			RedisMgr.get().discardConnection(null);
 		}
 	}
 	
@@ -54,7 +54,7 @@ public class RedisUtil {
 		try {
 			return RedisMgr.get().getConnection().expire(key, seconds) > 0;
 		} finally {
-			RedisMgr.get().discardConnectionFromRedis();
+			RedisMgr.get().discardConnection(null);
 		}
 	}
 	
@@ -63,7 +63,7 @@ public class RedisUtil {
 		try {
 			return RedisMgr.get().getConnection().ttl(key);
 		} finally {
-			RedisMgr.get().discardConnectionFromRedis();
+			RedisMgr.get().discardConnection(null);
 		}
 	}
 	
@@ -72,7 +72,7 @@ public class RedisUtil {
 		try {
 			return RedisMgr.get().getConnection().persist(key) > 0;
 		} finally {
-			RedisMgr.get().discardConnectionFromRedis();
+			RedisMgr.get().discardConnection(null);
 		}
 	}
 	
@@ -81,7 +81,7 @@ public class RedisUtil {
 		try {
 			return RedisMgr.get().getConnection().type(key);
 		} finally {
-			RedisMgr.get().discardConnectionFromRedis();
+			RedisMgr.get().discardConnection(null);
 		}
 	}
 	
@@ -90,7 +90,7 @@ public class RedisUtil {
 		try {
 			return RedisMgr.get().getConnection().set(key, value);
 		} finally {
-			RedisMgr.get().discardConnectionFromRedis();
+			RedisMgr.get().discardConnection(null);
 		}
 	}
 	
@@ -99,7 +99,7 @@ public class RedisUtil {
 		try {
 			return RedisMgr.get().getConnection().setnx(key, value) > 0;
 		} finally {
-			RedisMgr.get().discardConnectionFromRedis();
+			RedisMgr.get().discardConnection(null);
 		}
 	}
 	
@@ -108,7 +108,7 @@ public class RedisUtil {
 		try {
 			return RedisMgr.get().getConnection().setex(key, seconds, value);
 		} finally {
-			RedisMgr.get().discardConnectionFromRedis();
+			RedisMgr.get().discardConnection(null);
 		}
 	}
 	
@@ -117,7 +117,7 @@ public class RedisUtil {
 		try {
 			return RedisMgr.get().getConnection().del(key) > 0;
 		} finally {
-			RedisMgr.get().discardConnectionFromRedis();
+			RedisMgr.get().discardConnection(null);
 		}
 	}
 	
@@ -126,7 +126,7 @@ public class RedisUtil {
 		try {
 			return RedisMgr.get().getConnection().get(key);
 		} finally {
-			RedisMgr.get().discardConnectionFromRedis();
+			RedisMgr.get().discardConnection(null);
 		}
 	}
 	
@@ -135,7 +135,7 @@ public class RedisUtil {
 		try {
 			return RedisMgr.get().getConnection().mset(keyAndValue);
 		} finally {
-			RedisMgr.get().discardConnectionFromRedis();
+			RedisMgr.get().discardConnection(null);
 		}
 	}
 	
@@ -144,7 +144,7 @@ public class RedisUtil {
 		try {
 			return RedisMgr.get().getConnection().mget(key);
 		} finally {
-			RedisMgr.get().discardConnectionFromRedis();
+			RedisMgr.get().discardConnection(null);
 		}
 	}
 	
@@ -153,7 +153,7 @@ public class RedisUtil {
 		try {
 			return RedisMgr.get().getConnection().del(key);
 		} finally {
-			RedisMgr.get().discardConnectionFromRedis();
+			RedisMgr.get().discardConnection(null);
 		}
 	}
 	
@@ -162,7 +162,7 @@ public class RedisUtil {
 		try {
 			return RedisMgr.get().getConnection().getSet(key, value);
 		} finally {
-			RedisMgr.get().discardConnectionFromRedis();
+			RedisMgr.get().discardConnection(null);
 		}
 	}
 	
@@ -171,7 +171,7 @@ public class RedisUtil {
 		try {
 			return RedisMgr.get().getConnection().incr(key) > 0;
 		} finally {
-			RedisMgr.get().discardConnectionFromRedis();
+			RedisMgr.get().discardConnection(null);
 		}
 	}
 	
@@ -180,7 +180,7 @@ public class RedisUtil {
 		try {
 			return RedisMgr.get().getConnection().incrBy(key, n) > 0;
 		} finally {
-			RedisMgr.get().discardConnectionFromRedis();
+			RedisMgr.get().discardConnection(null);
 		}
 	}
 	
@@ -189,7 +189,7 @@ public class RedisUtil {
 		try {
 			return RedisMgr.get().getConnection().incrByFloat(key, n) > 0;
 		} finally {
-			RedisMgr.get().discardConnectionFromRedis();
+			RedisMgr.get().discardConnection(null);
 		}
 	}
 	
@@ -198,7 +198,7 @@ public class RedisUtil {
 		try {
 			return RedisMgr.get().getConnection().decr(key) > 0;
 		} finally {
-			RedisMgr.get().discardConnectionFromRedis();
+			RedisMgr.get().discardConnection(null);
 		}
 	}
 	
@@ -207,7 +207,7 @@ public class RedisUtil {
 		try {
 			return RedisMgr.get().getConnection().decrBy(key, n) > 0;
 		} finally {
-			RedisMgr.get().discardConnectionFromRedis();
+			RedisMgr.get().discardConnection(null);
 		}
 	}
 	
@@ -220,7 +220,7 @@ public class RedisUtil {
 		try {
 			return RedisMgr.get().getConnection().hmset(key, map);
 		} finally {
-			RedisMgr.get().discardConnectionFromRedis();
+			RedisMgr.get().discardConnection(null);
 		}
 	}
 	
@@ -229,7 +229,7 @@ public class RedisUtil {
 		try {
 			return RedisMgr.get().getConnection().hset(key, hkey, hvalue) > 0;
 		} finally {
-			RedisMgr.get().discardConnectionFromRedis();
+			RedisMgr.get().discardConnection(null);
 		}
 	}
 	
@@ -238,7 +238,7 @@ public class RedisUtil {
 		try {
 			return RedisMgr.get().getConnection().hgetAll(key);
 		} finally {
-			RedisMgr.get().discardConnectionFromRedis();
+			RedisMgr.get().discardConnection(null);
 		}
 	}
 	
@@ -247,7 +247,7 @@ public class RedisUtil {
 		try {
 			return RedisMgr.get().getConnection().hkeys(key);
 		} finally {
-			RedisMgr.get().discardConnectionFromRedis();
+			RedisMgr.get().discardConnection(null);
 		}
 	}
 	
@@ -256,7 +256,7 @@ public class RedisUtil {
 		try {
 			return RedisMgr.get().getConnection().hvals(key);
 		} finally {
-			RedisMgr.get().discardConnectionFromRedis();
+			RedisMgr.get().discardConnection(null);
 		}
 	}
 	
@@ -265,7 +265,7 @@ public class RedisUtil {
 		try {
 			return RedisMgr.get().getConnection().hincrBy(key, hkey, n) > 0;
 		} finally {
-			RedisMgr.get().discardConnectionFromRedis();
+			RedisMgr.get().discardConnection(null);
 		}
 	}
 	
@@ -274,7 +274,7 @@ public class RedisUtil {
 		try {
 			return RedisMgr.get().getConnection().hincrByFloat(key, hkey, n) > 0;
 		} finally {
-			RedisMgr.get().discardConnectionFromRedis();
+			RedisMgr.get().discardConnection(null);
 		}
 	}
 	
@@ -283,7 +283,7 @@ public class RedisUtil {
 		try {
 			return RedisMgr.get().getConnection().hdel(key, hkey) > 0;
 		} finally {
-			RedisMgr.get().discardConnectionFromRedis();
+			RedisMgr.get().discardConnection(null);
 		}
 	}
 	
@@ -292,7 +292,7 @@ public class RedisUtil {
 		try {
 			return RedisMgr.get().getConnection().hdel(key, hkey);
 		} finally {
-			RedisMgr.get().discardConnectionFromRedis();
+			RedisMgr.get().discardConnection(null);
 		}
 	}
 	
@@ -301,7 +301,7 @@ public class RedisUtil {
 		try {
 			return RedisMgr.get().getConnection().hlen(key);
 		} finally {
-			RedisMgr.get().discardConnectionFromRedis();
+			RedisMgr.get().discardConnection(null);
 		}
 	}
 	
@@ -310,7 +310,7 @@ public class RedisUtil {
 		try {
 			return RedisMgr.get().getConnection().hexists(key, hkey);
 		} finally {
-			RedisMgr.get().discardConnectionFromRedis();
+			RedisMgr.get().discardConnection(null);
 		}
 	}
 	
@@ -319,7 +319,7 @@ public class RedisUtil {
 		try {
 			return RedisMgr.get().getConnection().hmget(key, hkey);
 		} finally {
-			RedisMgr.get().discardConnectionFromRedis();
+			RedisMgr.get().discardConnection(null);
 		}
 	}
 	
@@ -328,7 +328,7 @@ public class RedisUtil {
 		try {
 			return RedisMgr.get().getConnection().hget(key, hkey);
 		} finally {
-			RedisMgr.get().discardConnectionFromRedis();
+			RedisMgr.get().discardConnection(null);
 		}
 	}
 	
@@ -337,7 +337,7 @@ public class RedisUtil {
 		try {
 			return RedisMgr.get().getConnection().lpush(key, val) > 0;
 		} finally {
-			RedisMgr.get().discardConnectionFromRedis();
+			RedisMgr.get().discardConnection(null);
 		}
 	}
 	
@@ -346,7 +346,7 @@ public class RedisUtil {
 		try {
 			return RedisMgr.get().getConnection().lpush(key, val) > 0;
 		} finally {
-			RedisMgr.get().discardConnectionFromRedis();
+			RedisMgr.get().discardConnection(null);
 		}
 	}
 	
@@ -355,7 +355,7 @@ public class RedisUtil {
 		try {
 			return RedisMgr.get().getConnection().lrange(key, startIndex, endIndex);
 		} finally {
-			RedisMgr.get().discardConnectionFromRedis();
+			RedisMgr.get().discardConnection(null);
 		}
 	}
 	
@@ -364,7 +364,7 @@ public class RedisUtil {
 		try {
 			return RedisMgr.get().getConnection().lrem(key, num, val);
 		} finally {
-			RedisMgr.get().discardConnectionFromRedis();
+			RedisMgr.get().discardConnection(null);
 		}
 	}
 	
@@ -373,7 +373,7 @@ public class RedisUtil {
 		try {
 			return RedisMgr.get().getConnection().ltrim(key, startIndex, endIndex);
 		} finally {
-			RedisMgr.get().discardConnectionFromRedis();
+			RedisMgr.get().discardConnection(null);
 		}
 	}
 	
@@ -385,7 +385,7 @@ public class RedisUtil {
 			multi.lrem(key, 1, "__deleted__");
 			multi.exec();
 		} finally {
-			RedisMgr.get().discardConnectionFromRedis();
+			RedisMgr.get().discardConnection(null);
 		}
 	}
 	
@@ -394,7 +394,7 @@ public class RedisUtil {
 		try {
 			return RedisMgr.get().getConnection().lpop(key);
 		} finally {
-			RedisMgr.get().discardConnectionFromRedis();
+			RedisMgr.get().discardConnection(null);
 		}
 	}
 	
@@ -403,7 +403,7 @@ public class RedisUtil {
 		try {
 			return RedisMgr.get().getConnection().rpush(key, val) > 0;
 		} finally {
-			RedisMgr.get().discardConnectionFromRedis();
+			RedisMgr.get().discardConnection(null);
 		}
 	}
 	
@@ -412,7 +412,7 @@ public class RedisUtil {
 		try {
 			return RedisMgr.get().getConnection().rpush(key, val);
 		} finally {
-			RedisMgr.get().discardConnectionFromRedis();
+			RedisMgr.get().discardConnection(null);
 		}
 	}
 	
@@ -421,7 +421,7 @@ public class RedisUtil {
 		try {
 			return RedisMgr.get().getConnection().rpop(key);
 		} finally {
-			RedisMgr.get().discardConnectionFromRedis();
+			RedisMgr.get().discardConnection(null);
 		}
 	}
 	
@@ -430,7 +430,7 @@ public class RedisUtil {
 		try {
 			return RedisMgr.get().getConnection().lset(key, index, val);
 		} finally {
-			RedisMgr.get().discardConnectionFromRedis();
+			RedisMgr.get().discardConnection(null);
 		}
 	}
 	
@@ -439,7 +439,7 @@ public class RedisUtil {
 		try {
 			return RedisMgr.get().getConnection().llen(key);
 		} finally {
-			RedisMgr.get().discardConnectionFromRedis();
+			RedisMgr.get().discardConnection(null);
 		}
 	}
 	
@@ -448,7 +448,7 @@ public class RedisUtil {
 		try {
 			return RedisMgr.get().getConnection().lindex(key, index);
 		} finally {
-			RedisMgr.get().discardConnectionFromRedis();
+			RedisMgr.get().discardConnection(null);
 		}
 	}
 	
@@ -457,7 +457,7 @@ public class RedisUtil {
 		try {
 			return RedisMgr.get().getConnection().sadd(key, val);
 		} finally {
-			RedisMgr.get().discardConnectionFromRedis();
+			RedisMgr.get().discardConnection(null);
 		}
 	}
 	
@@ -466,7 +466,7 @@ public class RedisUtil {
 		try {
 			return RedisMgr.get().getConnection().smembers(key);
 		} finally {
-			RedisMgr.get().discardConnectionFromRedis();
+			RedisMgr.get().discardConnection(null);
 		}
 	}
 	
@@ -475,7 +475,7 @@ public class RedisUtil {
 		try {
 			return RedisMgr.get().getConnection().srem(key, val) > 0;
 		} finally {
-			RedisMgr.get().discardConnectionFromRedis();
+			RedisMgr.get().discardConnection(null);
 		}
 	}
 	
@@ -484,7 +484,7 @@ public class RedisUtil {
 		try {
 			return RedisMgr.get().getConnection().srem(key, val);
 		} finally {
-			RedisMgr.get().discardConnectionFromRedis();
+			RedisMgr.get().discardConnection(null);
 		}
 	}
 	
@@ -493,7 +493,7 @@ public class RedisUtil {
 		try {
 			return RedisMgr.get().getConnection().spop(key);
 		} finally {
-			RedisMgr.get().discardConnectionFromRedis();
+			RedisMgr.get().discardConnection(null);
 		}
 	}
 	
@@ -502,7 +502,7 @@ public class RedisUtil {
 		try {
 			return RedisMgr.get().getConnection().scard(key);
 		} finally {
-			RedisMgr.get().discardConnectionFromRedis();
+			RedisMgr.get().discardConnection(null);
 		}
 	}
 	
@@ -511,7 +511,7 @@ public class RedisUtil {
 		try {
 			return RedisMgr.get().getConnection().sort(key);
 		} finally {
-			RedisMgr.get().discardConnectionFromRedis();
+			RedisMgr.get().discardConnection(null);
 		}
 	}
 	
@@ -520,7 +520,7 @@ public class RedisUtil {
 		try {
 			return RedisMgr.get().getConnection().sort(key, sortingParameters);
 		} finally {
-			RedisMgr.get().discardConnectionFromRedis();
+			RedisMgr.get().discardConnection(null);
 		}
 	}
 }

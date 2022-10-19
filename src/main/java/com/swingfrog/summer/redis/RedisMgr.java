@@ -111,48 +111,22 @@ public class RedisMgr {
 		local.get().dispose();
 	}
 	
-	public void discardConnectionFromRedis() {
-		if (!local.get().isRemoteDiscard() && !local.get().isServiceDiscard()) {
+	public void discardConnection(Object owner) {
+		Object oldOwner = local.get().getOwner();
+		if (oldOwner == null || oldOwner == owner) {
 			discardConnection();
 		}
 	}
-	
-	public void discardConnectionFromService() {
-		if (!local.get().isRemoteDiscard()) {
-			discardConnection();
-		}
-	}
-	
-	public void discardConnectionFromRemote() {
-		discardConnection();
-	}
-	
-	public void setDiscardConnectionLevelForService() {
-		local.get().setServiceDiscard(true);
-	}
-	
-	public void setDiscardConnectionLevelForRemote() {
-		local.get().setRemoteDiscard(true);
+
+	public void setOwner(Object owner) {
+		local.get().setOwner(owner);
 	}
 	
 	private static class ConnInfo {
-		private boolean serviceDiscard;
-		private boolean remoteDiscard;
 		private Jedis conn;
+		private Object owner;
 		public ConnInfo() {
 			dispose();
-		}
-		public boolean isServiceDiscard() {
-			return serviceDiscard;
-		}
-		public void setServiceDiscard(boolean serviceDiscard) {
-			this.serviceDiscard = serviceDiscard;
-		}
-		public boolean isRemoteDiscard() {
-			return remoteDiscard;
-		}
-		public void setRemoteDiscard(boolean remoteDiscard) {
-			this.remoteDiscard = remoteDiscard;
 		}
 		public Jedis getConn() {
 			return conn;
@@ -160,10 +134,15 @@ public class RedisMgr {
 		public void setConn(Jedis conn) {
 			this.conn = conn;
 		}
+		public Object getOwner() {
+			return owner;
+		}
+		public void setOwner(Object owner) {
+			this.owner = owner;
+		}
 		public void dispose() {
-			serviceDiscard = false;
-			remoteDiscard = false;
 			conn = null;
+			owner = false;
 		}
 	}
 	

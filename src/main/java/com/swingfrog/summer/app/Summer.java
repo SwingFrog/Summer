@@ -133,7 +133,7 @@ public class Summer {
 			DataBaseMgr.get().loadConfig(dbProperties);
 			AsyncCacheRepositoryMgr.get().loadConfig(dbProperties);
 			TaskMgr.get().init(taskProperties);
-			ContainerMgr.get().init(projectPackage);
+			ContainerMgr.get().init(projectPackage, enableServiceRemoteProxy);
 			ServerMgr.get().init();
 
 			ClientConfig[] configs = ConfigMgr.get().getClientConfigs();
@@ -146,10 +146,7 @@ public class Summer {
 			SessionTokenQueueMgr.get().init(ServerMgr.get().getEventExecutor(), sessionQueueExpireTimeMs);
 			SingleQueueMgr.get().init(ServerMgr.get().getEventExecutor(), singleQueueExpireTimeMs);
 			ContainerMgr.get().autowired();
-
-			if (enableServiceRemoteProxy) {
-				ContainerMgr.get().proxyObj();
-			}
+			ContainerMgr.get().proxyObj();
 
 			app.init();
 			RepositoryMgr.get().init();

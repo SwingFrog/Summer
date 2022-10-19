@@ -29,6 +29,8 @@
 ### 1.1.16 - 2022-10-17
 1. 修复了使用注解@Optional，当参数类型为基本类型会报错的问题，修改后可选的基本类型参数将提供默认参数值。
 2. 注解@Optional，新增默认值。
+3. 优化MySQL、Redis的Connection链路关闭权限，由发起者来关闭链路。
+4. @Service支持事务管理，使用时需在方法上加上注解@Transaction，在SummerConfig中设置enableServiceRemoteProxy为true。
 
 ### [1.1.15](https://mvnrepository.com/artifact/com.swingfrog.summer/summer/1.1.15) - 2022-09-19
 1. 修复Http协议下，数据未发完链路关闭的问题。 - 2022-07-13

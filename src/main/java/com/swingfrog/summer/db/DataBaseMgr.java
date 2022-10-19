@@ -134,60 +134,44 @@ public class DataBaseMgr {
 		local.get().dispose();
 	}
 	
-	public void discardConnectionFromDao() throws SQLException {
-		if (!local.get().isRemoteDiscard() && !local.get().isServiceDiscard()) {
+	public void discardConnection(Object owner) throws SQLException {
+		Object oldOwner = local.get().getOwner();
+		if (oldOwner == null || oldOwner == owner) {
 			discardConnection();
 		}
-	}
-	
-	public void discardConnectionFromService() throws SQLException {
-		if (!local.get().isRemoteDiscard()) {
-			discardConnection();
-		}
-	}
-	
-	public void discardConnectionFromRemote() throws SQLException {
-		discardConnection();
 	}
 
 	public void openTransaction() {
 		local.get().setTransaction(true);
 	}
-	
-	public void setDiscardConnectionLevelForService() {
-		local.get().setServiceDiscard(true);
+
+	public boolean notOpenTransaction() {
+		return !local.get().isTransaction();
 	}
 	
-	public void setDiscardConnectionLevelForRemote() {
-		local.get().setRemoteDiscard(true);
+	public void setOwner(Object owner) {
+		local.get().setOwner(owner);
 	}
 
 	private static class ConnInfo {
-		private boolean serviceDiscard;
-		private boolean remoteDiscard;
 		private Connection conn;
 		private final ConcurrentMap<String, Connection> otherConnMap = Maps.newConcurrentMap();
+		private Object owner;
 		private boolean transaction;
 		public ConnInfo() {
 			dispose();
-		}
-		public boolean isServiceDiscard() {
-			return serviceDiscard;
-		}
-		public void setServiceDiscard(boolean serviceDiscard) {
-			this.serviceDiscard = serviceDiscard;
-		}
-		public boolean isRemoteDiscard() {
-			return remoteDiscard;
-		}
-		public void setRemoteDiscard(boolean remoteDiscard) {
-			this.remoteDiscard = remoteDiscard;
 		}
 		public Connection getConn() {
 			return conn;
 		}
 		public void setConn(Connection conn) {
 			this.conn = conn;
+		}
+		public Object getOwner() {
+			return owner;
+		}
+		public void setOwner(Object owner) {
+			this.owner = owner;
 		}
 		public boolean isTransaction() {
 			return transaction;
@@ -205,10 +189,11 @@ public class DataBaseMgr {
 			return otherConnMap.values();
 		}
 		public void dispose() {
-			serviceDiscard = false;
-			remoteDiscard = false;
 			conn = null;
-			otherConnMap.clear();
+			if (!otherConnMap.isEmpty()) {
+				otherConnMap.clear();
+			}
+			owner = null;
 			transaction = false;
 		}
 	}

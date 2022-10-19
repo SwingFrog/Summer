@@ -1,8 +1,6 @@
 package com.swingfrog.summer.test.ecsgameserver.module.player.team;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Queues;
 import com.google.common.collect.Sets;
 import com.swingfrog.summer.annotation.Autowired;
 import com.swingfrog.summer.annotation.Remote;
@@ -18,7 +16,6 @@ import com.swingfrog.summer.test.ecsgameserver.module.player.PlayerManager;
 import com.swingfrog.summer.test.ecsgameserver.module.team.TeamData;
 import com.swingfrog.summer.test.ecsgameserver.module.team.TeamManager;
 
-import java.util.List;
 import java.util.concurrent.ConcurrentMap;
 
 @Remote

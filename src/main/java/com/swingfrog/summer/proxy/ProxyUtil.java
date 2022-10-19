@@ -26,15 +26,32 @@ public class ProxyUtil {
 				value = UUID.randomUUID().toString();
 				SynchronizedMgr.get().lock(synchronizedName, value);
 			}
+			boolean transaction = false;
+			if (ContainerMgr.get().isTransaction(method) && DataBaseMgr.get().notOpenTransaction()) {
+				DataBaseMgr.get().openTransaction();
+				transaction = true;
+			}
 			try {
-				DataBaseMgr.get().setDiscardConnectionLevelForService();
-				RedisMgr.get().setDiscardConnectionLevelForService();
-				return method.invoke(obj1, args);
+				DataBaseMgr.get().setOwner(method);
+				RedisMgr.get().setOwner(method);
+				Object res = method.invoke(obj1, args);
+				if (transaction) {
+					DataBaseMgr.get().getConnection().commit();
+				}
+				return res;
 			} catch (InvocationTargetException e) {
+				if (transaction) {
+					DataBaseMgr.get().getConnection().rollback();
+				}
 				throw e.getTargetException();
+			} catch (Exception e) {
+				if (transaction) {
+					DataBaseMgr.get().getConnection().rollback();
+				}
+				throw e;
 			} finally {
-				DataBaseMgr.get().discardConnectionFromService();
-				RedisMgr.get().discardConnectionFromService();
+				DataBaseMgr.get().discardConnection(method);
+				RedisMgr.get().discardConnection(method);
 				if (synchronizedName != null) {
 					SynchronizedMgr.get().unlock(synchronizedName, value);
 				}
@@ -54,13 +71,13 @@ public class ProxyUtil {
 				SynchronizedMgr.get().lock(synchronizedName, value);
 			}
 			boolean transaction = false;
-			if (ContainerMgr.get().isTransaction(method)) {
+			if (ContainerMgr.get().isTransaction(method) && DataBaseMgr.get().notOpenTransaction()) {
 				DataBaseMgr.get().openTransaction();
 				transaction = true;
 			}
 			try {
-				DataBaseMgr.get().setDiscardConnectionLevelForRemote();
-				RedisMgr.get().setDiscardConnectionLevelForRemote();
+				DataBaseMgr.get().setOwner(method);
+				RedisMgr.get().setOwner(method);
 				Object res = method.invoke(obj1, args);
 				if (transaction) {
 					DataBaseMgr.get().getConnection().commit();
@@ -77,8 +94,8 @@ public class ProxyUtil {
 				}
 				throw e;
 			} finally {
-				DataBaseMgr.get().discardConnectionFromRemote();
-				RedisMgr.get().discardConnectionFromRemote();
+				DataBaseMgr.get().discardConnection(method);
+				RedisMgr.get().discardConnection(method);
 				if (synchronizedName != null) {
 					SynchronizedMgr.get().unlock(synchronizedName, value);
 				}
