@@ -39,7 +39,7 @@ public class Server {
 		this.bossGroup = bossGroup;
 		this.workerGroup = workerGroup;
 
-		long intervalTime = serverContext.getConfig().getHeartSec() * 1000;
+		long intervalTime = serverContext.getConfig().getHeartSec() * 1000L;
 		checkHeartTask = TaskUtil.getIntervalTask(intervalTime, intervalTime, serverContext.getConfig().getServerName(), () -> {
 			log.info("check all client connect");
 			long time = System.currentTimeMillis() - intervalTime;

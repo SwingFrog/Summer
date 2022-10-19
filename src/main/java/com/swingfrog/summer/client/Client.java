@@ -43,7 +43,7 @@ public class Client {
 		clientContext = new ClientContext(id, config, this);
 		clientRemote = new ClientRemote(clientContext);
 
-		long intervalTime = clientContext.getConfig().getHeartSec() * 1000;
+		long intervalTime = clientContext.getConfig().getHeartSec() * 1000L;
 		checkHeartTask = TaskUtil.getIntervalTask(intervalTime / 2, intervalTime / 2, clientContext.getConfig().getServerName()+"_"+id, () -> {
 			if (clientContext.getChannel() != null) {
 				log.info("check connect for {}_{}", clientContext.getConfig().getServerName(), id);
