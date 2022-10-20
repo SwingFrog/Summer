@@ -20,7 +20,6 @@ import com.swingfrog.summer.protocol.SessionRequest;
 import com.swingfrog.summer.protocol.protobuf.ProtobufRequest;
 import com.swingfrog.summer.server.async.AsyncResponseMgr;
 import com.swingfrog.summer.statistics.RemoteStatistics;
-import org.quartz.SchedulerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,7 +42,6 @@ import com.swingfrog.summer.server.ServerPush;
 import com.swingfrog.summer.server.SessionContext;
 import com.swingfrog.summer.server.exception.CodeException;
 import com.swingfrog.summer.server.exception.CodeMsg;
-import com.swingfrog.summer.task.TaskJob;
 import com.swingfrog.summer.task.TaskMgr;
 import com.swingfrog.summer.task.TaskTrigger;
 import com.swingfrog.summer.task.TaskUtil;
@@ -158,10 +156,9 @@ public class Summer {
 						log.info("lifecycle [{}] start", l.getInfo().getName());
 						l.start();
 					});
-			ContainerMgr.get().startTask();
 			ServerMgr.get().launch();
 			ClientMgr.get().connectAll();
-			TaskMgr.get().startAll();
+			ContainerMgr.get().startTask();
 			app.start();
 			Runtime.getRuntime().addShutdownHook(new Thread(shutdownHook(app, hasClient), "shutdown"));
 		} catch (Exception e) {
@@ -179,11 +176,7 @@ public class Summer {
 				ClientMgr.get().shutdown();
 
 			ServerMgr.get().shutdown();
-			try {
-				TaskMgr.get().shutdownAll();
-			} catch (SchedulerException e) {
-				log.error(e.getMessage(), e);
-			}
+			TaskMgr.get().shutdown();
 			app.stop();
 
 			List<Lifecycle> lifecycles = ContainerMgr.get().listDeclaredComponent(Lifecycle.class).stream()
@@ -286,28 +279,24 @@ public class Summer {
 		return rs;
 	}
 	
-	public static TaskTrigger getIntervalTask(long interval, long delay, String taskName, TaskJob taskJob) {
-		return TaskUtil.getIntervalTask(interval, delay, taskName, taskJob);
+	public static TaskTrigger getIntervalTask(long interval, long delay, Runnable runnable) {
+		return getIntervalTask(interval, delay, false, runnable);
+	}
+
+	public static TaskTrigger getIntervalTask(long interval, long delay, boolean minuteBegin, Runnable runnable) {
+		return TaskUtil.getIntervalTask(interval, delay, minuteBegin, runnable);
 	}
 	
-	public static TaskTrigger getCronTask(String cron, String taskName, TaskJob taskJob) {
-		return TaskUtil.getCronTask(cron, taskName, taskJob);
+	public static TaskTrigger getCronTask(String cron, Runnable runnable) {
+		return TaskUtil.getCronTask(cron, runnable);
 	}
 	
 	public static void startTask(TaskTrigger taskTrigger) {
-		try {
-			TaskMgr.get().start(taskTrigger);
-		} catch (SchedulerException e) {
-			log.error(e.getMessage(), e);
-		}
+		TaskMgr.get().start(taskTrigger);
 	}
 	
 	public static void stopTask(TaskTrigger taskTrigger) {
-		try {
-			TaskMgr.get().stop(taskTrigger);
-		} catch (SchedulerException e) {
-			log.error(e.getMessage(), e);
-		}
+		TaskMgr.get().stop(taskTrigger);
 	}
 	
 	public static ClientRemote getClientRemote(String cluster, String name) {

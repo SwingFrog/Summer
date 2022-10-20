@@ -31,6 +31,7 @@
 2. 注解@Optional，新增默认值。
 3. 优化MySQL、Redis的Connection链路关闭权限，由发起者来关闭链路。
 4. @Service支持事务管理，使用时需在方法上加上注解@Transaction，在SummerConfig中设置enableServiceRemoteProxy为true。
+5. 移除Quartz任务调度框架，改用Spring的Cron表达式解析器配合ScheduledExecutorService实现定时任务调度。
 
 ### [1.1.15](https://mvnrepository.com/artifact/com.swingfrog.summer/summer/1.1.15) - 2022-09-19
 1. 修复Http协议下，数据未发完链路关闭的问题。 - 2022-07-13
@@ -331,18 +332,9 @@ maxWaitMillis=100000
 testOnBorrow=true
 ```
 
-##### task.properties (quartz配置文件)
+##### task.properties (配置文件)
 ```properties
-org.quartz.scheduler.instanceName=Task
-org.quartz.scheduler.rmi.export=false
-org.quartz.scheduler.rmi.proxy=false
-org.quartz.scheduler.wrapJobExecutionInUserTransaction=false
-org.quartz.threadPool.class=org.quartz.simpl.SimpleThreadPool
-org.quartz.threadPool.threadCount=10
-org.quartz.threadPool.threadPriority=5
-org.quartz.threadPool.threadsInheritContextClassLoaderOfInitializingThread=true
-org.quartz.jobStore.misfireThreshold=60000
-org.quartz.jobStore.class=org.quartz.simpl.RAMJobStore
+coreThread=1
 ```
 
 ##### server.properties (服务器配置文件) [2020.05.09更新]

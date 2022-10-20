@@ -83,6 +83,9 @@ public class ConfigMgr {
 		serverConfig.setPort(8080);
 		serverConfig.setProtocol("Http");
 		serverConfig.setCharset("UTF-8");
+		serverConfig.setBossThread(1);
+		serverConfig.setWorkerThread(1);
+		serverConfig.setEventThread(1);
 		serverConfig.setMsgLength(104857600);
 		serverConfig.setHeartSec(40);
 		serverConfig.setColdDownMs(10);

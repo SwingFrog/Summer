@@ -4,7 +4,6 @@ import com.swingfrog.summer.protocol.ProtocolConst;
 import com.swingfrog.summer.task.TaskTrigger;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
-import org.quartz.SchedulerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,7 +43,7 @@ public class Client {
 		clientRemote = new ClientRemote(clientContext);
 
 		long intervalTime = clientContext.getConfig().getHeartSec() * 1000L;
-		checkHeartTask = TaskUtil.getIntervalTask(intervalTime / 2, intervalTime / 2, clientContext.getConfig().getServerName()+"_"+id, () -> {
+		checkHeartTask = TaskUtil.getIntervalTask(intervalTime / 2, intervalTime / 2, false, () -> {
 			if (clientContext.getChannel() != null) {
 				log.info("check connect for {}_{}", clientContext.getConfig().getServerName(), id);
 				clientContext.getChannel().writeAndFlush(ProtocolConst.PING);
@@ -57,7 +56,7 @@ public class Client {
 		});
 	}
 
-	public void connect() throws SchedulerException {
+	public void connect() {
 		active = true;
 		TaskMgr.get().start(checkHeartTask);
 		reconnect();

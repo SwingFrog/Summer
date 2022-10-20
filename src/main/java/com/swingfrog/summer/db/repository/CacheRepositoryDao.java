@@ -30,7 +30,7 @@ public abstract class CacheRepositoryDao<T, K> extends RepositoryDao<T, K> {
     long expireTime;
     volatile boolean waitRemoveAll;
 
-    // never expire if value less then zero
+    // never expire if value less than zero
     protected abstract long expireTime();
 
     @Override

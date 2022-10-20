@@ -11,5 +11,6 @@ public @interface IntervalTask {
 
 	long value() default 0;
 	long delay() default 0;
+	boolean nextMinuteBegin() default false;
 	
 }

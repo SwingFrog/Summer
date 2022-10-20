@@ -11,7 +11,6 @@ import com.swingfrog.summer.util.ThreadCountUtil;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.util.concurrent.DefaultThreadFactory;
-import org.quartz.SchedulerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,7 +82,7 @@ public class ClientMgr {
 		}
 	}
 	
-	public void connectAll() throws SchedulerException {
+	public void connectAll() {
 		if (nameToCluster.size() > 0) {
 			log.info("clients connect...");
 			for (ClientCluster clientCluster : nameToCluster.values()) {

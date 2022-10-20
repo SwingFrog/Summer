@@ -12,7 +12,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.swingfrog.summer.annotation.*;
-import org.quartz.SchedulerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -147,7 +146,7 @@ public class ContainerMgr {
 						log.info("register interval[{}] task {}.{}", intervalTask.value(), clazz.getSimpleName(), method.getName());
 						MethodInvoke methodInvoke = enableProxy ? ProxyUtil.getProxyRemote(new MethodInvoke()) : new MethodInvoke();
 						methodInvoke.init(obj, method);
-						taskList.add(TaskUtil.getIntervalTask(intervalTask.value(), intervalTask.delay(), methodInvoke));
+						taskList.add(TaskUtil.getIntervalTask(intervalTask.value(), intervalTask.delay(), intervalTask.nextMinuteBegin(), methodInvoke));
 					}
 				}
 			}
@@ -249,7 +248,8 @@ public class ContainerMgr {
 		}
 	}
 	
-	public void startTask() throws SchedulerException {
+	public void startTask() {
+		log.info("task start all");
 		for (TaskTrigger taskTrigger : taskList) {
 			TaskMgr.get().start(taskTrigger);
 		}

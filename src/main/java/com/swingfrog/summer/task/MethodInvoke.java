@@ -3,7 +3,7 @@ package com.swingfrog.summer.task;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-public class MethodInvoke {
+public class MethodInvoke implements Runnable {
 	
 	private Object obj;
 	private Method method;
@@ -11,14 +11,6 @@ public class MethodInvoke {
 	public void init(Object obj, Method method) {
 		this.obj = obj;
 		this.method = method;
-	}
-	
-	public void invoke() throws Throwable {
-		try {
-			method.invoke(obj);
-		} catch (InvocationTargetException e) {
-			throw e.getTargetException();
-		}
 	}
 
 	public Object getObj() {
@@ -36,5 +28,16 @@ public class MethodInvoke {
 	public void setMethod(Method method) {
 		this.method = method;
 	}
-	
+
+	@Override
+	public void run() {
+		try {
+			method.invoke(obj);
+		} catch (IllegalAccessException e) {
+			throw new RuntimeException(e);
+		} catch (InvocationTargetException e) {
+			throw new RuntimeException(e.getTargetException());
+		}
+	}
+
 }

@@ -63,7 +63,7 @@ public class AsyncCacheRepositoryMgr {
     }
 
     private void loadDefaultConfig() {
-        config.setCoreThread(ThreadCountUtil.ioDenseness(0));
+        config.setCoreThread(1);
     }
 
     public void shutdown() {

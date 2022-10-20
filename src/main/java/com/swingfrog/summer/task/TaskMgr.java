@@ -1,21 +1,25 @@
 package com.swingfrog.summer.task;
 
-import org.quartz.Scheduler;
-import org.quartz.SchedulerException;
-import org.quartz.SchedulerFactory;
-import org.quartz.impl.StdSchedulerFactory;
+import com.swingfrog.summer.config.ConfigUtil;
+import com.swingfrog.summer.util.ThreadCountUtil;
+import io.netty.util.concurrent.DefaultThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
+import java.beans.IntrospectionException;
+import java.io.*;
 import java.util.Properties;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 public class TaskMgr {
 
+	private static final Logger log = LoggerFactory.getLogger(TaskMgr.class);
+
 	public static final String DEFAULT_CONFIG_PATH = "config/task.properties";
 
-	private static final Logger log = LoggerFactory.getLogger(TaskMgr.class);
-	private Scheduler scheduler;
+	private volatile ScheduledExecutorService scheduledExecutor;
+	private final TaskConfig config = new TaskConfig();
 	
 	private static class SingleCase {
 		public static final TaskMgr INSTANCE = new TaskMgr();
@@ -29,54 +33,61 @@ public class TaskMgr {
 		return SingleCase.INSTANCE;
 	}
 	
-	public void init(String fileName) throws SchedulerException {
+	public void init(String path) throws IOException, IntrospectionException {
 		log.info("task init");
-		SchedulerFactory schedulerFactory;
-		if (DEFAULT_CONFIG_PATH.equals(fileName)) {
-			if (new File(fileName).exists()) {
-				schedulerFactory = new StdSchedulerFactory(fileName);
+		if (DEFAULT_CONFIG_PATH.equals(path)) {
+			File file = new File(path);
+			if (file.exists()) {
+				loadConfig(new FileInputStream(file));
 			} else {
-				log.debug("used default task config.");
-				schedulerFactory = new StdSchedulerFactory(createDefaultProperties());
+				loadDefaultConfig();
 			}
 		} else {
-			schedulerFactory = new StdSchedulerFactory(fileName);
+			loadConfig(new FileInputStream(path));
 		}
-		scheduler = schedulerFactory.getScheduler();
+		log.info("task manager loading config, core thread num[{}]", config.getCoreThread());
 	}
 
-	private Properties createDefaultProperties() {
-		Properties properties = new Properties();
-		properties.setProperty("org.quartz.scheduler.instanceName", "Task");
-		properties.setProperty("org.quartz.scheduler.rmi.export", "false");
-		properties.setProperty("org.quartz.scheduler.rmi.proxy", "false");
-		properties.setProperty("org.quartz.scheduler.wrapJobExecutionInUserTransaction", "false");
-		properties.setProperty("org.quartz.threadPool.class", "org.quartz.simpl.SimpleThreadPool");
-		properties.setProperty("org.quartz.threadPool.threadCount", "1");
-		properties.setProperty("org.quartz.threadPool.threadPriority", "5");
-		properties.setProperty("org.quartz.threadPool.threadsInheritContextClassLoaderOfInitializingThread", "true");
-		properties.setProperty("org.quartz.jobStore.misfireThreshold", "60000");
-		properties.setProperty("org.quartz.jobStore.class", "org.quartz.simpl.RAMJobStore");
-		return properties;
+	private void loadConfig(InputStream in) throws IOException, IntrospectionException {
+		Properties pro = new Properties();
+		pro.load(in);
+		ConfigUtil.loadDataWithBean(pro, "", config);
+		in.close();
+		pro.clear();
+		config.setCoreThread(ThreadCountUtil.ioDenseness(config.getCoreThread()));
+	}
+
+	private void loadDefaultConfig() {
+		config.setCoreThread(1);
+	}
+
+	public ScheduledExecutorService getScheduledExecutor() {
+		if (scheduledExecutor == null) {
+			synchronized (this) {
+				if (scheduledExecutor == null) {
+					scheduledExecutor = Executors.newScheduledThreadPool(
+							config.getCoreThread(),
+							new DefaultThreadFactory("TaskMgr"));
+					log.info("task manager create scheduled executor");
+				}
+			}
+		}
+		return scheduledExecutor;
 	}
 	
-	public void startAll() throws SchedulerException {
-		log.info("task start all");
-		scheduler.start();
-	}
-	
-	
-	public void shutdownAll() throws SchedulerException {
+	public void shutdown() {
 		log.info("task shutdown all");
-		scheduler.shutdown();
+		if (scheduledExecutor != null) {
+			scheduledExecutor.shutdown();
+		}
 	}
 	
-	public void start(TaskTrigger taskTrigger) throws SchedulerException {
-		scheduler.scheduleJob(taskTrigger.getJob(), taskTrigger.getTrigger());
+	public void start(TaskTrigger taskTrigger) {
+		taskTrigger.start(getScheduledExecutor());
 	}
 	
-	public void stop(TaskTrigger taskTrigger) throws SchedulerException {
-		scheduler.unscheduleJob(taskTrigger.getTrigger().getKey());
+	public void stop(TaskTrigger taskTrigger) {
+		taskTrigger.stop(false);
 	}
 	
 }
