@@ -27,10 +27,8 @@ public class TestService implements Lifecycle {
         log.info("TestService.start");
         System.out.println(testDao.list("type", 5));
         for (int i = 0; i < 10; i++) {
-            for (int j = 0; j < 3; j++) {
-                testDao.removeByPrimaryKey((long) i);
-                testDao.add(new Test(i, i, "content" + i));
-            }
+            testDao.add(new Test(i, i, "content" + i));
+            //testDao.removeByPrimaryKey((long) i);
         }
         System.out.println(testDao.list("type", 5));
         testDao.list("type", 5).forEach(testDao::remove);

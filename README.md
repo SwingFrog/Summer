@@ -32,6 +32,7 @@
 3. 优化MySQL、Redis的Connection链路关闭权限，由发起者来关闭链路。
 4. @Service支持事务管理，使用时需在方法上加上注解@Transaction，在SummerConfig中设置enableServiceRemoteProxy为true。
 5. 移除Quartz任务调度框架，改用Spring的Cron表达式解析器配合ScheduledExecutorService实现定时任务调度。
+6. 移除Druid数据库连接池框架，改用Hikari。
 
 ### [1.1.15](https://mvnrepository.com/artifact/com.swingfrog.summer/summer/1.1.15) - 2022-09-19
 1. 修复Http协议下，数据未发完链路关闭的问题。 - 2022-07-13
@@ -295,26 +296,19 @@ public class SummerDemoApp implements SummerApp {
 - task.properties #任务配置文件
 - server.properties #服务器配置文件
 
-##### db.properties (druid的配置文件)
+##### db.properties (hikari的配置文件)
 ```properties
-driverClassName=com.mysql.jdbc.Driver
-url=jdbc:mysql://127.0.0.1:3306/db_test?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+driverClassName=com.mysql.cj.jdbc.Driver
+jdbcUrl=jdbc:mysql://127.0.0.1:3306/test?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
 username=root
 password=123456
-filters=stat
-initialSize=2
-maxActive=300
-maxWait=60000
-timeBetweenEvictionRunsMillis=60000
-minEvictableIdleTimeMillis=300000
-validationQuery=SELECT 1
-testWhileIdle=true
-testOnBorrow=false
-testOnReturn=false
-poolPreparedStatements=false
-maxPoolPreparedStatementPerConnectionSize=200
+poolName=Test
+minimumIdle=1
+maximumPoolSize=10
+connectionTimeout=30000
+connectionTestQuery=SELECT 1
 
-asyncCache.coreThread=0
+asyncCache.coreThread=1
 ```
 
 ##### redis.properties (jedis配置文件)
@@ -326,9 +320,9 @@ password=123456
 blockWhenExhausted=true
 evictionPolicyClassName=org.apache.commons.pool2.impl.DefaultEvictionPolicy
 jmxEnabled=true
-maxIdle=8
-maxTotal=200
-maxWaitMillis=100000
+maxIdle=1
+maxTotal=10
+maxWaitMillis=30000
 testOnBorrow=true
 ```
 

@@ -11,9 +11,9 @@ import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentMap;
 
-import com.alibaba.druid.pool.DruidDataSource;
-import com.alibaba.druid.pool.DruidDataSourceFactory;
 import com.google.common.collect.Maps;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,8 +23,8 @@ public class DataBaseMgr {
 
 	public static final String DEFAULT_CONFIG_PATH = "config/db.properties";
 
-	private DruidDataSource dataSource;
-	private final Map<String, DruidDataSource> otherDataSourceMap = Maps.newHashMap();
+	private HikariDataSource dataSource;
+	private final Map<String, HikariDataSource> otherDataSourceMap = Maps.newHashMap();
 	private final ThreadLocal<ConnInfo> local = ThreadLocal.withInitial(ConnInfo::new);
 	
 	private static class SingleCase {
@@ -43,41 +43,46 @@ public class DataBaseMgr {
 		if (DEFAULT_CONFIG_PATH.equals(path)) {
 			File file = new File(path);
 			if (file.exists()) {
-				loadConfig(new FileInputStream(file));
+				dataSource = getDataSource(new FileInputStream(file));
 			} else {
 				log.debug("used default db config.");
-				dataSource = (DruidDataSource) DruidDataSourceFactory.createDataSource(createDefaultProperties());
+				dataSource = getDefaultDataSource();
 			}
 		} else {
-			loadConfig(new FileInputStream(path));
+			dataSource = getDataSource(new FileInputStream(path));
 		}
 	}
 	
-	public void loadConfig(InputStream in) throws Exception {
+	public HikariDataSource getDataSource(InputStream in) throws Exception {
 		Properties properties = new Properties();
 		properties.load(in);
-		dataSource = (DruidDataSource) DruidDataSourceFactory.createDataSource(properties);
+		HikariConfig config = new HikariConfig();
+		config.setDriverClassName(properties.getProperty("driverClassName"));
+		config.setJdbcUrl(properties.getProperty("jdbcUrl"));
+		config.setUsername(properties.getProperty("username"));
+		config.setPassword(properties.getProperty("password"));
+		config.setPoolName(properties.getProperty("poolName"));
+		config.setMinimumIdle(Integer.parseInt(properties.getProperty("minimumIdle")));
+		config.setMaximumPoolSize(Integer.parseInt(properties.getProperty("maximumPoolSize")));
+		config.setConnectionTimeout(Long.parseLong(properties.getProperty("connectionTimeout")));
+		config.setConnectionTestQuery(properties.getProperty("connectionTestQuery"));
+		in.close();
+		properties.clear();
+		return new HikariDataSource(config);
 	}
 
-	private Properties createDefaultProperties() {
-		Properties properties = new Properties();
-		properties.setProperty("driverClassName", "com.mysql.cj.jdbc.Driver");
-		properties.setProperty("url", "jdbc:mysql://127.0.0.1:3306/db_test?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull&serverTimezone=Asia/Shanghai");
-		properties.setProperty("username", "root");
-		properties.setProperty("password", "123456");
-		properties.setProperty("filters", "stat");
-		properties.setProperty("initialSize", "2");
-		properties.setProperty("maxActive", "300");
-		properties.setProperty("maxWait", "60000");
-		properties.setProperty("timeBetweenEvictionRunsMillis", "60000");
-		properties.setProperty("minEvictableIdleTimeMillis", "300000");
-		properties.setProperty("validationQuery", "SELECT 1");
-		properties.setProperty("testWhileIdle", "true");
-		properties.setProperty("testOnBorrow", "false");
-		properties.setProperty("testOnReturn", "false");
-		properties.setProperty("poolPreparedStatements", "false");
-		properties.setProperty("maxPoolPreparedStatementPerConnectionSize", "200");
-		return properties;
+	private HikariDataSource getDefaultDataSource() {
+		HikariConfig config = new HikariConfig();
+		config.setDriverClassName("com.mysql.cj.jdbc.Driver");
+		config.setJdbcUrl("jdbc:mysql://127.0.0.1:3306/test?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull&serverTimezone=Asia/Shanghai");
+		config.setUsername("root");
+		config.setPassword("123456");
+		config.setPoolName("Test");
+		config.setMinimumIdle(1);
+		config.setMaximumPoolSize(10);
+		config.setConnectionTimeout(30_000);
+		config.setConnectionTestQuery("SELECT 1");
+		return new HikariDataSource(config);
 	}
 
 	public void loadConfigForOther(String topic, String path) throws Exception {
@@ -86,9 +91,7 @@ public class DataBaseMgr {
 
 	public void loadConfigForOther(String topic, InputStream in) throws Exception {
 		Objects.requireNonNull(topic, "topic not null");
-		Properties properties = new Properties();
-		properties.load(in);
-		otherDataSourceMap.put(topic, (DruidDataSource) DruidDataSourceFactory.createDataSource(properties));
+		otherDataSourceMap.put(topic, getDataSource(in));
 	}
 	
 	public Connection getConnection() throws SQLException {

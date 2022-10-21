@@ -75,9 +75,9 @@ public class RedisMgr {
 		redisConfig.setBlockWhenExhausted(true);
 		redisConfig.setEvictionPolicyClassName("org.apache.commons.pool2.impl.DefaultEvictionPolicy");
 		redisConfig.setJmxEnabled(true);
-		redisConfig.setMaxIdle(8);
-		redisConfig.setMaxTotal(200);
-		redisConfig.setMaxWaitMillis(100000);
+		redisConfig.setMaxIdle(1);
+		redisConfig.setMaxTotal(10);
+		redisConfig.setMaxWaitMillis(30_000);
 		redisConfig.setTestOnBorrow(true);
 		loadJedisPool(redisConfig);
 	}
