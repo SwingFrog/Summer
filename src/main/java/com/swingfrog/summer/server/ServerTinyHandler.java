@@ -16,7 +16,7 @@ public class ServerTinyHandler extends AbstractServerHandler<TinyReq> {
 
     private static final Logger log = LoggerFactory.getLogger(ServerTinyHandler.class);
 
-    protected ServerTinyHandler(ServerContext serverContext) {
+    public ServerTinyHandler(ServerContext serverContext) {
         super(serverContext);
     }
 

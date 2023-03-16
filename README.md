@@ -26,6 +26,9 @@
 
 
 ## 更新说明
+### 1.1.17
+1. 新增网络协议Custom，通过ProtocolCustomMgr设置ProtocolCustomHandler可实现自定义协议处理。 - 2023-03-09
+
 ### [1.1.16](https://mvnrepository.com/artifact/com.swingfrog.summer/summer/1.1.16) - 2022-10-17
 1. 修复了使用注解@Optional，当参数类型为基本类型会报错的问题，修改后可选的基本类型参数将提供默认参数值。
 2. 注解@Optional，新增默认值。

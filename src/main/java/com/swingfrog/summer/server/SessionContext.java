@@ -106,7 +106,7 @@ public class SessionContext {
 		token = null;
 	}
 
-	Channel getChannel() {
+	public Channel getChannel() {
 		return channel;
 	}
 

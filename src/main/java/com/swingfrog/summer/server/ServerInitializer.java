@@ -13,6 +13,7 @@ import com.swingfrog.summer.protocol.tiny.TinyEncoder;
 import com.swingfrog.summer.protocol.websocket.WebSocketDecoder;
 import com.swingfrog.summer.protocol.websocket.WebSocketEncoder;
 import com.swingfrog.summer.protocol.websocket.WebSocketUriFilter;
+import com.swingfrog.summer.protocol.custom.ProtocolCustomMgr;
 import com.swingfrog.summer.server.exception.NotFoundProtocolException;
 import com.swingfrog.summer.web.WebRequestHandler;
 
@@ -155,6 +156,11 @@ public class ServerInitializer extends ChannelInitializer<SocketChannel> {
                 pipeline.addLast(new TinyEncoder(config.getCharset()));
                 pipeline.addLast(new ServerTinyHandler(serverContext));
                 break;
+            case ProtocolConst.SERVER_PROTOCOL_CUSTOM:
+            case ProtocolConst.SERVER_PROTOCOL_CUSTOM_PROTOBUF:
+            case ProtocolConst.SERVER_PROTOCOL_CUSTOM_TINY:
+                ProtocolCustomMgr.get().onHandle(sc, serverContext);
+                break;
             default:
                 throw new NotFoundProtocolException(config.getProtocol());
         }
@@ -175,6 +181,10 @@ public class ServerInitializer extends ChannelInitializer<SocketChannel> {
             case ProtocolConst.SERVER_PROTOCOL_WEB_SOCKET_TINY:
             case ProtocolConst.SERVER_PROTOCOL_WEB_SOCKET_TINY_STANDARD:
                 return true;
+            case ProtocolConst.SERVER_PROTOCOL_CUSTOM:
+            case ProtocolConst.SERVER_PROTOCOL_CUSTOM_PROTOBUF:
+            case ProtocolConst.SERVER_PROTOCOL_CUSTOM_TINY:
+                return ProtocolCustomMgr.get().hasHandler();
         }
         return false;
     }

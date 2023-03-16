@@ -10,16 +10,19 @@ public class ProtocolConst {
 	public static final String SERVER_PROTOCOL_LENGTH_FIELD = "LengthField";
 	public static final String SERVER_PROTOCOL_WEB_SOCKET = "WebSocket";
 	public static final String SERVER_PROTOCOL_WEB_SOCKET_STANDARD = "WebSocket-Standard"; // non head length 4 bytes.
+	public static final String SERVER_PROTOCOL_CUSTOM = "Custom";
 
 	// Protobuf
 	public static final String SERVER_PROTOCOL_LENGTH_FIELD_PROTOBUF = "LengthField-Protobuf";
 	public static final String SERVER_PROTOCOL_WEB_SOCKET_PROTOBUF = "WebSocket-Protobuf";
 	public static final String SERVER_PROTOCOL_WEB_SOCKET_PROTOBUF_STANDARD = "WebSocket-Protobuf-Standard"; // non head length 4 bytes.
+	public static final String SERVER_PROTOCOL_CUSTOM_PROTOBUF = "Custom-Protobuf";
 
 	// Tiny JSON
 	public static final String SERVER_PROTOCOL_LENGTH_FIELD_TINY = "LengthField-Tiny";
 	public static final String SERVER_PROTOCOL_WEB_SOCKET_TINY = "WebSocket-Tiny";
 	public static final String SERVER_PROTOCOL_WEB_SOCKET_TINY_STANDARD = "WebSocket-Tiny-Standard"; // non head length 4 bytes.
+	public static final String SERVER_PROTOCOL_CUSTOM_TINY = "Custom-Tiny";
 
 	public static final String PING = "ping";
 	public static final String PONG = "pong";

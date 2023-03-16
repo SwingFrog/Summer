@@ -19,7 +19,7 @@ public class ServerProtobufHandler extends AbstractServerHandler<Protobuf> {
 
     private static final Logger log = LoggerFactory.getLogger(ServerProtobufHandler.class);
 
-    protected ServerProtobufHandler(ServerContext serverContext) {
+    public ServerProtobufHandler(ServerContext serverContext) {
         super(serverContext);
     }
 
