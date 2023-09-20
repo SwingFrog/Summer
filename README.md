@@ -26,7 +26,7 @@
 
 
 ## 更新说明
-### 1.1.17
+### [1.1.17](https://mvnrepository.com/artifact/com.swingfrog.summer/summer/1.1.17) - 2023-09-20
 1. 新增网络协议Custom，通过ProtocolCustomMgr设置ProtocolCustomHandler可实现自定义协议处理。 - 2023-03-09
 
 ### [1.1.16](https://mvnrepository.com/artifact/com.swingfrog.summer/summer/1.1.16) - 2022-10-17
@@ -229,7 +229,7 @@ Redis 5.0 (仅供参考)<br/>
     <dependency>
         <groupId>com.swingfrog.summer</groupId>
         <artifactId>summer</artifactId>
-        <version>1.1.16</version>
+        <version>1.1.17</version>
     </dependency>
 ```
 
