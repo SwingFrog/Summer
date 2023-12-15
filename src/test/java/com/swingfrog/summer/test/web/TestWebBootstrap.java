@@ -34,6 +34,7 @@ public class TestWebBootstrap implements SummerApp {
     }
 
     public static void main(String[] args) {
+        Summer.addModuleNet();
         String resources = TestWebBootstrap.class.getClassLoader().getResource("web").getPath();
         Summer.hot(SummerConfig.newBuilder()
                 .app(new TestWebBootstrap())

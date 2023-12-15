@@ -26,6 +26,7 @@ public class TestRepositoryBootstrap implements SummerApp {
     }
 
     public static void main(String[] args) {
+        Summer.addModuleDb();
         String resources = TestRepositoryBootstrap.class.getClassLoader().getResource("repository").getPath();
         Summer.hot(SummerConfig.newBuilder()
                 .app(new TestRepositoryBootstrap())

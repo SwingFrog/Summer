@@ -26,6 +26,8 @@ public class EcsGameServerBootstrap implements SummerApp {
     }
 
     public static void main(String[] args) {
+        Summer.addModuleNet();
+        Summer.addModuleDb();
         String resources = EcsGameServerBootstrap.class.getClassLoader().getResource("ecsgameserver").getPath();
         Summer.hot(SummerConfig.newBuilder()
                 .app(new EcsGameServerBootstrap())

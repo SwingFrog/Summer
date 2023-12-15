@@ -26,6 +26,7 @@ public class TestProtobufBootstrap implements SummerApp {
     }
 
     public static void main(String[] args) {
+        Summer.addModuleNet();
         String resources = TestProtobufBootstrap.class.getClassLoader().getResource("protobuf").getPath();
         Summer.hot(SummerConfig.newBuilder()
                 .app(new TestProtobufBootstrap())

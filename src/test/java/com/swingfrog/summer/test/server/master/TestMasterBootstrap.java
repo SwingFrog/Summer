@@ -26,6 +26,7 @@ public class TestMasterBootstrap implements SummerApp {
     }
 
     public static void main(String[] args) {
+        Summer.addModuleNet();
         String resources = TestMasterBootstrap.class.getClassLoader().getResource("server/master").getPath();
         Summer.hot(SummerConfig.newBuilder()
                 .app(new TestMasterBootstrap())

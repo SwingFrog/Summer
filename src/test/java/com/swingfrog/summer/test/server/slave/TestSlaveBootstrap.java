@@ -26,6 +26,7 @@ public class TestSlaveBootstrap implements SummerApp {
     }
 
     public static void main(String[] args) {
+        Summer.addModuleNet();
         String resources = TestSlaveBootstrap.class.getClassLoader().getResource("server/slave").getPath();
         Summer.hot(SummerConfig.newBuilder()
                 .app(new TestSlaveBootstrap())

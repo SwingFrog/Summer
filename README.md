@@ -26,6 +26,9 @@
 
 
 ## 更新说明
+### [1.1.18](https://mvnrepository.com/artifact/com.swingfrog.summer/summer/1.1.18) - 2023-12-15
+1. Summer启动时可选择加载的模块，通过Summer.addModuleNet()、addModuleDb、addModuleRedis加载模块，或者通过addModuleAll加载所有模块。
+
 ### [1.1.17](https://mvnrepository.com/artifact/com.swingfrog.summer/summer/1.1.17) - 2023-09-20
 1. 新增网络协议Custom，通过ProtocolCustomMgr设置ProtocolCustomHandler可实现自定义协议处理。 - 2023-03-09
 

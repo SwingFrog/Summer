@@ -26,6 +26,8 @@ public class TestEcsBootstrap implements SummerApp {
     }
 
     public static void main(String[] args) {
+        Summer.addModuleNet();
+        Summer.addModuleDb();
         String resources = TestEcsBootstrap.class.getClassLoader().getResource("ecs").getPath();
         Summer.hot(SummerConfig.newBuilder()
                 .app(new TestEcsBootstrap())

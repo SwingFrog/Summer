@@ -33,6 +33,7 @@ public class TestTinyBootstrap implements SummerApp {
     }
 
     public static void main(String[] args) {
+        Summer.addModuleNet();
         String resources = TestTinyBootstrap.class.getClassLoader().getResource("tiny").getPath();
         Summer.hot(SummerConfig.newBuilder()
                 .app(new TestTinyBootstrap())

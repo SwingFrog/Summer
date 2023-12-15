@@ -4,12 +4,14 @@ import java.io.File;
 import java.lang.reflect.Method;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.Sets;
 import com.google.protobuf.Message;
 import com.swingfrog.summer.concurrent.SessionTokenQueueMgr;
 import com.swingfrog.summer.config.ClientConfig;
@@ -48,9 +50,14 @@ import com.swingfrog.summer.task.TaskUtil;
 import com.swingfrog.summer.web.WebMgr;
 
 public class Summer {
+
+	public static final int MODULE_NET = 0;
+	public static final int MODULE_DB = 1;
+	public static final int MODULE_REDIS = 2;
 	
 	private static final Logger log = LoggerFactory.getLogger(Summer.class);
 	public static final String NAME = "Summer";
+	private static final Set<Integer> MODULES = Sets.newHashSet();
 	
 	public static void main(String[] args) {
 		try {
@@ -73,7 +80,25 @@ public class Summer {
 			System.exit(-1);
 		}
 	}
-	
+
+	public static void addModuleNet() {
+		MODULES.add(MODULE_NET);
+	}
+
+	public static void addModuleDb() {
+		MODULES.add(MODULE_DB);
+	}
+
+	public static void addModuleRedis() {
+		MODULES.add(MODULE_REDIS);
+	}
+
+	public static void addModuleAll() {
+		MODULES.add(MODULE_NET);
+		MODULES.add(MODULE_DB);
+		MODULES.add(MODULE_REDIS);
+	}
+
 	public static void hot(SummerApp app) {
 		hot(app, app.getClass().getPackage().getName());
 	}
@@ -125,29 +150,41 @@ public class Summer {
 			log.info("summer init...");
 			if (libPath != null)
 				JarLoader.loadJarByDir(new File(libPath));
-			log.info("config load...");
-			ConfigMgr.get().loadConfig(serverProperties);
-			RedisMgr.get().loadConfig(redisProperties);
-			DataBaseMgr.get().loadConfig(dbProperties);
-			AsyncCacheRepositoryMgr.get().loadConfig(dbProperties);
+			if (MODULES.contains(MODULE_NET)) {
+				log.info("config load...");
+				ConfigMgr.get().loadConfig(serverProperties);
+			}
+			if (MODULES.contains(MODULE_REDIS)) {
+				RedisMgr.get().loadConfig(redisProperties);
+			}
+			if (MODULES.contains(MODULE_DB)) {
+				DataBaseMgr.get().loadConfig(dbProperties);
+				AsyncCacheRepositoryMgr.get().loadConfig(dbProperties);
+			}
 			TaskMgr.get().init(taskProperties);
 			ContainerMgr.get().init(projectPackage, enableServiceRemoteProxy);
-			ServerMgr.get().init();
+			boolean hasClient = false;
+			if (MODULES.contains(MODULE_NET)) {
+				ServerMgr.get().init();
 
-			ClientConfig[] configs = ConfigMgr.get().getClientConfigs();
-			boolean hasClient = configs != null && configs.length > 0;
-			if (hasClient)
-				ClientMgr.get().init();
+				ClientConfig[] configs = ConfigMgr.get().getClientConfigs();
+				hasClient = configs != null && configs.length > 0;
+				if (hasClient) {
+					ClientMgr.get().init();
+				}
 
-			EventBusMgr.get().init();
-			SessionQueueMgr.get().init(ServerMgr.get().getEventExecutor(), sessionQueueExpireTimeMs);
-			SessionTokenQueueMgr.get().init(ServerMgr.get().getEventExecutor(), sessionQueueExpireTimeMs);
-			SingleQueueMgr.get().init(ServerMgr.get().getEventExecutor(), singleQueueExpireTimeMs);
+				EventBusMgr.get().init();
+				SessionQueueMgr.get().init(ServerMgr.get().getEventExecutor(), sessionQueueExpireTimeMs);
+				SessionTokenQueueMgr.get().init(ServerMgr.get().getEventExecutor(), sessionQueueExpireTimeMs);
+				SingleQueueMgr.get().init(ServerMgr.get().getEventExecutor(), singleQueueExpireTimeMs);
+			}
 			ContainerMgr.get().autowired();
 			ContainerMgr.get().proxyObj();
 
 			app.init();
-			RepositoryMgr.get().init();
+			if (MODULES.contains(MODULE_DB)) {
+				RepositoryMgr.get().init();
+			}
 			log.info("summer launch...");
 			ContainerMgr.get().listDeclaredComponent(Lifecycle.class).stream()
 					.filter(l -> l.getInfo() != null)
@@ -156,8 +193,10 @@ public class Summer {
 						log.info("lifecycle [{}] start", l.getInfo().getName());
 						l.start();
 					});
-			ServerMgr.get().launch();
-			ClientMgr.get().connectAll();
+			if (MODULES.contains(MODULE_NET)) {
+				ServerMgr.get().launch();
+				ClientMgr.get().connectAll();
+			}
 			ContainerMgr.get().startTask();
 			app.start();
 			Runtime.getRuntime().addShutdownHook(new Thread(shutdownHook(app, hasClient), "shutdown"));
@@ -172,10 +211,13 @@ public class Summer {
 		return () -> {
 			log.info("summer shutdown...");
 
-			if (hasClient)
-				ClientMgr.get().shutdown();
+			if (MODULES.contains(MODULE_NET)) {
+				if (hasClient)
+					ClientMgr.get().shutdown();
 
-			ServerMgr.get().shutdown();
+				ServerMgr.get().shutdown();
+			}
+
 			TaskMgr.get().shutdown();
 			app.stop();
 
@@ -189,23 +231,29 @@ public class Summer {
 				lifecycle.stop();
 			}
 
-			SessionQueueMgr.get().shutdown();
-			SessionTokenQueueMgr.get().shutdown();
-			SingleQueueMgr.get().shutdown();
+			if (MODULES.contains(MODULE_NET)) {
+				SessionQueueMgr.get().shutdown();
+				SessionTokenQueueMgr.get().shutdown();
+				SingleQueueMgr.get().shutdown();
 
-			if (hasClient)
-				ClientMgr.get().shutdownEvent();
+				if (hasClient)
+					ClientMgr.get().shutdownEvent();
 
-			ServerMgr.get().shutdownEvent();
-			EventBusMgr.get().shutdown();
+				ServerMgr.get().shutdownEvent();
+				EventBusMgr.get().shutdown();
+			}
 
 			for (Lifecycle lifecycle : lifecycles) {
 				log.info("lifecycle [{}] destroy", lifecycle.getInfo().getName());
 				lifecycle.destroy();
 			}
 
-			AsyncCacheRepositoryMgr.get().shutdown();
-			RemoteStatistics.print();
+			if (MODULES.contains(MODULE_DB)) {
+				AsyncCacheRepositoryMgr.get().shutdown();
+			}
+			if (MODULES.contains(MODULE_NET)) {
+				RemoteStatistics.print();
+			}
 			log.info("bye.");
 		};
 	}
