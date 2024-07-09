@@ -51,18 +51,12 @@ public abstract class AsyncAddRepositoryDao<T, K> extends RepositoryDao<T, K> {
 
     @Override
     protected T addNotAutoIncrement(T obj) {
-        onSaveBefore(obj);
-        if (update(insertSql, TableValueBuilder.listInsertValue(getTableMeta(), obj)) > 0)
-            return obj;
-        return null;
+        return doAdd(insertSql, obj, null);
     }
 
     @Override
     protected T addByPrimaryKey(T obj, K primaryKey) {
-        onSaveBefore(obj);
-        if (update(insertSql, TableValueBuilder.listInsertValue(getTableMeta(), obj, primaryKey)) > 0)
-            return obj;
-        return null;
+        return doAdd(insertSql, obj, primaryKey);
     }
 
 }

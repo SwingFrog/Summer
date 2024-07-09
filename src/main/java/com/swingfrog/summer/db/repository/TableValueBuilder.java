@@ -1,10 +1,12 @@
 package com.swingfrog.summer.db.repository;
 
 import com.alibaba.fastjson.JSON;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 import java.util.List;
@@ -103,6 +105,48 @@ public class TableValueBuilder {
         return getColumnValue(tableMeta.getPrimaryColumn(), obj);
     }
 
+    @Nullable
+    public static String getShardingTableNameValue(TableMeta tableMeta, Object obj) {
+        List<TableMeta.ColumnMeta> shardingKeys = tableMeta.getShardingKeys();
+        StringBuilder builder = null;
+        for (TableMeta.ColumnMeta shardingKey : shardingKeys) {
+            Object value = getColumnValue(shardingKey, obj);
+            if (value == null) {
+                return null;
+            }
+            if (builder == null) {
+                builder = new StringBuilder();
+                builder.append(tableMeta.getName());
+            }
+            builder.append("_").append(value);
+        }
+        if (builder == null) {
+            return null;
+        }
+        return builder.toString();
+    }
+
+    @Nullable
+    public static String getShardingTableNameValue(TableMeta tableMeta, Map<String, Object> optional) {
+        List<TableMeta.ColumnMeta> shardingKeys = tableMeta.getShardingKeys();
+        StringBuilder builder = null;
+        for (TableMeta.ColumnMeta shardingKey : shardingKeys) {
+            Object value = optional.get(shardingKey.getName());
+            if (value == null) {
+                return null;
+            }
+            if (builder == null) {
+                builder = new StringBuilder();
+                builder.append(tableMeta.getName());
+            }
+            builder.append("_").append(value);
+        }
+        if (builder == null) {
+            return null;
+        }
+        return builder.toString();
+    }
+
     public static void setPrimaryKeyIntNumberValue(TableMeta tableMeta, Object obj, long primaryValue) {
         Field field = tableMeta.getPrimaryColumn().getField();
         Type type = field.getGenericType();
@@ -119,34 +163,49 @@ public class TableValueBuilder {
     }
 
     public static Object[] listValidValueByOptional(TableMeta tableMeta, Map<String, Object> optional, List<String> fields) {
-        return fields.stream().map(field -> {
-            TableMeta.ColumnMeta columnMeta = tableMeta.getColumnMetaMap().get(field);
-            return convert(optional.get(field), columnMeta.getField().getGenericType());
-        }).toArray();
+        return fields.stream().map(field ->
+                convert(optional.get(field),
+                        tableMeta.getColumnMetaMap().get(field).getField().getGenericType()))
+                .toArray();
     }
 
-    public static Object[] listUpdateValue(TableMeta tableMeta, Object obj) {
-        List<Object> list = tableMeta.getColumns().stream()
+    public static Object[] listUpdateValue(TableMeta tableMeta, Object obj, @Nullable String tableName) {
+        int size = tableMeta.getColumns().size();
+        if (tableName != null) {
+            size ++;
+        }
+        List<Object> list = Lists.newArrayList(size);
+        if (tableName != null) {
+            list.add(tableName);
+        }
+        tableMeta.getColumns().stream()
                 .filter(columnMeta -> !columnMeta.isReadOnly())
                 .map(columnMeta -> getColumnValue(columnMeta, obj))
-                .collect(Collectors.toList());
+                .forEach(list::add);
         list.add(getPrimaryKeyValue(tableMeta, obj));
         return list.toArray();
     }
 
-    public static Object[] listInsertValue(TableMeta tableMeta, Object obj) {
-        List<Object> list = tableMeta.getColumns().stream()
+    public static Object[] listInsertValue(TableMeta tableMeta, Object obj,
+                                           @Nullable Object primaryKey,
+                                           @Nullable String tableName) {
+        int size = tableMeta.getColumns().size();
+        if (primaryKey != null) {
+            size ++;
+        }
+        if (tableName != null) {
+            size ++;
+        }
+        List<Object> list = Lists.newArrayList(size);
+        if (tableName != null) {
+            list.add(tableName);
+        }
+        if (primaryKey != null) {
+            list.add(primaryKey);
+        }
+        tableMeta.getColumns().stream()
                 .map(columnMeta -> getColumnValue(columnMeta, obj))
-                .collect(Collectors.toList());
-        list.add(0, getPrimaryKeyValue(tableMeta, obj));
-        return list.toArray();
-    }
-
-    public static Object[] listInsertValue(TableMeta tableMeta, Object obj, Object primaryKey) {
-        List<Object> list = tableMeta.getColumns().stream()
-                .map(columnMeta -> getColumnValue(columnMeta, obj))
-                .collect(Collectors.toList());
-        list.add(0, primaryKey);
+                .forEach(list::add);
         return list.toArray();
     }
 

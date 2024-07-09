@@ -6,16 +6,20 @@ import java.util.List;
 public class SqlBuilder {
 
     public static String getTableExists(String tableName) {
-        return String.format("SHOW TABLES LIKE '%s';", tableName);
+        return "SHOW TABLES LIKE '" + tableName + "';";
+    }
+
+    public static String getTableExistsList(String tableName) {
+        return "SHOW TABLES LIKE '" + tableName + "%';";
     }
 
     public static String getTableColumn(String tableName) {
-        return String.format("SELECT column_name FROM information_schema.columns WHERE table_name='%s';", tableName);
+        return "SELECT column_name FROM information_schema.columns WHERE table_name='" + tableName + "';";
     }
 
-    public static String getCreateTable(TableMeta tableMeta) {
+    public static String getCreateTable(TableMeta tableMeta, String tableName) {
         StringBuilder builder = new StringBuilder();
-        builder.append("CREATE TABLE IF NOT EXISTS `").append(tableMeta.getName()).append("` (\n");
+        builder.append("CREATE TABLE IF NOT EXISTS `").append(tableName).append("` (\n");
         builder.append(" ").append(getCreateColumn(tableMeta.getPrimaryColumn())).append(",\n");
         tableMeta.getColumns().forEach(columnMeta ->
                 builder.append(" ").append(getCreateColumn(columnMeta)).append(",\n"));
@@ -35,6 +39,10 @@ public class SqlBuilder {
         }
         builder.append(";");
         return builder.toString();
+    }
+
+    public static String getCreateTable(TableMeta tableMeta) {
+        return getCreateTable(tableMeta, tableMeta.getName());
     }
 
     private static String getCreateColumn(TableMeta.ColumnMeta columnMeta) {
@@ -57,25 +65,44 @@ public class SqlBuilder {
         return builder.toString();
     }
 
+    public static String getAddColumn(TableMeta.ColumnMeta columnMeta, String tableName) {
+        return "ALTER TABLE `" + tableName + "`\n" +
+                " ADD COLUMN" + getCreateColumn(columnMeta) +
+                ";";
+    }
+
     public static String getAddColumn(TableMeta tableMeta, TableMeta.ColumnMeta columnMeta) {
-        StringBuilder builder = new StringBuilder();
-        builder.append("ALTER TABLE `").append(tableMeta.getName()).append("`\n");
-        builder.append(" ADD COLUMN").append(getCreateColumn(columnMeta));
-        builder.append(";");
-        return builder.toString();
+        return getAddColumn(columnMeta, tableMeta.getName());
+    }
+
+    public static String getAddColumnIndex(TableMeta.ColumnMeta columnMeta, String tableName) {
+        return "ALTER TABLE `" + tableName + "`\n" +
+                " ADD " + columnMeta.getIndex() + " INDEX `idx_" +
+                columnMeta.getName() + "` (`" + columnMeta.getName() + "`) USING BTREE;";
     }
 
     public static String getAddColumnIndex(TableMeta tableMeta, TableMeta.ColumnMeta columnMeta) {
+        return getAddColumnIndex(columnMeta, tableMeta.getName());
+    }
+
+    public static String getInsert(TableMeta tableMeta, String tableName) {
         StringBuilder builder = new StringBuilder();
-        builder.append("ALTER TABLE `").append(tableMeta.getName()).append("`\n");
-        builder.append(" ADD ").append(columnMeta.getIndex()).append(" INDEX `idx_")
-                .append(columnMeta.getName()).append("` (`").append(columnMeta.getName()).append("`) USING BTREE;");
+        builder.append("INSERT INTO `").append(tableName).append("` (");
+        builder.append("`").append(tableMeta.getPrimaryColumn().getName()).append("`");
+        tableMeta.getColumns().forEach(columnMeta -> builder.append(",`").append(columnMeta.getName()).append("`"));
+        builder.append(") VALUES(?");
+        tableMeta.getColumns().forEach(columnMeta -> builder.append(",?"));
+        builder.append(");");
         return builder.toString();
     }
 
     public static String getInsert(TableMeta tableMeta) {
+        return getInsert(tableMeta, tableMeta.getName());
+    }
+
+    public static String getReplace(TableMeta tableMeta, String tableName) {
         StringBuilder builder = new StringBuilder();
-        builder.append("INSERT INTO `").append(tableMeta.getName()).append("` (");
+        builder.append("REPLACE INTO `").append(tableName).append("` (");
         builder.append("`").append(tableMeta.getPrimaryColumn().getName()).append("`");
         tableMeta.getColumns().forEach(columnMeta -> builder.append(",`").append(columnMeta.getName()).append("`"));
         builder.append(") VALUES(?");
@@ -85,30 +112,29 @@ public class SqlBuilder {
     }
 
     public static String getReplace(TableMeta tableMeta) {
-        StringBuilder builder = new StringBuilder();
-        builder.append("REPLACE INTO `").append(tableMeta.getName()).append("` (");
-        builder.append("`").append(tableMeta.getPrimaryColumn().getName()).append("`");
-        tableMeta.getColumns().forEach(columnMeta -> builder.append(",`").append(columnMeta.getName()).append("`"));
-        builder.append(") VALUES(?");
-        tableMeta.getColumns().forEach(columnMeta -> builder.append(",?"));
-        builder.append(");");
-        return builder.toString();
+        return getReplace(tableMeta, tableMeta.getName());
+    }
+
+    public static String getDelete(TableMeta tableMeta, String tableName) {
+        return "DELETE FROM `" + tableName + "` WHERE `" +
+                tableMeta.getPrimaryColumn().getName() + "` = ?;";
     }
 
     public static String getDelete(TableMeta tableMeta) {
-        StringBuilder builder = new StringBuilder();
-        builder.append("DELETE FROM `").append(tableMeta.getName()).append("` WHERE `")
-                .append(tableMeta.getPrimaryColumn().getName()).append("` = ?;");
-        return builder.toString();
+        return getDelete(tableMeta, tableMeta.getName());
+    }
+
+    public static String getDeleteAll(String tableName) {
+        return String.format("DELETE FROM `%s`;", tableName);
     }
 
     public static String getDeleteAll(TableMeta tableMeta) {
-        return String.format("DELETE FROM `%s`;", tableMeta.getName());
+        return getDeleteAll(tableMeta.getName());
     }
 
-    public static String getUpdate(TableMeta tableMeta) {
+    public static String getUpdate(TableMeta tableMeta, String tableName) {
         StringBuilder builder = new StringBuilder();
-        builder.append("UPDATE `").append(tableMeta.getName()).append("`");
+        builder.append("UPDATE `").append(tableName).append("`");
         if (!tableMeta.getColumns().isEmpty()) {
             builder.append(" SET");
             Iterator<TableMeta.ColumnMeta> iterator = tableMeta.getColumns().iterator();
@@ -142,16 +168,64 @@ public class SqlBuilder {
         return builder.toString();
     }
 
+    public static String getUpdate(TableMeta tableMeta) {
+        return getUpdate(tableMeta, tableMeta.getName());
+    }
+
+    public static String getSelect(TableMeta tableMeta, String tableName) {
+        return "SELECT * FROM `" + tableName + "` WHERE `" +
+                tableMeta.getPrimaryColumn().getName() + "` = ?;";
+    }
+
     public static String getSelect(TableMeta tableMeta) {
+        return getSelect(tableMeta, tableMeta.getName());
+    }
+
+    public static String getSelectField(List<String> fields, String tableName) {
         StringBuilder builder = new StringBuilder();
-        builder.append("SELECT * FROM `").append(tableMeta.getName()).append("` WHERE `")
-                .append(tableMeta.getPrimaryColumn().getName()).append("` = ?;");
+        builder.append("SELECT * FROM `").append(tableName).append("`");
+        Iterator<String> iterator = fields.iterator();
+        if (iterator.hasNext()) {
+            builder.append(" WHERE");
+            while (true) {
+                String key = iterator.next();
+                builder.append(" `").append(key).append("` = ?");
+                if (iterator.hasNext()) {
+                    builder.append(" and");
+                } else {
+                    break;
+                }
+            }
+        }
+        builder.append(";");
         return builder.toString();
     }
 
     public static String getSelectField(TableMeta tableMeta, List<String> fields) {
+        return getSelectField(fields, tableMeta.getName());
+    }
+
+    public static String getSelectAll(String tableName) {
+        return "SELECT * FROM `" + tableName + "`;";
+    }
+
+    public static String getSelectAll(TableMeta tableMeta) {
+        return getSelectAll(tableMeta.getName());
+    }
+
+    public static String getMaxPrimaryKey(TableMeta tableMeta, String tableName) {
+        return "SELECT MAX(`" + tableMeta.getPrimaryColumn().getName() + "`) FROM `" +
+                tableName + "`;";
+    }
+
+    public static String getMaxPrimaryKey(TableMeta tableMeta) {
+        return getMaxPrimaryKey(tableMeta, tableMeta.getName());
+    }
+
+    public static String getPrimaryColumnSelectField(TableMeta tableMeta, List<String> fields, String tableName) {
         StringBuilder builder = new StringBuilder();
-        builder.append("SELECT * FROM `").append(tableMeta.getName()).append("`");
+        builder.append("SELECT `").append(tableMeta.getPrimaryColumn().getName()).append("` FROM `")
+                .append(tableName).append("`");
         Iterator<String> iterator = fields.iterator();
         if (iterator.hasNext()) {
             builder.append(" WHERE");
@@ -166,41 +240,11 @@ public class SqlBuilder {
             }
         }
         builder.append(";");
-        return builder.toString();
-    }
-
-    public static String getSelectAll(TableMeta tableMeta) {
-        StringBuilder builder = new StringBuilder();
-        builder.append("SELECT * FROM `").append(tableMeta.getName()).append("`;");
-        return builder.toString();
-    }
-
-    public static String getMaxPrimaryKey(TableMeta tableMeta) {
-        StringBuilder builder = new StringBuilder();
-        builder.append("SELECT MAX(`").append(tableMeta.getPrimaryColumn().getName()).append("`) FROM `")
-                .append(tableMeta.getName()).append("`;");
         return builder.toString();
     }
 
     public static String getPrimaryColumnSelectField(TableMeta tableMeta, List<String> fields) {
-        StringBuilder builder = new StringBuilder();
-        builder.append("SELECT `").append(tableMeta.getPrimaryColumn().getName()).append("` FROM `")
-                .append(tableMeta.getName()).append("`");
-        Iterator<String> iterator = fields.iterator();
-        if (iterator.hasNext()) {
-            builder.append(" WHERE");
-            while (true) {
-                String key = iterator.next();
-                builder.append(" `").append(key).append("` = ?");
-                if (iterator.hasNext()) {
-                    builder.append(" and");
-                } else {
-                    break;
-                }
-            }
-        }
-        builder.append(";");
-        return builder.toString();
+        return getPrimaryColumnSelectField(tableMeta, fields, tableMeta.getName());
     }
 
 }

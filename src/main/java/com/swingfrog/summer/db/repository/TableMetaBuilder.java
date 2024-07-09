@@ -3,11 +3,7 @@ package com.swingfrog.summer.db.repository;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.swingfrog.summer.db.repository.annotation.CacheKey;
-import com.swingfrog.summer.db.repository.annotation.Column;
-import com.swingfrog.summer.db.repository.annotation.IndexKey;
-import com.swingfrog.summer.db.repository.annotation.PrimaryKey;
-import com.swingfrog.summer.db.repository.annotation.Table;
+import com.swingfrog.summer.db.repository.annotation.*;
 
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
@@ -34,6 +30,7 @@ public class TableMetaBuilder {
         tableMeta.setColumns(Lists.newArrayList());
         tableMeta.setIndexKeys(Sets.newHashSet());
         tableMeta.setCacheKeys(Sets.newHashSet());
+        tableMeta.setShardingKeys(Lists.newArrayList());
         List<Field> fields = Lists.newArrayList();
         collectField(fields, clazz);
         for (Field field : fields) {
@@ -59,6 +56,10 @@ public class TableMetaBuilder {
                     CacheKey cacheKey = field.getAnnotation(CacheKey.class);
                     if (cacheKey != null) {
                         tableMeta.getCacheKeys().add(columnMeta);
+                    }
+                    ShardingKey shardingKey = field.getAnnotation(ShardingKey.class);
+                    if (shardingKey != null) {
+                        tableMeta.getShardingKeys().add(columnMeta);
                     }
                 }
             }

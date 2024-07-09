@@ -17,6 +17,7 @@ public class TableMeta {
     private Set<ColumnMeta> indexKeys;
     private Set<ColumnMeta> cacheKeys;
     private Map<String, ColumnMeta> columnMetaMap;
+    private List<ColumnMeta> shardingKeys;
 
     public String getName() {
         return name;
@@ -88,6 +89,14 @@ public class TableMeta {
 
     public void setColumnMetaMap(Map<String, ColumnMeta> columnMetaMap) {
         this.columnMetaMap = columnMetaMap;
+    }
+
+    public List<ColumnMeta> getShardingKeys() {
+        return shardingKeys;
+    }
+
+    public void setShardingKeys(List<ColumnMeta> shardingKeys) {
+        this.shardingKeys = shardingKeys;
     }
 
     public static class ColumnMeta {
