@@ -174,7 +174,7 @@ public class TableValueBuilder {
         if (tableName != null) {
             size ++;
         }
-        List<Object> list = Lists.newArrayList(size);
+        List<Object> list = Lists.newArrayListWithCapacity(size);
         if (tableName != null) {
             list.add(tableName);
         }
@@ -189,20 +189,18 @@ public class TableValueBuilder {
     public static Object[] listInsertValue(TableMeta tableMeta, Object obj,
                                            @Nullable Object primaryKey,
                                            @Nullable String tableName) {
-        int size = tableMeta.getColumns().size();
-        if (primaryKey != null) {
-            size ++;
-        }
+        int size = tableMeta.getColumns().size() + 1;
         if (tableName != null) {
             size ++;
         }
-        List<Object> list = Lists.newArrayList(size);
+        List<Object> list = Lists.newArrayListWithCapacity(size);
         if (tableName != null) {
             list.add(tableName);
         }
-        if (primaryKey != null) {
-            list.add(primaryKey);
+        if (primaryKey == null) {
+            primaryKey = getPrimaryKeyValue(tableMeta, obj);
         }
+        list.add(primaryKey);
         tableMeta.getColumns().stream()
                 .map(columnMeta -> getColumnValue(columnMeta, obj))
                 .forEach(list::add);

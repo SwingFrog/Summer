@@ -19,7 +19,11 @@ public abstract class AsyncAddRepositoryDao<T, K> extends RepositoryDao<T, K> {
     @Override
     void init() {
         super.init();
-        insertSql = SqlBuilder.getInsert(getTableMeta());
+        if (isSharding()) {
+            insertSql = SqlBuilder.getInsert(getTableMeta(), "?");
+        } else {
+            insertSql = SqlBuilder.getInsert(getTableMeta());
+        }
         delayTime = delayTime();
         AsyncCacheRepositoryMgr.get().getScheduledExecutor().scheduleWithFixedDelay(
                 this::delay,
