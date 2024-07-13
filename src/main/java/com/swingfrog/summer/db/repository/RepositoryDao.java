@@ -1,9 +1,6 @@
 package com.swingfrog.summer.db.repository;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import com.google.common.collect.*;
 import com.swingfrog.summer.db.BaseDao;
 import com.swingfrog.summer.db.DaoRuntimeException;
 import org.apache.commons.dbutils.BasicRowProcessor;
@@ -24,17 +21,12 @@ public abstract class RepositoryDao<T, K> extends BaseDao<T> implements Reposito
     private final BeanHandler<T> beanHandler;
     private final BeanListHandler<T> beanListHandler;
 
-    private String replaceSql;
-    private String deleteSql;
-    private String deleteAllSql;
-    private String updateSql;
-    private String selectSql;
-    private String selectAllSql;
+    private SqlCache sqlCache;
     private AtomicLong primaryKey;
     private TableMeta tableMeta;
     private String singeCacheField;
 
-    private Set<String> shardingTableNames;
+    private Map<String, SqlCache> shardingSqlCaches;
 
     protected RepositoryDao() {
         super();
@@ -81,19 +73,14 @@ public abstract class RepositoryDao<T, K> extends BaseDao<T> implements Reposito
                 primaryKey = new AtomicLong(Long.parseLong(maxPk.toString()));
             }
         }
-        replaceSql = SqlBuilder.getReplace(tableMeta);
-        deleteSql = SqlBuilder.getDelete(tableMeta);
-        deleteAllSql = SqlBuilder.getDeleteAll(tableMeta);
-        updateSql = SqlBuilder.getUpdate(tableMeta);
-        selectSql = SqlBuilder.getSelect(tableMeta);
-        selectAllSql = SqlBuilder.getSelectAll(tableMeta);
+        sqlCache = new SqlCache();
     }
 
     private void initSharding(TableMeta tableMeta) {
         List<String> tableNames = listValue(SqlBuilder.getTableExistsList(tableMeta.getName()));
-        shardingTableNames = Sets.newConcurrentHashSet();
-        shardingTableNames.addAll(tableNames);
+        shardingSqlCaches = Maps.newConcurrentMap();
         for (String tableName : tableNames) {
+            shardingSqlCaches.put(tableName, new SqlCache());
             List<String> columns = listValue(SqlBuilder.getTableColumn(tableName));
             tableMeta.getColumns().stream()
                     .filter(columnMeta -> !columns.contains(columnMeta.getName()))
@@ -122,16 +109,25 @@ public abstract class RepositoryDao<T, K> extends BaseDao<T> implements Reposito
                 primaryKey = new AtomicLong(pk);
             }
         }
-        replaceSql = SqlBuilder.getReplace(tableMeta, "?");
-        deleteSql = SqlBuilder.getDelete(tableMeta, "?");
-        deleteAllSql = SqlBuilder.getDeleteAll("?");
-        updateSql = SqlBuilder.getUpdate(tableMeta, "?");
-        selectSql = SqlBuilder.getSelect(tableMeta, "?");
-        selectAllSql = SqlBuilder.getSelectAll("?");
+    }
+
+    protected SqlCache getSqlCache(String tableName) {
+        if (isSharding()) {
+            SqlCache shardingSqlCache = shardingSqlCaches.get(tableName);
+            if (shardingSqlCache == null) {
+                shardingSqlCache = new SqlCache();
+                SqlCache old = shardingSqlCaches.putIfAbsent(tableName, shardingSqlCache);
+                if (old != null) {
+                    shardingSqlCache = old;
+                }
+            }
+            return shardingSqlCache;
+        }
+        return sqlCache;
     }
 
     protected boolean isSharding() {
-        return shardingTableNames != null;
+        return shardingSqlCaches != null;
     }
 
     protected boolean isAutoIncrement() {
@@ -149,30 +145,37 @@ public abstract class RepositoryDao<T, K> extends BaseDao<T> implements Reposito
         return primaryKey.incrementAndGet();
     }
 
+    protected boolean isUseReplaceSql() {
+        return true;
+    }
+
     protected T addNotAutoIncrement(T obj) {
-        return doAdd(replaceSql, obj, null);
+        return doAdd(obj, null);
     }
 
     protected T addByPrimaryKey(T obj, K primaryKey) {
-        return doAdd(replaceSql, obj, primaryKey);
+        return doAdd(obj, primaryKey);
     }
 
-    T doAdd(String addSql, T obj, @Nullable K primaryKey) {
+    T doAdd(T obj, @Nullable K primaryKey) {
         onSaveBefore(obj);
+        String tableName;
         if (isSharding()) {
-            String shardingTableNameValue = TableValueBuilder.getShardingTableNameValue(tableMeta, obj);
-            if (shardingTableNameValue == null) {
+            tableName = TableValueBuilder.getShardingTableNameValue(tableMeta, obj);
+            if (tableName == null) {
                 throw new DaoRuntimeException("sharding filed value is null");
             }
-            if (!shardingTableNames.contains(shardingTableNameValue)) {
-                update(SqlBuilder.getCreateTable(tableMeta), shardingTableNameValue);
-                shardingTableNames.add(shardingTableNameValue);
+            if (!shardingSqlCaches.containsKey(tableName)) {
+                update(SqlBuilder.getCreateTable(tableMeta, tableName));
+                shardingSqlCaches.put(tableName, new SqlCache());
             }
-            if (update(replaceSql, TableValueBuilder.listInsertValue(tableMeta, obj, primaryKey, shardingTableNameValue)) > 0)
-                return obj;
-            return null;
+        } else {
+            tableName = tableMeta.getName();
         }
-        if (update(addSql, TableValueBuilder.listInsertValue(tableMeta, obj, primaryKey, null)) > 0)
+        String addSql = isUseReplaceSql() ?
+                getSqlCache(tableName).getReplace(tableMeta, tableName) :
+                getSqlCache(tableName).getInsert(tableMeta, tableName);
+        if (update(addSql, TableValueBuilder.listInsertValue(tableMeta, obj, primaryKey)) > 0)
             return obj;
         return null;
     }
@@ -193,13 +196,16 @@ public abstract class RepositoryDao<T, K> extends BaseDao<T> implements Reposito
     @Override
     public boolean remove(T obj) {
         Objects.requireNonNull(obj);
+        String tableName;
         if (isSharding()) {
-            String shardingTableNameValue = TableValueBuilder.getShardingTableNameValue(tableMeta, obj);
-            if (shardingTableNameValue == null) {
+            tableName = TableValueBuilder.getShardingTableNameValue(tableMeta, obj);
+            if (tableName == null) {
                 throw new DaoRuntimeException("sharding filed value is null");
             }
-            return update(deleteSql, shardingTableNameValue, TableValueBuilder.getPrimaryKeyValue(tableMeta, obj)) > 0;
+        } else {
+            tableName = tableMeta.getName();
         }
+        String deleteSql = getSqlCache(tableName).getDelete(tableMeta, tableName);
         return update(deleteSql, TableValueBuilder.getPrimaryKeyValue(tableMeta, obj)) > 0;
     }
 
@@ -207,24 +213,28 @@ public abstract class RepositoryDao<T, K> extends BaseDao<T> implements Reposito
     public boolean removeByPrimaryKey(K primaryKey) {
         Objects.requireNonNull(primaryKey);
         if (isSharding()) {
-            for (String shardingTableName : shardingTableNames) {
-                if (update(deleteSql, shardingTableName, primaryKey) > 0) {
+            for (Map.Entry<String, SqlCache> entry : shardingSqlCaches.entrySet()) {
+                String deleteSql = entry.getValue().getDelete(tableMeta, entry.getKey());
+                if (update(deleteSql, primaryKey) > 0) {
                     return true;
                 }
             }
             return false;
         }
+        String deleteSql = sqlCache.getDelete(tableMeta, tableMeta.getName());
         return update(deleteSql, primaryKey) > 0;
     }
 
     @Override
     public void removeAll() {
         if (isSharding()) {
-            for (String shardingTableName : shardingTableNames) {
-                update(deleteAllSql, shardingTableName);
+            for (Map.Entry<String, SqlCache> entry : shardingSqlCaches.entrySet()) {
+                String deleteAllSql = entry.getValue().getDeleteAll(entry.getKey());
+                update(deleteAllSql);
             }
             return;
         }
+        String deleteAllSql = sqlCache.getDeleteAll(tableMeta.getName());
         update(deleteAllSql);
     }
 
@@ -248,28 +258,33 @@ public abstract class RepositoryDao<T, K> extends BaseDao<T> implements Reposito
 
     int doSave(T obj) {
         onSaveBefore(obj);
+        String tableName;
         if (isSharding()) {
-            String shardingTableNameValue = TableValueBuilder.getShardingTableNameValue(tableMeta, obj);
-            if (shardingTableNameValue == null) {
+            tableName = TableValueBuilder.getShardingTableNameValue(tableMeta, obj);
+            if (tableName == null) {
                 throw new DaoRuntimeException("sharding filed value is null");
             }
-            return update(updateSql, TableValueBuilder.listUpdateValue(tableMeta, obj, shardingTableNameValue));
+        } else {
+            tableName = tableMeta.getName();
         }
-        return update(updateSql, TableValueBuilder.listUpdateValue(tableMeta, obj, null));
+        String updateSql = getSqlCache(tableName).getUpdate(tableMeta, tableName);
+        return update(updateSql, TableValueBuilder.listUpdateValue(tableMeta, obj));
     }
 
     @Override
     public T get(K primaryKey) {
         Objects.requireNonNull(primaryKey);
         if (isSharding()) {
-            for (String shardingTableName : shardingTableNames) {
-                T value = get(selectSql, shardingTableName, primaryKey);
+            for (Map.Entry<String, SqlCache> entry : shardingSqlCaches.entrySet()) {
+                String selectSql = entry.getValue().getSelect(tableMeta, entry.getKey());
+                T value = get(selectSql, primaryKey);
                 if (value != null) {
                     return value;
                 }
             }
             return null;
         }
+        String selectSql = sqlCache.getSelect(tableMeta, tableMeta.getName());
         return get(selectSql, primaryKey);
     }
 
@@ -294,7 +309,7 @@ public abstract class RepositoryDao<T, K> extends BaseDao<T> implements Reposito
                 return list(sql, TableValueBuilder.listValidValueByOptional(tableMeta, optional, fields));
             }
             List<T> list = Lists.newArrayList();
-            for (String shardingTableName : shardingTableNames) {
+            for (String shardingTableName : shardingSqlCaches.keySet()) {
                 String sql = SqlBuilder.getSelectField(fields, shardingTableName);
                 list.addAll(list(sql, TableValueBuilder.listValidValueByOptional(tableMeta, optional, fields)));
             }
@@ -313,7 +328,7 @@ public abstract class RepositoryDao<T, K> extends BaseDao<T> implements Reposito
                 return list(sql, TableValueBuilder.listValidValueByOptional(tableMeta, optional, fields));
             }
             List<T> list = Lists.newArrayList();
-            for (String shardingTableName : shardingTableNames) {
+            for (String shardingTableName : shardingSqlCaches.keySet()) {
                 String sql = SqlBuilder.getPrimaryColumnSelectField(tableMeta, fields, shardingTableName);
                 list.addAll(list(sql, TableValueBuilder.listValidValueByOptional(tableMeta, optional, fields)));
             }
@@ -357,11 +372,13 @@ public abstract class RepositoryDao<T, K> extends BaseDao<T> implements Reposito
     public List<T> listAll() {
         if (isSharding()) {
             List<T> list = Lists.newArrayList();
-            for (String shardingTableName : shardingTableNames) {
-                list.addAll(list(selectAllSql, shardingTableName));
+            for (Map.Entry<String, SqlCache> entry : shardingSqlCaches.entrySet()) {
+                String selectAllSql = entry.getValue().getSelectAll(entry.getKey());
+                list.addAll(list(selectAllSql));
             }
             return list;
         }
+        String selectAllSql = sqlCache.getSelectAll(tableMeta.getName());
         return list(selectAllSql);
     }
 

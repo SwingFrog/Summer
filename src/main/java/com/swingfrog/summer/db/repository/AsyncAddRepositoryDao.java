@@ -12,18 +12,12 @@ public abstract class AsyncAddRepositoryDao<T, K> extends RepositoryDao<T, K> {
     private static final Logger log = LoggerFactory.getLogger(AsyncAddRepositoryDao.class);
     private final Queue<T> waitAdd = Queues.newConcurrentLinkedQueue();
     long delayTime;
-    private String insertSql;
 
     protected abstract long delayTime();
 
     @Override
     void init() {
         super.init();
-        if (isSharding()) {
-            insertSql = SqlBuilder.getInsert(getTableMeta(), "?");
-        } else {
-            insertSql = SqlBuilder.getInsert(getTableMeta());
-        }
         delayTime = delayTime();
         AsyncCacheRepositoryMgr.get().getScheduledExecutor().scheduleWithFixedDelay(
                 this::delay,
@@ -54,13 +48,8 @@ public abstract class AsyncAddRepositoryDao<T, K> extends RepositoryDao<T, K> {
     }
 
     @Override
-    protected T addNotAutoIncrement(T obj) {
-        return doAdd(insertSql, obj, null);
-    }
-
-    @Override
-    protected T addByPrimaryKey(T obj, K primaryKey) {
-        return doAdd(insertSql, obj, primaryKey);
+    protected boolean isUseReplaceSql() {
+        return false;
     }
 
 }

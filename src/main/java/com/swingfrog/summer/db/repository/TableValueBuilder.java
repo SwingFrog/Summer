@@ -169,15 +169,9 @@ public class TableValueBuilder {
                 .toArray();
     }
 
-    public static Object[] listUpdateValue(TableMeta tableMeta, Object obj, @Nullable String tableName) {
+    public static Object[] listUpdateValue(TableMeta tableMeta, Object obj) {
         int size = tableMeta.getColumns().size();
-        if (tableName != null) {
-            size ++;
-        }
         List<Object> list = Lists.newArrayListWithCapacity(size);
-        if (tableName != null) {
-            list.add(tableName);
-        }
         tableMeta.getColumns().stream()
                 .filter(columnMeta -> !columnMeta.isReadOnly())
                 .map(columnMeta -> getColumnValue(columnMeta, obj))
@@ -187,16 +181,9 @@ public class TableValueBuilder {
     }
 
     public static Object[] listInsertValue(TableMeta tableMeta, Object obj,
-                                           @Nullable Object primaryKey,
-                                           @Nullable String tableName) {
+                                           @Nullable Object primaryKey) {
         int size = tableMeta.getColumns().size() + 1;
-        if (tableName != null) {
-            size ++;
-        }
         List<Object> list = Lists.newArrayListWithCapacity(size);
-        if (tableName != null) {
-            list.add(tableName);
-        }
         if (primaryKey == null) {
             primaryKey = getPrimaryKeyValue(tableMeta, obj);
         }
