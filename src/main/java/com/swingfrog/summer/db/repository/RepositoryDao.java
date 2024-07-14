@@ -170,10 +170,10 @@ public abstract class RepositoryDao<T, K> extends BaseDao<T> implements Reposito
             if (tableName == null) {
                 throw new DaoRuntimeException("sharding filed value is null");
             }
-            if (!shardingSqlCaches.containsKey(tableName)) {
-                update(SqlBuilder.getCreateTable(tableMeta, tableName));
-                shardingSqlCaches.put(tableName, new SqlCache());
-            }
+            shardingSqlCaches.computeIfAbsent(tableName, k -> {
+                update(SqlBuilder.getCreateTable(tableMeta, k));
+                return new SqlCache();
+            });
         } else {
             tableName = tableMeta.getName();
         }
