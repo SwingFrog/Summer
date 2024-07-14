@@ -26,6 +26,9 @@
 
 
 ## 更新说明
+### 1.1.19 - 2024-07-14
+1. 新增@ShardingKey注解，可对Repository进行分表，在test.sharding有相关例子。
+
 ### [1.1.18](https://mvnrepository.com/artifact/com.swingfrog.summer/summer/1.1.18) - 2023-12-15
 1. Summer启动时可选择加载的模块，通过Summer.addModuleNet()、addModuleDb、addModuleRedis加载模块，或者通过addModuleAll加载所有模块。
 

@@ -17,6 +17,10 @@ public class SqlBuilder {
         return "SELECT column_name FROM information_schema.columns WHERE table_name='" + tableName + "';";
     }
 
+    public static String getCount(String tableName) {
+        return "SELECT COUNT(1) FROM `" + tableName + "`;";
+    }
+
     public static String getCreateTable(TableMeta tableMeta, String tableName) {
         StringBuilder builder = new StringBuilder();
         builder.append("CREATE TABLE IF NOT EXISTS `").append(tableName).append("` (\n");
@@ -39,6 +43,10 @@ public class SqlBuilder {
         }
         builder.append(";");
         return builder.toString();
+    }
+
+    public static String getDropTable(String tableName) {
+        return "DROP TABLE IF EXISTS `" + tableName + "`;";
     }
 
     public static String getCreateTable(TableMeta tableMeta) {

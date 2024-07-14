@@ -5,6 +5,8 @@ import com.swingfrog.summer.db.repository.annotation.PrimaryKey;
 import com.swingfrog.summer.db.repository.annotation.ShardingKey;
 import com.swingfrog.summer.db.repository.annotation.Table;
 
+import java.util.Date;
+
 @Table(name = "t_test_sharding_repo", comment = "测试-分片")
 public class TestRepo {
 
@@ -19,11 +21,15 @@ public class TestRepo {
     @Column
     private int value;
 
+    @Column
+    private Date date;
+
     public TestRepo() {}
 
     public TestRepo(int type, int value) {
         this.type = type;
         this.value = value;
+        this.date = new Date();
     }
 
     public int getId() {
@@ -50,12 +56,21 @@ public class TestRepo {
         this.value = value;
     }
 
+    public Date getDate() {
+        return date;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
+    }
+
     @Override
     public String toString() {
         return "TestRepo{" +
                 "id=" + id +
                 ", type=" + type +
                 ", value=" + value +
+                ", date=" + date +
                 '}';
     }
 }
