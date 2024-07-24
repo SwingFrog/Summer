@@ -152,7 +152,7 @@ public class WebRequestHandler extends AbstractServerHandler<HttpObject> {
 					} else if (httpData.getHttpDataType() == HttpDataType.FileUpload) {
 						FileUpload fileUpload = (FileUpload) httpData;
 						if (fileUpload.isCompleted()) {
-							webRequest.getFileUploadMap().put(fileUpload.getName(), new WebFileUpload(fileUpload));
+							webRequest.getFileUploadMap().put(fileUpload.getName(), new WebFileUpload(fileUpload.retain()));
 						} else {
 							log.error("fileUpload not complete name[{}]", fileUpload.getName());
 						}
@@ -182,6 +182,8 @@ public class WebRequestHandler extends AbstractServerHandler<HttpObject> {
 				writeResponse(channel, sctx, request, new FileView(WebMgr.get().getWebContentPath() + request.getPath()));
 			} catch (IOException e) {
 				writeResponse(channel, sctx, request, WebMgr.get().getInteriorViewFactory().createErrorView(404, "Not Found"));
+			} finally {
+				request.getFileUploadMap().forEach((s, webFileUpload) -> webFileUpload.getFileUpload().release());
 			}
 		});
 	}
@@ -224,6 +226,8 @@ public class WebRequestHandler extends AbstractServerHandler<HttpObject> {
 				CodeMsg ce = SessionException.INVOKE_ERROR;
 				WebView webView = WebMgr.get().getInteriorViewFactory().createErrorView(500, ce.getCode(), ce.getMsg());
 				writeResponse(channel, sctx, request, webView);
+			} finally {
+				request.getFileUploadMap().forEach((s, webFileUpload) -> webFileUpload.getFileUpload().release());
 			}
 			RemoteStatistics.finish(sctx, request, 0);
 		};

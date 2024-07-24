@@ -8,32 +8,34 @@ import io.netty.handler.codec.http.multipart.FileUpload;
 
 public class WebFileUpload {
 
-	private final String fileName;
-	private final ByteBuf byteBuf;
+	private final FileUpload fileUpload;
 	
 	WebFileUpload(FileUpload fileUpload) {
-		fileName = fileUpload.getFilename();
-		byteBuf = fileUpload.content();
+		this.fileUpload = fileUpload;
 	}
 	
 	public String getFileName() {
-		return fileName;
+		return fileUpload.getFilename();
 	}
 	
 	public ByteBuf getByteBuf() {
-		return byteBuf;
+		return fileUpload.content();
 	}
 
 	public boolean isEmpty() {
-		return byteBuf.readableBytes() == 0;
+		return getByteBuf().readableBytes() == 0;
 	}
-	
+
+	public FileUpload getFileUpload() {
+		return fileUpload;
+	}
+
 	public void saveToFile(String path) throws IOException {
 		if (isEmpty())
 			return;
-		RandomAccessFile file = new RandomAccessFile(path, "rw");
-		file.getChannel().write(byteBuf.nioBuffer());
-		file.close();
+		try (RandomAccessFile file = new RandomAccessFile(path, "rw")) {
+			file.getChannel().write(getByteBuf().nioBuffer());
+		}
 	}
 	
 }

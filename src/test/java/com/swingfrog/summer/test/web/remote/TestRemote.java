@@ -12,6 +12,7 @@ import com.swingfrog.summer.test.web.service.TestService;
 import com.swingfrog.summer.web.WebFileUpload;
 import com.swingfrog.summer.web.view.ModelView;
 
+import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -49,6 +50,12 @@ public class TestRemote implements RemoteHandler {
         } else {
             modelView.put("msg", upload.getFileName());
         }
+//        try {
+//            upload.saveToFile("logs/" + upload.getFileName());
+//            upload.saveToFile("logs/1" + upload.getFileName());
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
         return modelView;
     }
 
