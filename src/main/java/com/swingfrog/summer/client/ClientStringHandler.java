@@ -12,6 +12,8 @@ import com.swingfrog.summer.protocol.SessionResponse;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 
+import java.util.concurrent.TimeUnit;
+
 public class ClientStringHandler extends SimpleChannelInboundHandler<String> {
 
 	private static final Logger log = LoggerFactory.getLogger(ClientStringHandler.class);
@@ -44,14 +46,8 @@ public class ClientStringHandler extends SimpleChannelInboundHandler<String> {
 		log.warn("client connect break");
 		clientContext.setChannel(null);
 		if (clientContext.getClient().isActive()) {
-			ctx.channel().eventLoop().execute(() -> {
-				try {
-					Thread.sleep(clientContext.getConfig().getReconnectMs());
-				} catch (InterruptedException e) {
-					log.error(e.getMessage(), e);
-				}
-				clientContext.getClient().reconnect();
-			});
+			ClientReconnectExeMgr.get().getExecutor().schedule(() -> clientContext.getClient().reconnect(),
+					clientContext.getConfig().getReconnectMs(), TimeUnit.MILLISECONDS);
 		}
 	}
 	

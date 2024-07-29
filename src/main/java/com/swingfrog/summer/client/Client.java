@@ -16,6 +16,8 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
+import java.util.concurrent.TimeUnit;
+
 public class Client {
 
 	private static final Logger log = LoggerFactory.getLogger(Client.class);
@@ -40,7 +42,7 @@ public class Client {
 		log.info("client connectNum {}", config.getConnectNum());
 		this.workerGroup = workerGroup;
 		clientContext = new ClientContext(id, config, this);
-		clientRemote = new ClientRemote(clientContext);
+		clientRemote = new DefaultClientRemote(clientContext);
 
 		long intervalTime = clientContext.getConfig().getHeartSec() * 1000L;
 		checkHeartTask = TaskUtil.getIntervalTask(intervalTime / 2, intervalTime / 2, false, () -> {
@@ -97,15 +99,10 @@ public class Client {
 				log.info("connect {} success", clientContext.getConfig().getServerName());
 			} else {
 				if (active) {
-					f.channel().eventLoop().execute(()->{
-						try {
-							Thread.sleep(clientContext.getConfig().getReconnectMs());
-						} catch (InterruptedException e) {
-							log.error(e.getMessage(), e);
-						}
+					ClientReconnectExeMgr.get().getExecutor().schedule(() -> {
 						log.info("reconnect for {}", clientContext.getConfig().getServerName());
 						reconnect();
-					});
+					}, clientContext.getConfig().getReconnectMs(), TimeUnit.MILLISECONDS);
 				}
 			}
 		} 

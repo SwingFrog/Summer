@@ -140,7 +140,7 @@ public class ClientMgr {
 		if (clientCluster != null) {
 			Client client = clientCluster.getClientWithNext();
 			if (client != null) {
-				return client.getClientRemote();
+				return new GroupClientRemote(client.getClientContext(), clientCluster);
 			}
 		}
 		return null;
