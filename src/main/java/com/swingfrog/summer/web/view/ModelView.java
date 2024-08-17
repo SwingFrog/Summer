@@ -1,13 +1,13 @@
 package com.swingfrog.summer.web.view;
 
 import java.io.BufferedWriter;
-import java.io.ByteArrayOutputStream;
 import java.io.OutputStreamWriter;
 import java.util.Map;
 
 import com.google.common.collect.Maps;
 import com.swingfrog.summer.server.ServerContext;
 import com.swingfrog.summer.server.SessionContext;
+import com.swingfrog.summer.util.ByteBufOutputStream;
 import com.swingfrog.summer.web.WebMgr;
 
 import com.swingfrog.summer.web.WebRequest;
@@ -47,12 +47,10 @@ public class ModelView extends AbstractView {
 	@Override
 	public WebViewRender onRender(ServerContext serverContext, SessionContext sctx, WebRequest request) throws Exception {
 		Template template = WebMgr.get().getTemplate(view);
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		template.process(map, new BufferedWriter(new OutputStreamWriter(out)));
-		byte[] bytes = out.toByteArray();
-		out.close();
-		ByteBuf byteBuf = sctx.alloc().directBuffer(bytes.length);
-		byteBuf.writeBytes(bytes);
+		ByteBuf byteBuf = sctx.alloc().directBuffer();
+		try (ByteBufOutputStream out = new ByteBufOutputStream(byteBuf)) {
+			template.process(map, new BufferedWriter(new OutputStreamWriter(out)));
+		}
 		return new DefaultWebViewRender(byteBuf);
 	}
 

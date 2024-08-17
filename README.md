@@ -26,11 +26,12 @@
 
 
 ## 更新说明
-### 1.1.19 - 2024-07-24
+### 1.1.19 - 2024-08-17
 1. 新增@ShardingKey注解，可对Repository进行分表，在test.sharding有相关例子。 - 2024-07-14
 2. 修复Http协议下，上传文件WebFileUpload不能正确保存的问题。 - 2024-07-24
 3. 优化Summer.getRandomClientRemote()，在调用ClientRemote时可自动轮训到可用的节点再发出RPC请求，感谢 [whxlxl](https://github.com/whxlxl) 大佬指出问题。 - 2024-07-29
 4. 优化Client断线重连的方式。- 2024-07-29
+5. 优化ModelView生成方式，由原来template->heapBuffer->directBuffer改为template->directBuffer，减少了一次内存拷贝。- 2024-08-17
 
 ### [1.1.18](https://mvnrepository.com/artifact/com.swingfrog.summer/summer/1.1.18) - 2023-12-15
 1. Summer启动时可选择加载的模块，通过Summer.addModuleNet()、addModuleDb、addModuleRedis加载模块，或者通过addModuleAll加载所有模块。
