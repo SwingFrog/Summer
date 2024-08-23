@@ -4,8 +4,13 @@ import com.alibaba.fastjson.JSONObject;
 import com.swingfrog.summer.app.Summer;
 import com.swingfrog.summer.app.SummerApp;
 import com.swingfrog.summer.app.SummerConfig;
+import com.swingfrog.summer.server.SessionContext;
+import com.swingfrog.summer.test.web.model.InterceptResp;
 import com.swingfrog.summer.web.WebMgr;
+import com.swingfrog.summer.web.WebRequest;
+import com.swingfrog.summer.web.response.WebResponseHandler;
 import com.swingfrog.summer.web.token.WebTokenHandler;
+import com.swingfrog.summer.web.view.HtmlView;
 import com.swingfrog.summer.web.view.InteriorViewFactory;
 import com.swingfrog.summer.web.view.JSONView;
 import com.swingfrog.summer.web.view.WebView;
@@ -83,6 +88,16 @@ public class TestWebBootstrap implements SummerApp {
             }
         });
         WebMgr.get().setIndex("TestRemote_hello");
+        WebMgr.get().setWebResponseHandler(new WebResponseHandler() {
+            @Override
+            public WebView getWebView(SessionContext sctx, WebRequest request, WebView webView) {
+                if (webView instanceof InterceptResp) {
+                    InterceptResp interceptResp = (InterceptResp) webView;
+                    return HtmlView.of("msg: " + interceptResp.getMsg());
+                }
+                return webView;
+            }
+        });
 
         // http://127.0.0.1:8080/TestRemote_hello
         // http://127.0.0.1:8080/TestRemote_add?a=1&b=2
@@ -95,6 +110,7 @@ public class TestWebBootstrap implements SummerApp {
         // http://127.0.0.1:8080/TestRemote_getToken
         // http://127.0.0.1:8080/TestRemote_clearToken
         // http://127.0.0.1:8080/TestRemote_getCommonResp
+        // http://127.0.0.1:8080/TestRemote_intercept
     }
 
 }

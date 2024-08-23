@@ -7,6 +7,7 @@ import com.swingfrog.summer.server.SessionContext;
 import com.swingfrog.summer.server.async.AsyncResponse;
 import com.swingfrog.summer.server.handler.RemoteHandler;
 import com.swingfrog.summer.test.web.model.CommonResp;
+import com.swingfrog.summer.test.web.model.InterceptResp;
 import com.swingfrog.summer.test.web.model.TestModel;
 import com.swingfrog.summer.test.web.service.TestService;
 import com.swingfrog.summer.web.WebFileUpload;
@@ -72,6 +73,10 @@ public class TestRemote implements RemoteHandler {
     public TestModel paramPacking(@ParamPacking TestModel testModel, String name) {
         System.out.println(name);
         return testModel;
+    }
+
+    public InterceptResp intercept() {
+        return new InterceptResp("intercept");
     }
 
     public String getToken(SessionContext sctx) {

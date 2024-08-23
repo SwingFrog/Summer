@@ -11,11 +11,13 @@ import com.swingfrog.summer.server.async.ProcessResult;
 import com.swingfrog.summer.statistics.RemoteStatistics;
 import com.swingfrog.summer.struct.AutowireParam;
 import com.swingfrog.summer.util.ForwardedAddressUtil;
+import com.swingfrog.summer.web.response.WebResponseHandler;
 import com.swingfrog.summer.web.token.WebTokenHandler;
 import com.swingfrog.summer.web.view.render.WebViewRender;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
+import io.netty.handler.codec.http.*;
 import io.netty.handler.stream.ChunkedInput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,17 +33,6 @@ import com.swingfrog.summer.server.exception.SessionException;
 import com.swingfrog.summer.web.view.FileView;
 import com.swingfrog.summer.web.view.WebView;
 
-import io.netty.handler.codec.http.DefaultHttpResponse;
-import io.netty.handler.codec.http.HttpContent;
-import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpHeaderValues;
-import io.netty.handler.codec.http.HttpMethod;
-import io.netty.handler.codec.http.HttpObject;
-import io.netty.handler.codec.http.HttpRequest;
-import io.netty.handler.codec.http.HttpResponseStatus;
-import io.netty.handler.codec.http.HttpUtil;
-import io.netty.handler.codec.http.HttpVersion;
-import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.handler.codec.http.multipart.Attribute;
 import io.netty.handler.codec.http.multipart.DefaultHttpDataFactory;
 import io.netty.handler.codec.http.multipart.FileUpload;
@@ -240,22 +231,30 @@ public class WebRequestHandler extends AbstractServerHandler<HttpObject> {
 	}
 
 	public static void write(ServerContext serverContext, Channel channel, SessionContext sctx, WebRequest request, WebView webView) {
+		WebResponseHandler webResponseHandler = WebMgr.get().getWebResponseHandler();
 		try {
-			WebViewRender render = webView.onRender(serverContext, sctx, request);
-			DefaultHttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, 
-					HttpResponseStatus.valueOf(webView.getStatus()));
-			if (HttpUtil.isKeepAlive(request.getHttpRequest())) {
-				response.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
+			if (webResponseHandler != null) {
+				webView = webResponseHandler.getWebView(sctx, request, webView);
 			}
-			response.headers().set(HttpHeaderNames.CONTENT_TYPE, webView.getContentType());
-			response.headers().set(HttpHeaderNames.CONTENT_LENGTH, render.getSize());
-			response.headers().set(HttpHeaderNames.SERVER, Summer.NAME);
-			response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
+			WebViewRender render = webView.onRender(serverContext, sctx, request);
+			HttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
+					HttpResponseStatus.valueOf(webView.getStatus()));
+			HttpHeaders headers = response.headers();
+			if (HttpUtil.isKeepAlive(request.getHttpRequest())) {
+				headers.set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
+			}
+			headers.set(HttpHeaderNames.CONTENT_TYPE, webView.getContentType());
+			headers.set(HttpHeaderNames.CONTENT_LENGTH, render.getSize());
+			headers.set(HttpHeaderNames.SERVER, Summer.NAME);
+			headers.set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
 			if (sctx.getToken() == null) {
-				response.headers().set(HttpHeaderNames.SET_COOKIE, createToken());
+				headers.set(HttpHeaderNames.SET_COOKIE, createToken());
 			}
 			if (webView.getHeaders() != null) {
-				webView.getHeaders().forEach((key, value) -> response.headers().set(key, value));
+				webView.getHeaders().forEach(headers::set);
+			}
+			if (webResponseHandler != null) {
+				response = webResponseHandler.getHttpResponse(sctx, request, webView, response);
 			}
 			channel.write(response);
 			channel.write(render.getData());

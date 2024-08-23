@@ -27,20 +27,18 @@ public class WebRequest extends SessionRequest {
 		int index = currentUri.indexOf("?");
 		if (index > -1) {
 			currentUri = uri.substring(0, index);
-			if (index < uri.length()) {
-				String query = uri.substring(index + 1);
-				if (query.length() > 0) {
-					String[] value = query.split("&");
-					for (String keyValue : value) {
-						if (keyValue.contains("=")) {
-							String[] keyAndValue = keyValue.split("=");
-							if (keyAndValue.length == 2)
-								data.put(keyAndValue[0], keyAndValue[1]);
-						}
-					}
-				}
-			}
-		}
+            String query = uri.substring(index + 1);
+            if (!query.isEmpty()) {
+                String[] value = query.split("&");
+                for (String keyValue : value) {
+                    if (keyValue.contains("=")) {
+                        String[] keyAndValue = keyValue.split("=");
+                        if (keyAndValue.length == 2)
+                            data.put(keyAndValue[0], keyAndValue[1]);
+                    }
+                }
+            }
+        }
 		webRequest.setPath(currentUri);
 		String remoteMethod = currentUri.substring(1);
 		if (RemoteDispatchMgr.get().containsRemoteMethod(remoteMethod)) {
