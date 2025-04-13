@@ -112,7 +112,7 @@ public class AsyncResponseMgr {
             if (data instanceof WebView) {
                 webView = (WebView) data;
             } else {
-                webView = new TextView(JSON.toJSONString(data));
+                webView = WebMgr.get().getInteriorViewFactory().createDefaultView(data);
             }
             log.debug("server async response {} status[{}] from {}", webView, webView.getStatus(), sctx);
             try {
