@@ -3,6 +3,7 @@ package com.swingfrog.summer.web;
 import java.io.File;
 import java.io.IOException;
 
+import com.swingfrog.summer.web.request.WebRequestHandler;
 import com.swingfrog.summer.web.response.WebResponseHandler;
 import com.swingfrog.summer.web.token.WebTokenHandler;
 import org.slf4j.Logger;
@@ -26,6 +27,7 @@ public class WebMgr {
 	private volatile Configuration freeMarkerConfig;
 	private WebTokenHandler webTokenHandler;
 	private WebResponseHandler webResponseHandler;
+	private WebRequestHandler webRequestHandler;
 	
 	private static class SingleCase {
 		public static final WebMgr INSTANCE = new WebMgr();
@@ -119,5 +121,13 @@ public class WebMgr {
 
 	public void setWebResponseHandler(WebResponseHandler webResponseHandler) {
 		this.webResponseHandler = webResponseHandler;
+	}
+
+	public WebRequestHandler getWebRequestHandler() {
+		return webRequestHandler;
+	}
+
+	public void setWebRequestHandler(WebRequestHandler webRequestHandler) {
+		this.webRequestHandler = webRequestHandler;
 	}
 }

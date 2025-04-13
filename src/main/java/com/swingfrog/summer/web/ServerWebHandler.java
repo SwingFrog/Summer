@@ -11,14 +11,13 @@ import com.swingfrog.summer.server.async.ProcessResult;
 import com.swingfrog.summer.statistics.RemoteStatistics;
 import com.swingfrog.summer.struct.AutowireParam;
 import com.swingfrog.summer.util.ForwardedAddressUtil;
+import com.swingfrog.summer.web.request.WebRequestHandler;
 import com.swingfrog.summer.web.response.WebResponseHandler;
 import com.swingfrog.summer.web.token.WebTokenHandler;
 import com.swingfrog.summer.web.view.render.WebViewRender;
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.handler.codec.http.*;
-import io.netty.handler.stream.ChunkedInput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,15 +41,15 @@ import io.netty.handler.codec.http.multipart.InterfaceHttpData;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder.EndOfDataDecoderException;
 import io.netty.handler.codec.http.multipart.InterfaceHttpData.HttpDataType;
 
-public class WebRequestHandler extends AbstractServerHandler<HttpObject> {
+public class ServerWebHandler extends AbstractServerHandler<HttpObject> {
 
-	private static final Logger log = LoggerFactory.getLogger(WebRequestHandler.class);
+	private static final Logger log = LoggerFactory.getLogger(ServerWebHandler.class);
 	private static final HttpDataFactory factory =
             new DefaultHttpDataFactory(DefaultHttpDataFactory.MINSIZE);
 	private HttpRequest httpRequest;
 	private HttpPostRequestDecoder postRequestDecoder;
 	
-	public WebRequestHandler(ServerContext serverContext) {
+	public ServerWebHandler(ServerContext serverContext) {
 		super(serverContext);
 	}
 	
@@ -122,6 +121,10 @@ public class WebRequestHandler extends AbstractServerHandler<HttpObject> {
 	
 	private void doGet(Channel channel, SessionContext sctx) {
 		WebRequest webRequest = getWebRequest();
+		WebRequestHandler webRequestHandler = WebMgr.get().getWebRequestHandler();
+		if (webRequestHandler != null) {
+			webRequest = webRequestHandler.getWebRequest(sctx, webRequest);
+		}
 		if (webRequest.isDynamic()) {
 			doWork(channel, sctx, webRequest);
 		} else {
@@ -157,6 +160,10 @@ public class WebRequestHandler extends AbstractServerHandler<HttpObject> {
 			}
 		} catch (EndOfDataDecoderException ignored) {
 			
+		}
+		WebRequestHandler webRequestHandler = WebMgr.get().getWebRequestHandler();
+		if (webRequestHandler != null) {
+			webRequest = webRequestHandler.getWebRequest(sctx, webRequest);
 		}
 		if (webRequest.isDynamic()) {
 			doWork(channel, sctx, webRequest);

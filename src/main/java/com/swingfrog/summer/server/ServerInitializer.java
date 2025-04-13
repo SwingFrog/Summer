@@ -15,7 +15,7 @@ import com.swingfrog.summer.protocol.websocket.WebSocketEncoder;
 import com.swingfrog.summer.protocol.websocket.WebSocketUriFilter;
 import com.swingfrog.summer.protocol.custom.ProtocolCustomMgr;
 import com.swingfrog.summer.server.exception.NotFoundProtocolException;
-import com.swingfrog.summer.web.WebRequestHandler;
+import com.swingfrog.summer.web.ServerWebHandler;
 
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
@@ -76,7 +76,7 @@ public class ServerInitializer extends ChannelInitializer<SocketChannel> {
                 pipeline.addLast(new HttpServerCodec());
                 pipeline.addLast(new HttpObjectAggregator(config.getMsgLength()));
                 pipeline.addLast(new ChunkedWriteHandler());
-                pipeline.addLast(new WebRequestHandler(serverContext));
+                pipeline.addLast(new ServerWebHandler(serverContext));
                 break;
             case ProtocolConst.SERVER_PROTOCOL_WEB_SOCKET_PROTOBUF:
                 pipeline.addLast(new HttpServerCodec());

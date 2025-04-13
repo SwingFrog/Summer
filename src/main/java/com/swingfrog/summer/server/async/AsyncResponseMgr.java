@@ -17,7 +17,7 @@ import com.swingfrog.summer.server.exception.SessionException;
 import com.swingfrog.summer.statistics.RemoteStatistics;
 import com.swingfrog.summer.web.WebMgr;
 import com.swingfrog.summer.web.WebRequest;
-import com.swingfrog.summer.web.WebRequestHandler;
+import com.swingfrog.summer.web.ServerWebHandler;
 import com.swingfrog.summer.web.view.TextView;
 import com.swingfrog.summer.web.view.WebView;
 import io.netty.channel.Channel;
@@ -106,7 +106,7 @@ public class AsyncResponseMgr {
             if (data == null) {
                 webView = WebMgr.get().getInteriorViewFactory().createBlankView();
                 log.debug("server async response {} status[{}] from {}", webView, webView.getStatus(), sctx);
-                WebRequestHandler.write(serverContext, channel, sctx, (WebRequest) request, webView);
+                ServerWebHandler.write(serverContext, channel, sctx, (WebRequest) request, webView);
                 return;
             }
             if (data instanceof WebView) {
@@ -116,7 +116,7 @@ public class AsyncResponseMgr {
             }
             log.debug("server async response {} status[{}] from {}", webView, webView.getStatus(), sctx);
             try {
-                WebRequestHandler.write(serverContext, channel, sctx, (WebRequest) request, webView);
+                ServerWebHandler.write(serverContext, channel, sctx, (WebRequest) request, webView);
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
             }

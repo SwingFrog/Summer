@@ -8,6 +8,7 @@ import com.swingfrog.summer.server.SessionContext;
 import com.swingfrog.summer.test.web.model.InterceptResp;
 import com.swingfrog.summer.web.WebMgr;
 import com.swingfrog.summer.web.WebRequest;
+import com.swingfrog.summer.web.request.WebRequestHandler;
 import com.swingfrog.summer.web.response.WebResponseHandler;
 import com.swingfrog.summer.web.token.WebTokenHandler;
 import com.swingfrog.summer.web.view.HtmlView;
@@ -98,6 +99,15 @@ public class TestWebBootstrap implements SummerApp {
                 return webView;
             }
         });
+        WebMgr.get().setWebRequestHandler(new WebRequestHandler() {
+            @Override
+            public WebRequest getWebRequest(SessionContext sctx, WebRequest request) {
+                if ("redirect".equals(request.getMethod())) {
+                    request.setMethod("hello");
+                }
+                return request;
+            }
+        });
 
         // http://127.0.0.1:8080/TestRemote_hello
         // http://127.0.0.1:8080/TestRemote_add?a=1&b=2
@@ -111,6 +121,7 @@ public class TestWebBootstrap implements SummerApp {
         // http://127.0.0.1:8080/TestRemote_clearToken
         // http://127.0.0.1:8080/TestRemote_getCommonResp
         // http://127.0.0.1:8080/TestRemote_intercept
+        // http://127.0.0.1:8080/TestRemote_redirect
     }
 
 }
