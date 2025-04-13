@@ -1,5 +1,7 @@
 package com.swingfrog.summer.web.view;
 
+import com.alibaba.fastjson.JSON;
+
 public class InteriorViewFactory {
 
 	public WebView createBlankView() {
@@ -12,6 +14,10 @@ public class InteriorViewFactory {
 	
 	public WebView createErrorView(int status, String msg) {
 		return new ErrorView(status, msg);
+	}
+
+	public WebView createDefaultView(Object data) {
+		return new TextView(JSON.toJSONString(data));
 	}
 	
 }

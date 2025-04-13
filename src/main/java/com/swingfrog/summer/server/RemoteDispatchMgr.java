@@ -15,6 +15,7 @@ import com.swingfrog.summer.server.exception.RemoteRuntimeException;
 import com.swingfrog.summer.server.handler.RemoteHandler;
 import com.swingfrog.summer.struct.AutowireParam;
 import com.swingfrog.summer.util.*;
+import com.swingfrog.summer.web.WebMgr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -224,7 +225,7 @@ public class RemoteDispatchMgr {
 		if (result instanceof WebView) {
 			return new ProcessResult<>(false, (WebView) result);
 		}
-		return new ProcessResult<>(false, new TextView(JSON.toJSONString(result)));
+		return new ProcessResult<>(false, WebMgr.get().getInteriorViewFactory().createDefaultView(result));
 	}
 
 	private Object processParamPacking(Class<?> clazz, JSONObject data) throws IllegalAccessException, InstantiationException {
