@@ -23,7 +23,7 @@ public class RemoteStatistics {
 
     private static final Logger log = LoggerFactory.getLogger(RemoteStatistics.class);
 
-    private static volatile boolean open = true;
+    private static volatile boolean open = false;
     private String exportDir = "statistics";
 
     private final ConcurrentMap<Integer, Req> requestMap = Maps.newConcurrentMap();
@@ -157,6 +157,14 @@ public class RemoteStatistics {
 
     private static RemoteStatistics get() {
         return RemoteStatistics.SingleCase.INSTANCE;
+    }
+
+    public static void open() {
+        open = true;
+    }
+
+    public static void close() {
+        open = false;
     }
 
     public static void shutdown() {

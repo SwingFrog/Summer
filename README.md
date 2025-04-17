@@ -34,6 +34,7 @@
 5. 优化ModelView生成方式，由原来template->heapBuffer->directBuffer改为template->directBuffer，减少了一次内存拷贝。- 2024-08-17
 6. 新增WebResponseHandler，可用于在HttpServer响应前修改WebView或HttpResponse。- 2024-08-23
 7. 将原来的WebRequestHandler更名为ServerWebHandler。新增WebRequestHandler，可用于在HttpServer响应前修改WebRequest。- 2025-04-13
+8. 将RemoteStatistics默认设为关闭状态，通过RemoteStatistics.open手动开启。
 
 ### [1.1.18](https://mvnrepository.com/artifact/com.swingfrog.summer/summer/1.1.18) - 2023-12-15
 1. Summer启动时可选择加载的模块，通过Summer.addModuleNet()、addModuleDb、addModuleRedis加载模块，或者通过addModuleAll加载所有模块。
